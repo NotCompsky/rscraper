@@ -85,28 +85,12 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     curl_easy_setopt(curl, CURLOPT_USERPWD, key_and_secret);
     
     
-    const char* authstr = MEMORY.memory;
-    
-    AUTH_HEADER = (char*)realloc(AUTH_HEADER,  strlen(AUTH_HEADER_PREFIX) + strlen(authstr) + 1);
-    int i;
-    
-    i = 0;
-    
-    memcpy(AUTH_HEADER + i,  AUTH_HEADER_PREFIX,  strlen(AUTH_HEADER_PREFIX));
-    i += strlen(AUTH_HEADER_PREFIX);
-    
-    memcpy(AUTH_HEADER + i,  authstr,  strlen(authstr));
-    i += strlen(authstr);
-    
-    AUTH_HEADER[i] = 0;
-    
-    
     const char* a = "grant_type=password&password=";
     const char* b = "&username=";
     
     char postdata[strlen(a) + strlen(pwd) + strlen(b) + strlen(usr) + 1];
     
-    i = 0;
+    int i = 0;
     
     memcpy(postdata + i,  a,  strlen(a));
     i += strlen(a);
@@ -141,20 +125,22 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     // Result is in format
     // {"access_token": "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX", "token_type": "bearer", "expires_in": 3600, "scope": "*"}
     
-    const char* c = "Authorization: bearer ";
-    char auth_header_str[strlen(c) + strlen(TOKEN_FMT) + 1];
+    AUTH_HEADER = (char*)realloc(AUTH_HEADER,  strlen(AUTH_HEADER_PREFIX) + strlen(TOKEN_FMT) + 1);
     
     i = 0;
-    memcpy(auth_header_str + i,  c,  strlen(c));
-    i += strlen(c);
+    memcpy(AUTH_HEADER + i,  AUTH_HEADER_PREFIX,  strlen(AUTH_HEADER_PREFIX));
+    i += strlen(AUTH_HEADER_PREFIX);
     
-    memcpy(auth_header_str + i,  MEMORY.memory + strlen("{\"access_token\": \""),  strlen(TOKEN_FMT));
+    memcpy(AUTH_HEADER + i,  MEMORY.memory + strlen("{\"access_token\": \""),  strlen(TOKEN_FMT));
     i += strlen(TOKEN_FMT);
     
-    auth_header_str[i] = 0;
+    AUTH_HEADER[i] = 0;
     
     
-    curl_slist_append(HEADERS, auth_header_str);
+    printf("AUTH_HEADER: %s\n", AUTH_HEADER);
+    
+    
+    curl_slist_append(HEADERS, AUTH_HEADER);
 }
 
 int main(const int argc, const char* argv[]){
@@ -180,8 +166,6 @@ int main(const int argc, const char* argv[]){
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, HEADERS);
     
     login(usr, pwd, authstr);
-    
-    curl_slist_append(HEADERS, AUTH_HEADER);
     
     handler(0);
 }
