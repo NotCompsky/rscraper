@@ -125,17 +125,6 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata);
     
-    /*
-    struct curl_slist headers = {};
-    
-    memcpy(&headers,  HEADERS,  sizeof(*HEADERS));
-    
-    char content_length_str[1024];
-    
-    sprintf(content_length_str, "Content-Length: %d", i);
-    curl_slist_append(&headers, content_length_str);
-    */
-    
     
     curl_easy_setopt(curl, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
@@ -143,11 +132,7 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&MEMORY);
     
-    //curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    
     auto rc = curl_easy_perform(curl);
-    
-    //curl_easy_setopt(curl, CURLOPT_HTTPHEADER, HEADERS);
     
     if (rc != CURLE_OK)
         handler(ERR_CURL_PERFORM);
@@ -170,11 +155,6 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     
     
     curl_slist_append(HEADERS, auth_header_str);
-    
-    
-    
-    printf(MEMORY.memory); // TMP
-    printf("AUTH_HEADER:\t%s\n", auth_header_str); // TMP
 }
 
 int main(const int argc, const char* argv[]){
