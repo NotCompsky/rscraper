@@ -1,4 +1,3 @@
-#include <b64/encode.h> // for 
 #include <curl/curl.h>
 #include <stdio.h> // for printf // TMP
 #include <stdlib.h> // for free, malloc, realloc
@@ -9,15 +8,15 @@
 #define ERR_CANNOT_WRITE_RES 3
 #define ERR_CURL_PERFORM 4
 #define ERR_CANNOT_SET_PROXY 5
+#define ERR_CANNOT_SET_BEARER_TOKEN 6
 
 
 const char* USER_AGENT = "rscraper++:0.0.1-dev0 (by /u/Compsky)";
 CURL* curl;
 const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
-const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
 const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
-char* AUTH_HEADER;
 
+char OATH_BEARER_TOKEN[36 + 1]; //[strlen(TOKEN_FMT) + 1];
 
 #ifdef DEBUG
 const char* API_SUBMISSION_URL_PREFIX = "localhost:8000/comments/";
@@ -65,7 +64,6 @@ print_cookies(CURL *curl) // TMP
 
 void handler(int n){
     free(MEMORY.memory);
-    free(AUTH_HEADER);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
     exit(n);
@@ -120,32 +118,13 @@ int request(const char* reqtype, const char* url){
     printf("MEMORY.memory: %s\n", MEMORY.memory); // TMP
 }
 
-const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
-const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
-
 void login(const char* usr, const char* pwd, const char* key_and_secret){
     int i;
     
     curl_easy_setopt(curl, CURLOPT_COOKIEFILE, ""); // Init cookie engine
     
-    
-    base64::encoder base64_encoder;
-    
-    AUTH_HEADER = (char*)realloc(AUTH_HEADER,  strlen(BASIC_AUTH_PREFIX) + strlen(BASIC_AUTH_FMT) + 1);
-    
-    i = 0;
-    
-    memcpy(AUTH_HEADER + i,  BASIC_AUTH_PREFIX,  strlen(BASIC_AUTH_PREFIX));
-    i += strlen(BASIC_AUTH_PREFIX);
-    
-    base64_encoder.encode(key_and_secret,  strlen(key_and_secret),  AUTH_HEADER + i);
-    i += strlen(BASIC_AUTH_FMT);
-    
-    AUTH_HEADER[i] = 0;
-    
-    printf("AUTH_HEADER: %s\n", AUTH_HEADER); // TMP
-    
-    curl_slist_append(HEADERS, AUTH_HEADER);
+    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    curl_easy_setopt(curl, CURLOPT_USERPWD, key_and_secret);
     
     
     const char* a = "grant_type=password&password=";
@@ -171,14 +150,7 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     
     
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata);
-    
-    
-  #ifdef DEBUG
-    curl_easy_setopt(curl, CURLOPT_URL, "localhost:8000/api/v1/access_token");
-  #else
     curl_easy_setopt(curl, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
-  #endif
-    
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
     
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
@@ -193,19 +165,13 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     // Result is in format
     // {"access_token": "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX", "token_type": "bearer", "expires_in": 3600, "scope": "*"}
     
-    AUTH_HEADER = (char*)realloc(AUTH_HEADER,  strlen(AUTH_HEADER_PREFIX) + strlen(TOKEN_FMT) + 1);
+    memcpy(OATH_BEARER_TOKEN,  MEMORY.memory + strlen("{\"access_token\": \""),  strlen(TOKEN_FMT));
+    OATH_BEARER_TOKEN[strlen(TOKEN_FMT)] = 0;
     
-    i = 0;
-    memcpy(AUTH_HEADER + i,  AUTH_HEADER_PREFIX,  strlen(AUTH_HEADER_PREFIX));
-    i += strlen(AUTH_HEADER_PREFIX);
-    
-    memcpy(AUTH_HEADER + i,  MEMORY.memory + strlen("{\"access_token\": \""),  strlen(TOKEN_FMT));
-    i += strlen(TOKEN_FMT);
-    
-    AUTH_HEADER[i] = 0;
-    
-    
-    curl_slist_append(HEADERS, AUTH_HEADER);
+    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER); // Requires libcurl >= 7.61.0
+    if (curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, "1ab9cb22ba269a7") != CURLE_OK)
+        handler(ERR_CANNOT_SET_BEARER_TOKEN);
+    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
     
     MEMORY.size = 0; // No longer need contents of request
 }
@@ -256,7 +222,6 @@ void process_submission(const char* url){
 
 int main(const int argc, const char* argv[]){
     MEMORY.memory = (char*)malloc(0);
-    AUTH_HEADER = (char*)malloc(0);
     
     int i = 0;
     
@@ -277,8 +242,8 @@ int main(const int argc, const char* argv[]){
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, HEADERS);
     
     login(usr, pwd, authstr);
-    printf("AUTH_HEADER: %s\n", AUTH_HEADER);
     print_cookies(curl); // TMP
+    printf("OATH_BEARER_TOKEN: %s\n", OATH_BEARER_TOKEN); // TMP
     
 /*
   #ifdef DEBUG
