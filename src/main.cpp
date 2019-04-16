@@ -1,19 +1,29 @@
+#include <b64/encode.h> // for 
 #include <curl/curl.h>
 #include <stdio.h> // for printf // TMP
 #include <stdlib.h> // for free, malloc, realloc
 #include <string.h> // for memcpy
+#include <unistd.h> // for sleep
 
 #define ERR_CANNOT_INIT_CURL 2
 #define ERR_CANNOT_WRITE_RES 3
 #define ERR_CURL_PERFORM 4
+#define ERR_CANNOT_SET_PROXY 5
 
 
-const char* USER_AGENT = "rscraper++ 0.0.1-dev0";
+const char* USER_AGENT = "rscraper++:0.0.1-dev0 (by /u/Compsky)";
 CURL* curl;
 const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
 const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
 const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
 char* AUTH_HEADER;
+
+
+#ifdef DEBUG
+const char* API_SUBMISSION_URL_PREFIX = "localhost:8000/comments/";
+#else
+const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
+#endif
 
 
 struct curl_slist* HEADERS;
@@ -24,6 +34,34 @@ struct MemoryStruct {
 };
 
 struct MemoryStruct MEMORY;
+
+static void
+print_cookies(CURL *curl) // TMP
+{
+  CURLcode res;
+  struct curl_slist *cookies;
+  struct curl_slist *nc;
+  int i;
+ 
+  printf("Cookies, curl knows:\n");
+  res = curl_easy_getinfo(curl, CURLINFO_COOKIELIST, &cookies);
+  if(res != CURLE_OK) {
+    fprintf(stderr, "Curl curl_easy_getinfo failed: %s\n",
+            curl_easy_strerror(res));
+    exit(1);
+  }
+  nc = cookies;
+  i = 1;
+  while(nc) {
+    printf("[%d]: %s\n", i, nc->data);
+    nc = nc->next;
+    i++;
+  }
+  if(i == 1) {
+    printf("(none)\n");
+  }
+  curl_slist_free_all(cookies);
+}
 
 void handler(int n){
     free(MEMORY.memory);
@@ -50,10 +88,10 @@ size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
 }
 
 
-int request(const char* reqtype, const char* base_url){
+int request(const char* reqtype, const char* url){
     // Writes response contents to MEMORY
     
-    
+    /*
     char url[strlen(base_url) + strlen(PARAMS) + 1];
     int i;
     
@@ -65,7 +103,9 @@ int request(const char* reqtype, const char* base_url){
     i += strlen(PARAMS);
     
     url[i++] = 0;
+    */
     
+    printf("%s %s\n", reqtype, url);
     
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, reqtype);
@@ -77,12 +117,35 @@ int request(const char* reqtype, const char* base_url){
     if (curl_easy_perform(curl) != CURLE_OK)
         handler(ERR_CURL_PERFORM);
     
-    printf(MEMORY.memory); // tmp
+    printf("MEMORY.memory: %s\n", MEMORY.memory); // TMP
 }
 
+const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
+const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
+
 void login(const char* usr, const char* pwd, const char* key_and_secret){
-    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, long CURLAUTH_BASIC);
-    curl_easy_setopt(curl, CURLOPT_USERPWD, key_and_secret);
+    int i;
+    
+    curl_easy_setopt(curl, CURLOPT_COOKIEFILE, ""); // Init cookie engine
+    
+    
+    base64::encoder base64_encoder;
+    
+    AUTH_HEADER = (char*)realloc(AUTH_HEADER,  strlen(BASIC_AUTH_PREFIX) + strlen(BASIC_AUTH_FMT) + 1);
+    
+    i = 0;
+    
+    memcpy(AUTH_HEADER + i,  BASIC_AUTH_PREFIX,  strlen(BASIC_AUTH_PREFIX));
+    i += strlen(BASIC_AUTH_PREFIX);
+    
+    base64_encoder.encode(key_and_secret,  strlen(key_and_secret),  AUTH_HEADER + i);
+    i += strlen(BASIC_AUTH_FMT);
+    
+    AUTH_HEADER[i] = 0;
+    
+    printf("AUTH_HEADER: %s\n", AUTH_HEADER); // TMP
+    
+    curl_slist_append(HEADERS, AUTH_HEADER);
     
     
     const char* a = "grant_type=password&password=";
@@ -90,7 +153,7 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     
     char postdata[strlen(a) + strlen(pwd) + strlen(b) + strlen(usr) + 1];
     
-    int i = 0;
+    i = 0;
     
     memcpy(postdata + i,  a,  strlen(a));
     i += strlen(a);
@@ -110,7 +173,12 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata);
     
     
+  #ifdef DEBUG
+    curl_easy_setopt(curl, CURLOPT_URL, "localhost:8000/api/v1/access_token");
+  #else
     curl_easy_setopt(curl, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
+  #endif
+    
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
     
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
@@ -137,21 +205,64 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     AUTH_HEADER[i] = 0;
     
     
-    printf("AUTH_HEADER: %s\n", AUTH_HEADER);
-    
-    
     curl_slist_append(HEADERS, AUTH_HEADER);
+    
+    MEMORY.size = 0; // No longer need contents of request
+}
+
+const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
+
+int slashindx(const char* str){
+    int i = 0;
+    while (str[i] != '/')
+        ++i;
+    return i;
+}
+
+void process_submission(const char* url){
+    int i = strlen(SUBMISSION_URL_PREFIX);
+    
+    const int subreddit_len = slashindx(url + i);
+    char subreddit[subreddit_len + 1];
+    memcpy(subreddit,  url + strlen(SUBMISSION_URL_PREFIX),  subreddit_len);
+    subreddit[subreddit_len] = 0;
+    i += subreddit_len + 1;
+    i += slashindx(url + i) + 1; // Skip the /comments/ section
+    
+    const int submission_id_len = slashindx(url + i);
+    char submission_id[submission_id_len + 1];
+    memcpy(submission_id,  url + i,  submission_id_len);
+    submission_id[submission_id_len] = 0;
+    i += submission_id_len + 1;
+    
+    
+    const char* params = "?limit=2048&sort=best&raw_json=1";
+    const int params_len = strlen(params);
+    
+    
+    char api_url[strlen(API_SUBMISSION_URL_PREFIX) + submission_id_len + 1 + params_len + 1];
+    int api_url_indx = 0;
+    memcpy(api_url + api_url_indx,  API_SUBMISSION_URL_PREFIX,  strlen(API_SUBMISSION_URL_PREFIX));
+    api_url_indx += strlen(API_SUBMISSION_URL_PREFIX);
+    memcpy(api_url + api_url_indx,  submission_id,  submission_id_len);
+    api_url_indx += submission_id_len;
+    api_url[api_url_indx++] = '/';
+    memcpy(api_url + api_url_indx,  params,  params_len);
+    api_url_indx += params_len;
+    api_url[api_url_indx] = 0;
+    
+    request("GET", api_url);
 }
 
 int main(const int argc, const char* argv[]){
     MEMORY.memory = (char*)malloc(0);
     AUTH_HEADER = (char*)malloc(0);
     
-    int i;
+    int i = 0;
     
-    const char* usr = argv[1];
-    const char* pwd = argv[2];
-    const char* authstr = argv[3];
+    const char* usr = argv[++i];
+    const char* pwd = argv[++i];
+    const char* authstr = argv[++i];
     
     
     curl_global_init(CURL_GLOBAL_ALL);
@@ -166,6 +277,21 @@ int main(const int argc, const char* argv[]){
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, HEADERS);
     
     login(usr, pwd, authstr);
+    printf("AUTH_HEADER: %s\n", AUTH_HEADER);
+    print_cookies(curl); // TMP
+    
+/*
+  #ifdef DEBUG
+    if (curl_easy_setopt(curl, CURLOPT_PROXY, "localhost:8000") != CURLE_OK)
+        return ERR_CANNOT_SET_PROXY;
+  #endif
+*/
+    
+    while (++i < argc){
+        sleep(2);
+        process_submission(argv[i]);
+        print_cookies(curl); // TMP
+    }
     
     handler(0);
 }
