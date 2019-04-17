@@ -108,9 +108,6 @@ int request(const char* reqtype, const char* url){
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, reqtype);
     
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&MEMORY);
-    
     
     if (curl_easy_perform(curl) != CURLE_OK)
         handler(ERR_CURL_PERFORM);
@@ -121,10 +118,31 @@ int request(const char* reqtype, const char* url){
 void login(const char* usr, const char* pwd, const char* key_and_secret){
     int i;
     
-    curl_easy_setopt(curl, CURLOPT_COOKIEFILE, ""); // Init cookie engine
     
-    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-    curl_easy_setopt(curl, CURLOPT_USERPWD, key_and_secret);
+    // TODO: Copy cookies to global curl object?
+    
+    
+    /* Need a seperate curl object for first request, as it uses different authentification */
+    CURL* curl_local = curl_easy_init();
+    if (!curl_local)
+        handler(ERR_CANNOT_INIT_CURL);
+    
+    curl_easy_setopt(curl_local, CURLOPT_USERAGENT, USER_AGENT);
+    
+    
+    /*
+    struct curl_slist* headers;
+    
+    curl_slist_append(headers, "Accept-Encoding: gzip, deflate");
+    curl_slist_append(headers, "Accept: **");
+    curl_easy_setopt(curl_local, CURLOPT_HTTPHEADER, headers);
+    */
+    
+    
+    curl_easy_setopt(curl_local, CURLOPT_COOKIEFILE, ""); // Init cookie engine
+    
+    curl_easy_setopt(curl_local, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    curl_easy_setopt(curl_local, CURLOPT_USERPWD, key_and_secret);
     
     
     const char* a = "grant_type=password&password=";
@@ -149,14 +167,21 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     postdata[i] = 0;
     
     
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata);
-    curl_easy_setopt(curl, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_easy_setopt(curl_local, CURLOPT_POSTFIELDS, postdata);
     
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&MEMORY);
     
-    auto rc = curl_easy_perform(curl);
+  #ifdef DEBUG
+    curl_easy_setopt(curl_local, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
+  #else
+    curl_easy_setopt(curl_local, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
+  #endif
+    
+    curl_easy_setopt(curl_local, CURLOPT_CUSTOMREQUEST, "POST");
+    
+    curl_easy_setopt(curl_local, CURLOPT_WRITEFUNCTION, write_res_to_mem);
+    curl_easy_setopt(curl_local, CURLOPT_WRITEDATA, (void *)&MEMORY);
+    
+    auto rc = curl_easy_perform(curl_local);
     
     if (rc != CURLE_OK)
         handler(ERR_CURL_PERFORM);
@@ -168,12 +193,10 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     memcpy(OATH_BEARER_TOKEN,  MEMORY.memory + strlen("{\"access_token\": \""),  strlen(TOKEN_FMT));
     OATH_BEARER_TOKEN[strlen(TOKEN_FMT)] = 0;
     
-    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER); // Requires libcurl >= 7.61.0
-    if (curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, "1ab9cb22ba269a7") != CURLE_OK)
-        handler(ERR_CANNOT_SET_BEARER_TOKEN);
-    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
-    
     MEMORY.size = 0; // No longer need contents of request
+    
+    
+    print_cookies(curl_local); // TMP
 }
 
 const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
@@ -230,18 +253,27 @@ int main(const int argc, const char* argv[]){
     const char* authstr = argv[++i];
     
     
+    login(usr, pwd, authstr);
+    
+    
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
     if (!curl)
         handler(ERR_CANNOT_INIT_CURL);
     
     curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&MEMORY);
     
     curl_slist_append(HEADERS, "Accept-Encoding: gzip, deflate");
     curl_slist_append(HEADERS, "Accept: */*");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, HEADERS);
     
-    login(usr, pwd, authstr);
+    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
+    curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, OATH_BEARER_TOKEN);
+    curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
+    
+    
     print_cookies(curl); // TMP
     printf("OATH_BEARER_TOKEN: %s\n", OATH_BEARER_TOKEN); // TMP
     
