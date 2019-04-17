@@ -29,34 +29,6 @@ struct MemoryStruct {
 
 struct MemoryStruct MEMORY;
 
-static void
-print_cookies(CURL *curl) // TMP
-{
-  CURLcode res;
-  struct curl_slist *cookies;
-  struct curl_slist *nc;
-  int i;
- 
-  printf("Cookies, curl knows:\n");
-  res = curl_easy_getinfo(curl, CURLINFO_COOKIELIST, &cookies);
-  if(res != CURLE_OK) {
-    fprintf(stderr, "Curl curl_easy_getinfo failed: %s\n",
-            curl_easy_strerror(res));
-    exit(1);
-  }
-  nc = cookies;
-  i = 1;
-  while(nc) {
-    printf("[%d]: %s\n", i, nc->data);
-    nc = nc->next;
-    i++;
-  }
-  if(i == 1) {
-    printf("(none)\n");
-  }
-  curl_slist_free_all(cookies);
-}
-
 void handler(int n){
     free(MEMORY.memory);
     free(AUTH_HEADER);
@@ -120,7 +92,7 @@ const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------
 void login(const char* usr, const char* pwd, const char* key_and_secret){
     int i;
     
-    curl_easy_setopt(curl, CURLOPT_COOKIEFILE, ""); // Init cookie engine
+    // TODO: Necessary to copy cookies to global curl object?
     
     
     base64::encoder base64_encoder;
@@ -266,12 +238,10 @@ int main(const int argc, const char* argv[]){
     
     login(usr, pwd, authstr);
     printf("AUTH_HEADER: %s\n", AUTH_HEADER);
-    print_cookies(curl); // TMP
     
     while (++i < argc){
         sleep(2);
         process_submission(argv[i]);
-        print_cookies(curl); // TMP
     }
     
     handler(0);
