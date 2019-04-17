@@ -10,6 +10,8 @@
 #define ERR_CURL_PERFORM 4
 #define ERR_CANNOT_SET_PROXY 5
 
+#define REDDIT_REQUEST_DELAY 1
+
 
 const char* USER_AGENT = "rscraper++:0.0.1-dev0 (by /u/Compsky)";
 CURL* curl;
@@ -240,7 +242,7 @@ int main(const int argc, const char* argv[]){
     printf("AUTH_HEADER: %s\n", AUTH_HEADER);
     
     while (++i < argc){
-        sleep(2);
+        sleep(REDDIT_REQUEST_DELAY);
         process_submission(argv[i]);
     }
     
