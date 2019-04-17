@@ -17,13 +17,7 @@ const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
 const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
 const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
 char* AUTH_HEADER;
-
-
-#ifdef DEBUG
-const char* API_SUBMISSION_URL_PREFIX = "localhost:8000/comments/";
-#else
 const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
-#endif
 
 
 struct curl_slist* HEADERS;
@@ -145,7 +139,9 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     
     printf("AUTH_HEADER: %s\n", AUTH_HEADER); // TMP
     
-    curl_slist_append(HEADERS, AUTH_HEADER);
+    struct curl_slist* headers;
+    headers = curl_slist_append(headers, AUTH_HEADER);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     
     
     const char* a = "grant_type=password&password=";
@@ -172,12 +168,7 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata);
     
-    
-  #ifdef DEBUG
-    curl_easy_setopt(curl, CURLOPT_URL, "localhost:8000/api/v1/access_token");
-  #else
     curl_easy_setopt(curl, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
-  #endif
     
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
     
@@ -205,7 +196,8 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     AUTH_HEADER[i] = 0;
     
     
-    curl_slist_append(HEADERS, AUTH_HEADER);
+    HEADERS = curl_slist_append(HEADERS, AUTH_HEADER);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, HEADERS);
     
     MEMORY.size = 0; // No longer need contents of request
 }
@@ -272,20 +264,9 @@ int main(const int argc, const char* argv[]){
     
     curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     
-    curl_slist_append(HEADERS, "Accept-Encoding: gzip, deflate");
-    curl_slist_append(HEADERS, "Accept: */*");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, HEADERS);
-    
     login(usr, pwd, authstr);
     printf("AUTH_HEADER: %s\n", AUTH_HEADER);
     print_cookies(curl); // TMP
-    
-/*
-  #ifdef DEBUG
-    if (curl_easy_setopt(curl, CURLOPT_PROXY, "localhost:8000") != CURLE_OK)
-        return ERR_CANNOT_SET_PROXY;
-  #endif
-*/
     
     while (++i < argc){
         sleep(2);
