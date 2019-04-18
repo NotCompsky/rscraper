@@ -1,5 +1,7 @@
 #include <b64/encode.h> // for 
 #include <curl/curl.h>
+#include <rapidjson/document.h> // for rapidjson::Document
+#include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
 #include <stdio.h> // for printf // TMP
 #include <stdlib.h> // for free, malloc, realloc
 #include <string.h> // for memcpy
@@ -9,9 +11,18 @@
 #define ERR_CANNOT_WRITE_RES 3
 #define ERR_CURL_PERFORM 4
 #define ERR_CANNOT_SET_PROXY 5
+#define ERR_INVALID_PJ 6
 
 #define REDDIT_REQUEST_DELAY 1
 
+
+#ifdef DEBUG
+  #define SET_DBG_STR(a, b) const char* a = b; printf(#a ":\t%s\n", b);
+  #define SET_DBG_INT(a, b) const int a = b; printf(#a ":\t%d\n", b);
+#else
+  #define SET_DBG_STR(a, b) const char* a = b;
+  #define SET_DBG_INT(a, b) const int a = b;
+#endif
 
 const char* USER_AGENT = "rscraper++:0.0.1-dev0 (by /u/Compsky)";
 CURL* curl;
@@ -73,8 +84,6 @@ int request(const char* reqtype, const char* url){
     url[i++] = 0;
     */
     
-    printf("%s %s\n", reqtype, url);
-    
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, reqtype);
     
@@ -84,8 +93,6 @@ int request(const char* reqtype, const char* url){
     
     if (curl_easy_perform(curl) != CURLE_OK)
         handler(ERR_CURL_PERFORM);
-    
-    printf("MEMORY.memory: %s\n", MEMORY.memory); // TMP
 }
 
 const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
@@ -110,8 +117,6 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     i += strlen(BASIC_AUTH_FMT);
     
     AUTH_HEADER[i] = 0;
-    
-    printf("AUTH_HEADER: %s\n", AUTH_HEADER); // TMP
     
     struct curl_slist* headers;
     headers = curl_slist_append(headers, AUTH_HEADER);
@@ -218,6 +223,29 @@ void process_submission(const char* url){
     api_url[api_url_indx] = 0;
     
     request("GET", api_url);
+    
+    printf("%s\n", MEMORY.memory);
+    
+    
+    
+    rapidjson::Document d;
+    if (d.Parse(MEMORY.memory).HasParseError())
+        handler(ERR_INVALID_PJ);
+    
+    SET_DBG_STR(kind_1, d[0]["data"]["children"][0]["kind"].GetString())
+    if (kind_1[0] == 't'  &&  kind_1[1] == '3'  &&  kind_1[2] == 0);
+    else
+        return;
+    
+    SET_DBG_STR(title, d[0]["data"]["children"][0]["data"]["title"].GetString())
+    //const char* title = d[0]["data"]["children"][0]["data"]["title"].GetString();
+    
+    SET_DBG_STR(author_id, d[0]["data"]["children"][0]["data"]["author_fullname"].GetString()) // t2_<ID>
+    SET_DBG_STR(author, d[0]["data"]["children"][0]["data"]["author"].GetString())
+    SET_DBG_INT(score, d[0]["data"]["children"][0]["data"]["score"].GetInt())
+   // const time_t created_at = d[0]["data"]["children"][0]["data"]["created"].GetInt64();
+    SET_DBG_STR(link_domain, d[0]["data"]["children"][0]["data"]["domain"].GetString())
+    SET_DBG_STR(link_url, d[0]["data"]["children"][0]["data"]["url"].GetString())
 }
 
 int main(const int argc, const char* argv[]){
@@ -239,7 +267,6 @@ int main(const int argc, const char* argv[]){
     curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     
     login(usr, pwd, authstr);
-    printf("AUTH_HEADER: %s\n", AUTH_HEADER);
     
     while (++i < argc){
         sleep(REDDIT_REQUEST_DELAY);

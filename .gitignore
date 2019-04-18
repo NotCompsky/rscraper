@@ -1,2 +1,4 @@
 _runs
 build/*
+man/*
+src/json.cpp
