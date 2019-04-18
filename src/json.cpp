@@ -8,6 +8,29 @@
 #define SET_DBG_INT(a, b) const int a = b; printf(#a ":\t%d\n", b);
 
 
+void printf_indent(const int n){
+    for (auto i = 0;  i < n;  ++i)
+        printf("\t");
+}
+
+void print_all_json_values(rapidjson::Value& val, rapidjson::Value::AllocatorType& allocator, int depth){
+    if (val.IsObject())
+        for (rapidjson::Value::MemberIterator itr = val.MemberBegin();  itr != val.MemberEnd();  ++itr)
+            print_all_json_values(itr->value, allocator, depth+1);
+    else if (val.IsArray())
+        for (rapidjson::Value::ValueIterator itr = val.Begin();  itr != val.End();  ++itr)
+            print_all_json_values(*itr, allocator, depth+1);
+    else if (val.IsString()){
+        printf_indent(depth);
+        printf("%s\n", val.GetString());
+    }
+    else if (val.IsInt()){
+        printf_indent(depth);
+        printf("%d\n", val.GetInt());
+    }
+}
+
+
 int main(const int argc, const char* argv[]){
     FILE* f = fopen("/tmp/b", "r");
     char buf[19980];
@@ -17,7 +40,6 @@ int main(const int argc, const char* argv[]){
         return 1;
     
     SET_DBG_STR(title, d[0]["data"]["children"][0]["data"]["title"].GetString())
-    //const char* title = d[0]["data"]["children"][0]["data"]["title"].GetString();
     
     SET_DBG_STR(author_id, d[0]["data"]["children"][0]["data"]["author_fullname"].GetString()); // t2_<ID>
     SET_DBG_STR(author, d[0]["data"]["children"][0]["data"]["author"].GetString());
@@ -26,15 +48,5 @@ int main(const int argc, const char* argv[]){
     SET_DBG_STR(link_domain, d[0]["data"]["children"][0]["data"]["domain"].GetString());
     SET_DBG_STR(link_url, d[0]["data"]["children"][0]["data"]["url"].GetString());
     
-    //printf("d[0][\"kind\"] = %s\n", d[0]["kind"].GetString());
-    
-    
-    rapidjson::Value* cmts = &d[1]["data"]["children"];
-    rapidjson::Value* cmt;
-    printf("cmts->Size():\t%d\n", cmts->Size());
-    while (true){
-        for (auto i = 0;  i < cmts->Size();  ++i){
-            cmt = &cmts[i];
-        }
-    }
+    print_all_json_values(d, d.GetAllocator(), 0);
 }
