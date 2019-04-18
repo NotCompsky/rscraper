@@ -1,4 +1,6 @@
 _runs
 build/*
 man/*
-
+src/ignore_fields.c
+submission_ignore_field.c
+j
