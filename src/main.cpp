@@ -7,6 +7,8 @@
 #include <string.h> // for memcpy
 #include <unistd.h> // for sleep
 
+#include "rapidjson_utils.h" // for SET_DBG_* macros
+
 #define ERR_CANNOT_INIT_CURL 2
 #define ERR_CANNOT_WRITE_RES 3
 #define ERR_CURL_PERFORM 4
@@ -16,21 +18,15 @@
 #define REDDIT_REQUEST_DELAY 1
 
 
-#ifdef DEBUG
-  #define SET_DBG_STR(a, b) const char* a = b; printf(#a ":\t%s\n", b);
-  #define SET_DBG_INT(a, b) const int a = b; printf(#a ":\t%d\n", b);
-#else
-  #define SET_DBG_STR(a, b) const char* a = b;
-  #define SET_DBG_INT(a, b) const int a = b;
-#endif
-
 const char* USER_AGENT = "rscraper++:0.0.1-dev0 (by /u/Compsky)";
 CURL* curl;
 const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
+const int PARAMS_LEN = strlen(PARAMS);
 const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
 const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
 char* AUTH_HEADER;
 const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
+const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
 
 
 struct curl_slist* HEADERS;
@@ -190,6 +186,31 @@ int slashindx(const char* str){
     return i;
 }
 
+
+void process_submission_duplicates(const char* submission_id, const int submission_id_len){
+    int i = 0;
+    char api_url[strlen(API_DUPLICATES_URL_PREFIX) + submission_id_len + 1 + PARAMS_LEN + 1];
+    
+    memcpy(api_url + i,  API_DUPLICATES_URL_PREFIX,  strlen(API_DUPLICATES_URL_PREFIX));
+    i += strlen(API_DUPLICATES_URL_PREFIX);
+    
+    memcpy(api_url + i,  submission_id,  submission_id_len);
+    i += submission_id_len;
+    
+    api_url[i++] = '/';
+    
+    // We only need "?limit=1000&raw_json=1", but the additional parameter "&sort=best" has no effect
+    memcpy(api_url + i,  PARAMS,  PARAMS_LEN);
+    i += PARAMS_LEN;
+    
+    api_url[i] = 0;
+    
+    
+    request("GET", api_url);
+    
+    printf("%s\n", MEMORY.memory);
+}
+
 void process_submission(const char* url){
     int i = strlen(SUBMISSION_URL_PREFIX);
     
@@ -207,45 +228,29 @@ void process_submission(const char* url){
     i += submission_id_len + 1;
     
     
-    const char* params = "?limit=2048&sort=best&raw_json=1";
-    const int params_len = strlen(params);
-    
-    
-    char api_url[strlen(API_SUBMISSION_URL_PREFIX) + submission_id_len + 1 + params_len + 1];
+    char api_url[strlen(API_SUBMISSION_URL_PREFIX) + submission_id_len + 1 + PARAMS_LEN + 1];
     int api_url_indx = 0;
     memcpy(api_url + api_url_indx,  API_SUBMISSION_URL_PREFIX,  strlen(API_SUBMISSION_URL_PREFIX));
     api_url_indx += strlen(API_SUBMISSION_URL_PREFIX);
     memcpy(api_url + api_url_indx,  submission_id,  submission_id_len);
     api_url_indx += submission_id_len;
     api_url[api_url_indx++] = '/';
-    memcpy(api_url + api_url_indx,  params,  params_len);
-    api_url_indx += params_len;
+    memcpy(api_url + api_url_indx,  PARAMS,  PARAMS_LEN);
+    api_url_indx += PARAMS_LEN;
     api_url[api_url_indx] = 0;
     
     request("GET", api_url);
-    
-    printf("%s\n", MEMORY.memory);
-    
     
     
     rapidjson::Document d;
     if (d.Parse(MEMORY.memory).HasParseError())
         handler(ERR_INVALID_PJ);
     
-    SET_DBG_STR(kind_1, d[0]["data"]["children"][0]["kind"].GetString())
-    if (kind_1[0] == 't'  &&  kind_1[1] == '3'  &&  kind_1[2] == 0);
-    else
-        return;
+    SET_DBG_STR(id,             d[0]["data"]["children"][0]["data"]["id"])
+    id += 3; // Ignore prefix "t3_"
     
-    SET_DBG_STR(title, d[0]["data"]["children"][0]["data"]["title"].GetString())
-    //const char* title = d[0]["data"]["children"][0]["data"]["title"].GetString();
     
-    SET_DBG_STR(author_id, d[0]["data"]["children"][0]["data"]["author_fullname"].GetString()) // t2_<ID>
-    SET_DBG_STR(author, d[0]["data"]["children"][0]["data"]["author"].GetString())
-    SET_DBG_INT(score, d[0]["data"]["children"][0]["data"]["score"].GetInt())
-   // const time_t created_at = d[0]["data"]["children"][0]["data"]["created"].GetInt64();
-    SET_DBG_STR(link_domain, d[0]["data"]["children"][0]["data"]["domain"].GetString())
-    SET_DBG_STR(link_url, d[0]["data"]["children"][0]["data"]["url"].GetString())
+    process_submission_duplicates(id, strlen(id));
 }
 
 int main(const int argc, const char* argv[]){
