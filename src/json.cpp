@@ -7,8 +7,10 @@
 
 #define REDDIT_REQUEST_DELAY 1
 
-#define SET_DBG_STR(a, b) const char* a = b; printf(#a ":\t%s\n", b);
-#define SET_DBG_INT(a, b) const int a = b; printf(#a ":\t%d\n", b);
+#define SET_DBG_STR(a, b)  const char* a = b.GetString(); printf(#a ":\t%s\n", b.GetString());
+#define SET_DBG_INT(a, b)  const int   a = b.GetInt();    printf(#a ":\t%d\n", b.GetInt());
+#define SET_DBG_FLT(a, b)  const float a = b.GetFloat();  printf(#a ":\t%f\n", b.GetFloat());
+#define SET_DBG_BOOL(a, b) const bool  a = b.GetBool();   printf(#a ":\t%s\n", b.GetBool() ? "true" : "false");
 
 
 void printf_indent(const int n){
@@ -29,12 +31,76 @@ void print_all_json_values(const char* name, rapidjson::Value& val, rapidjson::V
             print_all_json_values("[]", *itr, allocator, depth+1);
     else if (val.IsString()){
         printf_indent(depth);
-        printf("%s\n", val.GetString());
+        printf("String %s\n", val.GetString());
     }
     else if (val.IsInt()){
         printf_indent(depth);
-        printf("%d\n", val.GetInt());
+        printf("Int    %d\n", val.GetInt());
     }
+    else if (val.IsInt64()){
+        printf_indent(depth);
+        printf("Int64  %ld\n", val.GetInt64());
+    }
+    else if (val.IsUint()){
+        printf_indent(depth);
+        printf("Uint   %u\n", val.GetUint());
+    }
+    else if (val.IsUint64()){
+        printf_indent(depth);
+        printf("Uint64 %lu\n", val.GetUint64());
+    }
+    else if (val.IsFloat()){
+        printf_indent(depth);
+        printf("Float  %f\n", val.GetFloat());
+    }
+    else if (val.IsDouble()){
+        printf_indent(depth);
+        printf("Double %lf\n", val.GetDouble());
+    }
+    else if (val.IsBool()){
+        printf_indent(depth);
+        printf("Bool   %s\n", val.GetBool() ? "true" : "false");
+    }
+    else if (val.IsNull()){
+        printf_indent(depth);
+        printf("Null\n");
+    }
+    else
+        printf("!!! UNKNOWN TYPE !!!\n");
+}
+
+void iter_over_cmnt(rapidjson::Value& cmnt, rapidjson::Value::AllocatorType& allocator, int reply_depth);
+
+void iter_over_replies(rapidjson::Value& replies, rapidjson::Value::AllocatorType& allocator, int reply_depth){
+    /*
+    'replies' object is the 'replies' JSON object which has property 'kind' of value 'Listing'
+    */
+    for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr)
+        iter_over_cmnt(*itr, allocator, reply_depth);
+}
+
+void iter_over_cmnt(rapidjson::Value& cmnt, rapidjson::Value::AllocatorType& allocator, int reply_depth){
+    SET_DBG_STR(id,             cmnt["data"]["id"])
+    // No "t1_" prefix
+    SET_DBG_STR(parent_id,      cmnt["data"]["parent_id"])
+    parent_id += 3; // Skip "t3_" or "t1_" prefix - we can use 'depth' attribute to see if it is a root comment or not
+    
+    SET_DBG_FLT(created_at,     cmnt["data"]["created_utc"])
+    
+    SET_DBG_STR(author_id,      cmnt["data"]["author_fullname"])
+    author_id += 3; // Skip "t2_" prefix
+    SET_DBG_STR(author,         cmnt["data"]["author"])
+    
+    SET_DBG_INT(depth,          cmnt["data"]["depth"])
+    
+    SET_DBG_STR(body,           cmnt["data"]["body"])
+    
+    if (!cmnt["data"]["replies"].IsObject())
+        return;
+    
+    iter_over_replies(cmnt["data"]["replies"], allocator, reply_depth+1);
+    
+    // "CREATED" placeholder for cmnt["data"]["created"].GetString()
 }
 
 
@@ -46,14 +112,38 @@ int main(const int argc, const char* argv[]){
     if (d.Parse(buf).HasParseError())
         return 1;
     
-    SET_DBG_STR(title, d[0]["data"]["children"][0]["data"]["title"].GetString())
+    SET_DBG_STR(id,             d[0]["data"]["children"][0]["data"]["id"])
+    id += 3; // Ignore prefix "t3_"
     
-    SET_DBG_STR(author_id, d[0]["data"]["children"][0]["data"]["author_fullname"].GetString()); // t2_<ID>
-    SET_DBG_STR(author, d[0]["data"]["children"][0]["data"]["author"].GetString());
-    SET_DBG_INT(score, d[0]["data"]["children"][0]["data"]["score"].GetInt());
+    SET_DBG_FLT(created_at,     d[0]["data"]["children"][0]["data"]["created"])
+    
+    SET_DBG_STR(title,          d[0]["data"]["children"][0]["data"]["title"])
+    
+    SET_DBG_STR(author_id,      d[0]["data"]["children"][0]["data"]["author_fullname"]) // t2_<ID>
+    SET_DBG_STR(author,         d[0]["data"]["children"][0]["data"]["author"])
+    
+    SET_DBG_INT(score,          d[0]["data"]["children"][0]["data"]["score"])
+    SET_DBG_FLT(upvote_ratio,   d[0]["data"]["children"][0]["data"]["upvote_ratio"])
+    
+    SET_DBG_INT(n_comments,     d[0]["data"]["children"][0]["data"]["num_comments"])
+    
    // const time_t created_at = d[0]["data"]["children"][0]["data"]["created"].GetInt64();
-    SET_DBG_STR(link_domain, d[0]["data"]["children"][0]["data"]["domain"].GetString());
-    SET_DBG_STR(link_url, d[0]["data"]["children"][0]["data"]["url"].GetString());
+    SET_DBG_STR(link_domain,    d[0]["data"]["children"][0]["data"]["domain"])
+    SET_DBG_STR(link_url,       d[0]["data"]["children"][0]["data"]["url"])
     
-    print_all_json_values("d", d, d.GetAllocator(), 1);
+    SET_DBG_BOOL(is_reddit_media_domain, d[0]["data"]["children"][0]["data"]["is_reddit_media_domain"])
+    SET_DBG_BOOL(is_meta,       d[0]["data"]["children"][0]["data"]["is_meta"])
+    SET_DBG_BOOL(is_self,       d[0]["data"]["children"][0]["data"]["is_self"])
+    SET_DBG_BOOL(is_over18,     d[0]["data"]["children"][0]["data"]["over_18"])
+    SET_DBG_BOOL(is_pinned,     d[0]["data"]["children"][0]["data"]["pinned"])
+    SET_DBG_BOOL(is_video,      d[0]["data"]["children"][0]["data"]["is_video"])
+    
+    if (is_self){
+        SET_DBG_STR(body,           d[0]["data"]["children"][0]["data"]["body"])
+    }
+    
+    iter_over_replies(d[1], d.GetAllocator(), 0);
+    
+    print_all_json_values("d", d[1], d.GetAllocator(), 1);
+    print_all_json_values("d", d[0], d.GetAllocator(), 1);
 }
