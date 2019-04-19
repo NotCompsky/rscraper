@@ -2,12 +2,13 @@
 #include <curl/curl.h>
 #include <rapidjson/document.h> // for rapidjson::Document
 #include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
-#include <stdio.h> // for printf // TMP
+#include <stdio.h> // for printf
 #include <stdlib.h> // for free, malloc, realloc
 #include <string.h> // for memcpy
 #include <unistd.h> // for sleep
 
 #include "rapidjson_utils.h" // for SET_DBG_* macros
+#include "utils.h" // for PRINTF macro
 
 #define ERR_CANNOT_INIT_CURL 2
 #define ERR_CANNOT_WRITE_RES 3
@@ -64,7 +65,7 @@ size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
 
 
 int request(const char* reqtype, const char* url){
-    printf("request(\"%s\", \"%s\")\n", reqtype, url);
+    PRINTF("request(\"%s\", \"%s\")\n", reqtype, url);
     // Writes response contents to MEMORY
     
     /*
@@ -209,7 +210,7 @@ void process_submission_duplicates(const char* submission_id, const int submissi
     
     request("GET", api_url);
     
-    printf("%s\n", MEMORY.memory);
+    PRINTF("%s\n", MEMORY.memory);
 }
 
 void process_submission(const char* url){
