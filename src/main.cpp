@@ -28,6 +28,7 @@ const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
 char* AUTH_HEADER;
 const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
 const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
+const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
 
 
 struct curl_slist* HEADERS;
@@ -188,6 +189,50 @@ int slashindx(const char* str){
     return i;
 }
 
+void process_moderator(rapidjson::Value& user){
+    SET_DBG_STR(user_id,    user["id"])
+    user_id += 3; // Skip prefix "t2_"
+    SET_DBG_STR(user_name,  user["name"])
+    
+    SET_DBG(size_t, added_on, user["date"], GetFloat, "%lu")
+    
+    // process_moderator_permissions converting array of strings like "all" to integer of bits
+}
+
+void process_moderators(const char* subreddit, const int subreddit_len){
+    const char* a = "/about/moderators/?raw_json=1";
+    char api_url[strlen(API_SUBREDDIT_URL_PREFIX) + subreddit_len + strlen(a) + 1];
+    int i = 0;
+    
+    
+    memcpy(api_url + i,  API_SUBREDDIT_URL_PREFIX,  strlen(API_SUBREDDIT_URL_PREFIX));
+    i += strlen(API_SUBREDDIT_URL_PREFIX);
+    
+    memcpy(api_url + i,  subreddit,  subreddit_len);
+    i += subreddit_len;
+    
+    memcpy(api_url + i,  a,  strlen(a));
+    i += strlen(a);
+    
+    api_url[i] = 0;
+    
+    
+    request("GET", api_url);
+    
+    PRINTF("%s\n", MEMORY.memory);
+    
+    rapidjson::Document d;
+    if (d.Parse(MEMORY.memory).HasParseError())
+        handler(ERR_INVALID_PJ);
+    
+    MEMORY.size = 0; // 'Clear' contents of request
+    
+    
+    for (rapidjson::Value::ValueIterator itr = d["data"]["children"].Begin();  itr != d["data"]["children"].End();  ++itr)
+        process_moderator(*itr);
+    
+    
+}
 
 void process_submission_duplicates(const char* submission_id, const int submission_id_len){
     int i = 0;
@@ -211,6 +256,8 @@ void process_submission_duplicates(const char* submission_id, const int submissi
     request("GET", api_url);
     
     PRINTF("%s\n", MEMORY.memory);
+    
+    MEMORY.size = 0;
 }
 
 void process_submission(const char* url){
@@ -255,7 +302,8 @@ void process_submission(const char* url){
     
     
     sleep(REDDIT_REQUEST_DELAY);
-    process_submission_duplicates(id, strlen(id));
+    
+    process_moderators(subreddit, subreddit_len);
 }
 
 int main(const int argc, const char* argv[]){
