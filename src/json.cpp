@@ -110,7 +110,7 @@ int main(const int argc, const char* argv[]){
         return 1;
     
     SET_DBG_STR(id,             d[0]["data"]["children"][0]["data"]["id"])
-    id += 3; // Ignore prefix "t3_"
+    // No prefix to ignore
     
     SET_DBG_FLT(created_at,     d[0]["data"]["children"][0]["data"]["created"])
     

@@ -64,6 +64,7 @@ size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
 
 
 int request(const char* reqtype, const char* url){
+    printf("request(\"%s\", \"%s\")\n", reqtype, url);
     // Writes response contents to MEMORY
     
     /*
@@ -246,10 +247,13 @@ void process_submission(const char* url){
     if (d.Parse(MEMORY.memory).HasParseError())
         handler(ERR_INVALID_PJ);
     
+    MEMORY.size = 0; // 'Clear' contents of request
+    
     SET_DBG_STR(id,             d[0]["data"]["children"][0]["data"]["id"])
-    id += 3; // Ignore prefix "t3_"
+    // No prefix to ignore
     
     
+    sleep(REDDIT_REQUEST_DELAY);
     process_submission_duplicates(id, strlen(id));
 }
 
