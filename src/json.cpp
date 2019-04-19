@@ -16,17 +16,17 @@ void printf_indent(const int n){
         PRINTF("    ");
 }
 
-void print_all_json_values(const char* name, rapidjson::Value& val, rapidjson::Value::AllocatorType& allocator, int depth){
+void print_all_json_values(const char* name, rapidjson::Value& val, int depth){
     if (submission_ignore_field(name, 0))
         return;
     printf_indent(depth-1);
     PRINTF("  %s\n", name);
     if (val.IsObject())
         for (rapidjson::Value::MemberIterator itr = val.MemberBegin();  itr != val.MemberEnd();  ++itr)
-            print_all_json_values(itr->name.GetString(), itr->value, allocator, depth+1);
+            print_all_json_values(itr->name.GetString(), itr->value, depth+1);
     else if (val.IsArray())
         for (rapidjson::Value::ValueIterator itr = val.Begin();  itr != val.End();  ++itr)
-            print_all_json_values("[]", *itr, allocator, depth+1);
+            print_all_json_values("[]", *itr, depth+1);
     else if (val.IsString()){
         printf_indent(depth);
         PRINTF("String %s\n", val.GetString());
@@ -67,17 +67,17 @@ void print_all_json_values(const char* name, rapidjson::Value& val, rapidjson::V
         PRINTF("!!! UNKNOWN TYPE !!!\n");
 }
 
-void iter_over_cmnt(rapidjson::Value& cmnt, rapidjson::Value::AllocatorType& allocator, int reply_depth);
+void iter_over_cmnt(rapidjson::Value& cmnt, int reply_depth);
 
-void iter_over_replies(rapidjson::Value& replies, rapidjson::Value::AllocatorType& allocator, int reply_depth){
+void iter_over_replies(rapidjson::Value& replies, int reply_depth){
     /*
     'replies' object is the 'replies' JSON object which has property 'kind' of value 'Listing'
     */
     for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr)
-        iter_over_cmnt(*itr, allocator, reply_depth);
+        iter_over_cmnt(*itr, reply_depth);
 }
 
-void iter_over_cmnt(rapidjson::Value& cmnt, rapidjson::Value::AllocatorType& allocator, int reply_depth){
+void iter_over_cmnt(rapidjson::Value& cmnt, int reply_depth){
     SET_DBG_STR(id,             cmnt["data"]["id"])
     // No "t1_" prefix
     SET_DBG_STR(parent_id,      cmnt["data"]["parent_id"])
@@ -96,7 +96,7 @@ void iter_over_cmnt(rapidjson::Value& cmnt, rapidjson::Value::AllocatorType& all
     if (!cmnt["data"]["replies"].IsObject())
         return;
     
-    iter_over_replies(cmnt["data"]["replies"], allocator, reply_depth+1);
+    iter_over_replies(cmnt["data"]["replies"], reply_depth+1);
     
     // "CREATED" placeholder for cmnt["data"]["created"].GetString()
 }
@@ -140,8 +140,8 @@ int main(const int argc, const char* argv[]){
         SET_DBG_STR(body,           d[0]["data"]["children"][0]["data"]["body"])
     }
     
-    iter_over_replies(d[1], d.GetAllocator(), 0);
+    iter_over_replies(d[1], 0);
     
-    print_all_json_values("d", d[1], d.GetAllocator(), 1);
-    print_all_json_values("d", d[0], d.GetAllocator(), 1);
+    print_all_json_values("d", d[1], 1);
+    print_all_json_values("d", d[0], 1);
 }
