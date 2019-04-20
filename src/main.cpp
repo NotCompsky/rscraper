@@ -267,37 +267,46 @@ int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
     return id2n(replies["data"]["children"][0]["data"]["id"].GetString());
 }
 
+bool try_again(rapidjson::Document& d){
+    if (d.Parse(MEMORY.memory).HasParseError()){
+        printf("ERROR: HasParseError\n%s\n", MEMORY.memory);
+        megasleep();
+        MEMORY.size = 0; // 'Clear' contents of request
+        return true;
+    }
+    
+    MEMORY.size = 0; // 'Clear' contents of request
+    
+    if (!d.HasMember("error"))
+        return false;
+    else {
+        switch (d["error"].GetInt()){
+            case 401:
+                // Unauthorised
+                sleep(REDDIT_REQUEST_DELAY);
+                login();
+                break;
+            default:
+                printf("%s\n", MEMORY.memory);
+                handler(ERR);
+        }
+        return true;
+    }
+}
+
 void process_all_comments_live(){
     int last_processed_cmnt_id = 0;
     
     while (true){
-        goto procallcmntslivectnloop:
-        
         sleep(REDDIT_REQUEST_DELAY);
         
         
         request("GET", API_ALLCOMMENTS_URL);
         
         rapidjson::Document d;
-        if (d.Parse(MEMORY.memory).HasParseError()){
-            printf("ERROR: HasParseError\n%s\n", MEMORY.memory);
-            megasleep();
-            MEMORY.size = 0; // 'Clear' contents of request
-            continue;
-        }
         
-        if (d.HasMember("error")){
-            switch (d["error"].GetInt()){
-                case 401:
-                    // Unauthorised
-                    sleep(REDDIT_REQUEST_DELAY);
-                    login();
-                    goto procallcmntslivectnloop;
-                default:
-                    printf("%s\n", MEMORY.memory);
-                    handler(ERR);
-            }
-        }
+        if (try_again(d))
+            continue;
         
         if (d.IsNull()  ||  !d.HasMember("data")){
             megasleep();
@@ -305,8 +314,6 @@ void process_all_comments_live(){
             MEMORY.size = 0; // 'Clear' contents of request
             continue;
         }
-        
-        MEMORY.size = 0; // 'Clear' contents of request
         
         last_processed_cmnt_id = process_live_replies(d, last_processed_cmnt_id);
     }
