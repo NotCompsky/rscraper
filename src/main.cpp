@@ -1,20 +1,27 @@
 #include <b64/encode.h> // for 
 #include <curl/curl.h>
-#include <rapidjson/document.h> // for rapidjson::Document
+#include "rapidjson/document.h" // for rapidjson::Document
 #include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
 #include <stdio.h> // for printf
 #include <stdlib.h> // for free, malloc, realloc
 #include <string.h> // for memcpy
+#include <time.h> // for asctime
 #include <unistd.h> // for sleep
 
 #include "rapidjson_utils.h" // for SET_DBG_* macros
 #include "utils.h" // for PRINTF macro
 
-#define ERR_CANNOT_INIT_CURL 2
-#define ERR_CANNOT_WRITE_RES 3
-#define ERR_CURL_PERFORM 4
-#define ERR_CANNOT_SET_PROXY 5
-#define ERR_INVALID_PJ 6
+#include "filter_comment_body.c" // for filter_comment_body::*
+
+enum {
+    SUCCESS
+    ERR
+    ERR_CANNOT_INIT_CURL
+    ERR_CANNOT_WRITE_RES
+    ERR_CURL_PERFORM
+    ERR_CANNOT_SET_PROXY
+    ERR_INVALID_PJ
+}
 
 #define REDDIT_REQUEST_DELAY 1
 
@@ -48,6 +55,10 @@ void handler(int n){
     curl_easy_cleanup(curl);
     curl_global_cleanup();
     exit(n);
+}
+
+void megasleep(){
+    sleep(5);
 }
 
 size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
@@ -192,19 +203,37 @@ int id2n(const char* str){
 }
 
 void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
-    SET_DBG_STR(parent_id,      cmnt["data"]["parent_id"])
-    parent_id += 3; // Skip "t3_" or "t1_" prefix - we can use 'depth' attribute to see if it is a root comment or not
+    SET_DBG_STR(body,           cmnt["data"]["body"])
+    SET_DBG_STR(subreddit,      cmnt["data"]["subreddit"])
+    SET_DBG_STR(author,         cmnt["data"]["author"])
     
-    SET_DBG_FLT(created_at,     cmnt["data"]["created_utc"])
+    
+    
+    if (filter_comment_body::wl::match(body, strlen(body))){
+        printf("MATCHED: %s\n", filter_comment_body::wl::what[0].str().c_str());
+        goto goto__do_process_this_live_cmnt;
+    }
+    // if filter_comment_body::bl: return;
+    
+    
+    
+    return;
+    
+    goto__do_process_this_live_cmnt:
     
     SET_DBG_STR(author_id,      cmnt["data"]["author_fullname"])
     author_id += 3; // Skip "t2_" prefix
-    SET_DBG_STR(author,         cmnt["data"]["author"])
+    // TODO: Maybe use author_id to filter users, instead of raw usernames.
     
-    SET_DBG_STR(body,           cmnt["data"]["body"])
+    SET_DBG_STR(parent_id,      cmnt["data"]["parent_id"])
+    parent_id += 3; // Skip "t3_" or "t1_" prefix - we can use 'depth' attribute to see if it is a root comment or not
     
-    if (!cmnt["data"]["replies"].IsObject())
-        return;
+    SET_DBG_STR(permalink,      cmnt["data"]["permalink"])
+    
+    const time_t RSET_DBG_FLT(created_at,     cmnt["data"]["created_utc"])
+    
+    
+    printf("/r/%s\t/u/%s\t@%shttps://old.reddit.com%s\n%s\n\n\n", subreddit, author, asctime(localtime(&created_at)), permalink, body); // asctime introduces a newline
 }
 
 int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
@@ -236,8 +265,15 @@ void process_all_comments_live(){
         if (d.Parse(MEMORY.memory).HasParseError())
             handler(ERR_INVALID_PJ);
         
-        MEMORY.size = 0; // 'Clear' contents of request
+        if (d.IsNull()){
+            // Shouldn't ever happen, but seems to sometimes - maybe Reddit API sending error page rather than proper response
+            megasleep();
+            printf("ERROR: d or d[\"data\"] NOT OBJECT\n%s\n", MEMORY.memory);
+            MEMORY.size = 0; // 'Clear' contents of request
+            continue;
+        }
         
+        MEMORY.size = 0; // 'Clear' contents of request
         
         last_processed_cmnt_id = process_live_replies(d, last_processed_cmnt_id);
     }
@@ -248,7 +284,7 @@ void process_moderator(rapidjson::Value& user){
     user_id += 3; // Skip prefix "t2_"
     SET_DBG_STR(user_name,  user["name"])
     
-    SET_DBG(size_t, added_on, user["date"], GetFloat, "%lu")
+    const size_t RSET_DBG(added_on, user["date"], GetFloat, "%lu")
     
     // TODO: process mod_permissions, converting array of strings like "all" to integer of bits
 }
