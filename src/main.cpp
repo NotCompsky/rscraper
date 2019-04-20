@@ -30,6 +30,7 @@ const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
 const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
 const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
 const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
+const char* API_ALLCOMMENTS_URL = "https://oauth.reddit.com/r/all/comments/?limit=100&raw_json=1";
 
 
 struct curl_slist* HEADERS;
@@ -174,6 +175,74 @@ int slashindx(const char* str){
     return i;
 }
 
+
+int id2n(const char* str){
+    int n = 0;
+    while (*str != 0){
+        n *= 10 + 26 + 26;
+        if (*str >= '0'  &&  *str <= '9')
+            n += *str - '0';
+        else if (*str >= 'a'  &&  *str <= 'z')
+            n += *str - 'a';
+        else
+            n += *str - 'A';
+        ++str;
+    }
+    return n;
+}
+
+void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
+    SET_DBG_STR(parent_id,      cmnt["data"]["parent_id"])
+    parent_id += 3; // Skip "t3_" or "t1_" prefix - we can use 'depth' attribute to see if it is a root comment or not
+    
+    SET_DBG_FLT(created_at,     cmnt["data"]["created_utc"])
+    
+    SET_DBG_STR(author_id,      cmnt["data"]["author_fullname"])
+    author_id += 3; // Skip "t2_" prefix
+    SET_DBG_STR(author,         cmnt["data"]["author"])
+    
+    SET_DBG_STR(body,           cmnt["data"]["body"])
+    
+    if (!cmnt["data"]["replies"].IsObject())
+        return;
+}
+
+int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
+    /*
+    'replies' object is the 'replies' JSON object which has property 'kind' of value 'Listing'
+    */
+    int cmnt_id;
+    int i = 0;
+    for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr){
+        cmnt_id = id2n((*itr)["data"]["id"].GetString()); // No "t1_" prefix
+        if (cmnt_id == last_processed_cmnt_id)
+            break;
+        PRINTF("[%d] ", i++);
+        process_live_cmnt(*itr, cmnt_id);
+    }
+    return id2n(replies["data"]["children"][0]["data"]["id"].GetString());
+}
+
+void process_all_comments_live(){
+    int last_processed_cmnt_id = 0;
+    
+    while (true){
+        sleep(REDDIT_REQUEST_DELAY);
+        
+        
+        request("GET", API_ALLCOMMENTS_URL);
+        
+        rapidjson::Document d;
+        if (d.Parse(MEMORY.memory).HasParseError())
+            handler(ERR_INVALID_PJ);
+        
+        MEMORY.size = 0; // 'Clear' contents of request
+        
+        
+        last_processed_cmnt_id = process_live_replies(d, last_processed_cmnt_id);
+    }
+}
+
 void process_moderator(rapidjson::Value& user){
     SET_DBG_STR(user_id,    user["id"])
     user_id += 3; // Skip prefix "t2_"
@@ -181,7 +250,7 @@ void process_moderator(rapidjson::Value& user){
     
     SET_DBG(size_t, added_on, user["date"], GetFloat, "%lu")
     
-    // TODO: process_moderator_permissions converting array of strings like "all" to integer of bits
+    // TODO: process mod_permissions, converting array of strings like "all" to integer of bits
 }
 
 void process_moderators(const char* subreddit, const int subreddit_len){
@@ -203,8 +272,6 @@ void process_moderators(const char* subreddit, const int subreddit_len){
     
     
     request("GET", api_url);
-    
-    PRINTF("%s\n", MEMORY.memory);
     
     rapidjson::Document d;
     if (d.Parse(MEMORY.memory).HasParseError())
@@ -284,11 +351,6 @@ void process_submission(const char* url){
     
     SET_DBG_STR(id,             d[0]["data"]["children"][0]["data"]["id"])
     // No prefix to ignore
-    
-    
-    sleep(REDDIT_REQUEST_DELAY);
-    
-    process_moderators(subreddit, subreddit_len);
 }
 
 int main(const int argc, const char* argv[]){
@@ -315,6 +377,8 @@ int main(const int argc, const char* argv[]){
         sleep(REDDIT_REQUEST_DELAY);
         process_submission(argv[i]);
     }
+    
+    process_all_comments_live();
     
     handler(0);
 }
