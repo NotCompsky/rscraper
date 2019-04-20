@@ -181,7 +181,7 @@ void process_moderator(rapidjson::Value& user){
     
     SET_DBG(size_t, added_on, user["date"], GetFloat, "%lu")
     
-    // process_moderator_permissions converting array of strings like "all" to integer of bits
+    // TODO: process_moderator_permissions converting array of strings like "all" to integer of bits
 }
 
 void process_moderators(const char* subreddit, const int subreddit_len){
