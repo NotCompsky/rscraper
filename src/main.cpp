@@ -29,6 +29,7 @@ char* AUTH_HEADER;
 const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
 const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
 const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
+const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
 
 
 struct curl_slist* HEADERS;
@@ -179,8 +180,6 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     
     MEMORY.size = 0; // No longer need contents of request
 }
-
-const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
 
 int slashindx(const char* str){
     int i = 0;
