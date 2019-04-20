@@ -70,20 +70,6 @@ int request(const char* reqtype, const char* url){
     PRINTF("request(\"%s\", \"%s\")\n", reqtype, url);
     // Writes response contents to MEMORY
     
-    /*
-    char url[strlen(base_url) + strlen(PARAMS) + 1];
-    int i;
-    
-    i = 0;
-    memcpy(url + i,  base_url,  strlen(base_url));
-    i += strlen(base_url);
-    
-    memcpy(url + i,  PARAMS,  strlen(PARAMS));
-    i += strlen(PARAMS);
-    
-    url[i++] = 0;
-    */
-    
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, reqtype);
     
