@@ -8,20 +8,22 @@
 #include <time.h> // for asctime
 #include <unistd.h> // for sleep
 
+#include <execinfo.h> // for printing stack trace
+
 #include "rapidjson_utils.h" // for SET_DBG_* macros
 #include "utils.h" // for PRINTF macro
 
 #include "filter_comment_body.c" // for filter_comment_body::*
 
 enum {
-    SUCCESS
-    ERR
-    ERR_CANNOT_INIT_CURL
-    ERR_CANNOT_WRITE_RES
-    ERR_CURL_PERFORM
-    ERR_CANNOT_SET_PROXY
+    SUCCESS,
+    ERR,
+    ERR_CANNOT_INIT_CURL,
+    ERR_CANNOT_WRITE_RES,
+    ERR_CURL_PERFORM,
+    ERR_CANNOT_SET_PROXY,
     ERR_INVALID_PJ
-}
+};
 
 #define REDDIT_REQUEST_DELAY 1
 
@@ -39,6 +41,10 @@ const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
 const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
 const char* API_ALLCOMMENTS_URL = "https://oauth.reddit.com/r/all/comments/?limit=100&raw_json=1";
 
+const char* USR;
+const char* PWD;
+const char* KEY_AND_SECRET;
+
 
 struct curl_slist* HEADERS;
 
@@ -50,6 +56,15 @@ struct MemoryStruct {
 struct MemoryStruct MEMORY;
 
 void handler(int n){
+    void* arr[10];
+    
+    size_t size = backtrace(arr, 10);
+    
+    fprintf(stderr, "%s\n", MEMORY.memory);
+    fprintf(stderr, "E(%d):\n", n);
+    backtrace_symbols_fd(arr, size, STDERR_FILENO);
+    
+    
     free(MEMORY.memory);
     free(AUTH_HEADER);
     curl_easy_cleanup(curl);
@@ -96,7 +111,7 @@ int request(const char* reqtype, const char* url){
 const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
 const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
 
-void login(const char* usr, const char* pwd, const char* key_and_secret){
+void login(){
     int i;
     
     // TODO: Necessary to copy cookies to global curl object?
@@ -111,7 +126,7 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     memcpy(AUTH_HEADER + i,  BASIC_AUTH_PREFIX,  strlen(BASIC_AUTH_PREFIX));
     i += strlen(BASIC_AUTH_PREFIX);
     
-    base64_encoder.encode(key_and_secret,  strlen(key_and_secret),  AUTH_HEADER + i);
+    base64_encoder.encode(KEY_AND_SECRET,  strlen(KEY_AND_SECRET),  AUTH_HEADER + i);
     i += strlen(BASIC_AUTH_FMT);
     
     AUTH_HEADER[i] = 0;
@@ -124,21 +139,21 @@ void login(const char* usr, const char* pwd, const char* key_and_secret){
     const char* a = "grant_type=password&password=";
     const char* b = "&username=";
     
-    char postdata[strlen(a) + strlen(pwd) + strlen(b) + strlen(usr) + 1];
+    char postdata[strlen(a) + strlen(PWD) + strlen(b) + strlen(USR) + 1];
     
     i = 0;
     
     memcpy(postdata + i,  a,  strlen(a));
     i += strlen(a);
     
-    memcpy(postdata + i,  pwd,  strlen(pwd));
-    i += strlen(pwd);
+    memcpy(postdata + i,  PWD,  strlen(PWD));
+    i += strlen(PWD);
     
     memcpy(postdata + i,  b,  strlen(b));
     i += strlen(b);
     
-    memcpy(postdata + i,  usr,  strlen(usr));
-    i += strlen(usr);
+    memcpy(postdata + i,  USR,  strlen(USR));
+    i += strlen(USR);
     
     postdata[i] = 0;
     
@@ -256,17 +271,35 @@ void process_all_comments_live(){
     int last_processed_cmnt_id = 0;
     
     while (true){
+        goto procallcmntslivectnloop:
+        
         sleep(REDDIT_REQUEST_DELAY);
         
         
         request("GET", API_ALLCOMMENTS_URL);
         
         rapidjson::Document d;
-        if (d.Parse(MEMORY.memory).HasParseError())
-            handler(ERR_INVALID_PJ);
+        if (d.Parse(MEMORY.memory).HasParseError()){
+            printf("ERROR: HasParseError\n%s\n", MEMORY.memory);
+            megasleep();
+            MEMORY.size = 0; // 'Clear' contents of request
+            continue;
+        }
         
-        if (d.IsNull()){
-            // Shouldn't ever happen, but seems to sometimes - maybe Reddit API sending error page rather than proper response
+        if (d.HasMember("error")){
+            switch (d["error"].GetInt()){
+                case 401:
+                    // Unauthorised
+                    sleep(REDDIT_REQUEST_DELAY);
+                    login();
+                    goto procallcmntslivectnloop;
+                default:
+                    printf("%s\n", MEMORY.memory);
+                    handler(ERR);
+            }
+        }
+        
+        if (d.IsNull()  ||  !d.HasMember("data")){
             megasleep();
             printf("ERROR: d or d[\"data\"] NOT OBJECT\n%s\n", MEMORY.memory);
             MEMORY.size = 0; // 'Clear' contents of request
@@ -395,9 +428,9 @@ int main(const int argc, const char* argv[]){
     
     int i = 0;
     
-    const char* usr = argv[++i];
-    const char* pwd = argv[++i];
-    const char* authstr = argv[++i];
+    USR = argv[++i];
+    PWD = argv[++i];
+    KEY_AND_SECRET = argv[++i];
     
     
     curl_global_init(CURL_GLOBAL_ALL);
@@ -407,7 +440,7 @@ int main(const int argc, const char* argv[]){
     
     curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     
-    login(usr, pwd, authstr);
+    login();
     
     while (++i < argc){
         sleep(REDDIT_REQUEST_DELAY);
