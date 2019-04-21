@@ -293,7 +293,7 @@ bool try_again(rapidjson::Document& d){
         printf("ERROR: HasParseError\n%s\n", MEMORY.memory);
         MEMORY.size = 0; // 'Clear' contents of request
         
-        if (strncmp(MEMORY.memory + strlen("<html><body><h1"),  FORBIDDEN,  strlen(FORBIDDEN))){
+        if (strncmp(MEMORY.memory + strlen("<html><body><h1"),  FORBIDDEN,  strlen(FORBIDDEN)) == strlen(FORBIDDEN)){
             sleep(REDDIT_REQUEST_DELAY);
             login();
         }
@@ -336,7 +336,6 @@ void process_all_comments_live(){
             continue;
         
         if (d.IsNull()  ||  !d.HasMember("data")){
-            megasleep();
             printf("ERROR: d or d[\"data\"] NOT OBJECT\n%s\n", MEMORY.memory);
             MEMORY.size = 0; // 'Clear' contents of request
             continue;
