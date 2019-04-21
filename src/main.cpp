@@ -13,7 +13,7 @@
 #include "rapidjson_utils.h" // for SET_DBG_* macros
 #include "utils.h" // for PRINTF macro
 
-#include "filter_comment_body.c" // for filter_comment_body::*
+#include "filter_comment_body.cpp" // for filter_comment_body::*
 
 enum {
     SUCCESS,
@@ -132,7 +132,7 @@ void login(){
     AUTH_HEADER[i] = 0;
     
     struct curl_slist* headers;
-    headers = curl_slist_append(headers, AUTH_HEADER);
+    headers = curl_slist_append(headers, AUTH_HEADER); // SEGFAULT
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     
     
@@ -202,16 +202,16 @@ int slashindx(const char* str){
 }
 
 
-int id2n(const char* str){
-    int n = 0;
+unsigned long int id2n(const char* str){
+    unsigned long int n = 0;
     while (*str != 0){
         n *= 10 + 26 + 26;
         if (*str >= '0'  &&  *str <= '9')
             n += *str - '0';
         else if (*str >= 'a'  &&  *str <= 'z')
-            n += *str - 'a';
+            n += *str - 'a' + 10;
         else
-            n += *str - 'A';
+            n += *str - 'A' + 10 + 26;
         ++str;
     }
     return n;
@@ -219,12 +219,20 @@ int id2n(const char* str){
 
 void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     SET_DBG_STR(body,           cmnt["data"]["body"])
-    SET_DBG_STR(subreddit,      cmnt["data"]["subreddit"])
-    SET_DBG_STR(author,         cmnt["data"]["author"])
+    SET_DBG_STR(subreddit_name, cmnt["data"]["subreddit"])
+    SET_DBG_STR(author_name,    cmnt["data"]["author"])
     
     
+    struct cmnt_meta metadata = {
+        author_name,
+        subreddit_name,
+        
+        id2n(cmnt["data"]["author_fullname"].GetString() + 3), // Skip "t2_" prefix
+        id2n(cmnt["data"]["subreddit_id"].GetString() + 3), // Skip "t3_" prefix
+    };
     
-    if (filter_comment_body::wl::match(body, strlen(body))){
+    
+    if (filter_comment_body::wl::match(metadata, body, strlen(body))){
         printf("MATCHED: %s\n", filter_comment_body::wl::what[0].str().c_str());
         goto goto__do_process_this_live_cmnt;
     }
@@ -236,9 +244,6 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     
     goto__do_process_this_live_cmnt:
     
-    SET_DBG_STR(author_id,      cmnt["data"]["author_fullname"])
-    author_id += 3; // Skip "t2_" prefix
-    // TODO: Maybe use author_id to filter users, instead of raw usernames.
     
     SET_DBG_STR(parent_id,      cmnt["data"]["parent_id"])
     parent_id += 3; // Skip "t3_" or "t1_" prefix - we can use 'depth' attribute to see if it is a root comment or not
@@ -248,7 +253,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     const time_t RSET_DBG_FLT(created_at,     cmnt["data"]["created_utc"])
     
     
-    printf("/r/%s\t/u/%s\t@%shttps://old.reddit.com%s\n%s\n\n\n", subreddit, author, asctime(localtime(&created_at)), permalink, body); // asctime introduces a newline
+    printf("/r/%s\t/u/%s\t@%shttps://old.reddit.com%s\n%s\n\n\n", subreddit_name, author_name, asctime(localtime(&created_at)), permalink, body); // asctime introduces a newline
 }
 
 int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
