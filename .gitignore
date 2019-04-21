@@ -1,6 +1,7 @@
 _runs
 build/*
+experiments/*
 man/*
-submission_ignore_field.c
+src/submission_ignore_field.c
 src/filter_*.cpp
-j
+*.kate-swp
