@@ -201,6 +201,7 @@ void login(){
     PRINTF("Response:\n%s\nAUTH_HEADER: %s\n", MEMORY.memory, AUTH_HEADER);
     
     
+    HEADERS = {};
     HEADERS = curl_slist_append(HEADERS, AUTH_HEADER);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, HEADERS);
     
