@@ -2,7 +2,7 @@ default:
 	g++ src/main.cpp -o build/main -O3 -lcurl -lb64 -lboost_regex
 
 debug:
-	g++ src/main.cpp -o build/main -g -lcurl -lb64 -lboost_regex
+	g++ src/main.cpp -o build/main -g -lcurl -lb64 -lboost_regex -DDEBUG
 
 j:
 	g++ src/json.cpp -o j -O3

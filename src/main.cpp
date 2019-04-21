@@ -46,6 +46,17 @@ const char* PWD;
 const char* KEY_AND_SECRET;
 
 
+const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
+const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
+
+CURL* LOGIN_CURL;
+struct curl_slist* LOGIN_HEADERS;
+const char* LOGIN_POSTDATA_PREFIX = "grant_type=password&password=";
+const char* LOGIN_POSTDATA_KEYNAME = "&username=";
+char* LOGIN_POSTDATA;
+
+
+
 struct curl_slist* HEADERS;
 
 struct MemoryStruct {
@@ -67,6 +78,7 @@ void handler(int n){
     
     free(MEMORY.memory);
     free(AUTH_HEADER);
+    free(LOGIN_POSTDATA);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
     exit(n);
@@ -94,7 +106,7 @@ size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
 
 
 int request(const char* reqtype, const char* url){
-    PRINTF("request(\"%s\", \"%s\")\n", reqtype, url);
+    PRINTF("%s\t%s\n", reqtype, url);
     // Writes response contents to MEMORY
     
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -108,13 +120,8 @@ int request(const char* reqtype, const char* url){
         handler(ERR_CURL_PERFORM);
 }
 
-const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
-const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
-
-void login(){
+void init_login(){
     int i;
-    
-    // TODO: Necessary to copy cookies to global curl object?
     
     
     base64::encoder base64_encoder;
@@ -131,54 +138,57 @@ void login(){
     
     AUTH_HEADER[i] = 0;
     
-    struct curl_slist* headers;
-    headers = curl_slist_append(headers, AUTH_HEADER); // SEGFAULT
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    
+    LOGIN_HEADERS = curl_slist_append(LOGIN_HEADERS, AUTH_HEADER); // SEGFAULT
     
     
-    const char* a = "grant_type=password&password=";
-    const char* b = "&username=";
+    LOGIN_CURL = curl_easy_init();
+    if (!LOGIN_CURL)
+        handler(ERR_CANNOT_INIT_CURL);
     
-    char postdata[strlen(a) + strlen(PWD) + strlen(b) + strlen(USR) + 1];
+    curl_easy_setopt(LOGIN_CURL, CURLOPT_USERAGENT, USER_AGENT);
+    
+    curl_easy_setopt(LOGIN_CURL, CURLOPT_HTTPHEADER, LOGIN_HEADERS);
     
     i = 0;
     
-    memcpy(postdata + i,  a,  strlen(a));
-    i += strlen(a);
+    memcpy(LOGIN_POSTDATA + i,  LOGIN_POSTDATA_PREFIX,  strlen(LOGIN_POSTDATA_PREFIX));
+    i += strlen(LOGIN_POSTDATA_PREFIX);
     
-    memcpy(postdata + i,  PWD,  strlen(PWD));
+    memcpy(LOGIN_POSTDATA + i,  PWD,  strlen(PWD));
     i += strlen(PWD);
     
-    memcpy(postdata + i,  b,  strlen(b));
-    i += strlen(b);
+    memcpy(LOGIN_POSTDATA + i,  LOGIN_POSTDATA_KEYNAME,  strlen(LOGIN_POSTDATA_KEYNAME));
+    i += strlen(LOGIN_POSTDATA_KEYNAME);
     
-    memcpy(postdata + i,  USR,  strlen(USR));
+    memcpy(LOGIN_POSTDATA + i,  USR,  strlen(USR));
     i += strlen(USR);
     
-    postdata[i] = 0;
+    LOGIN_POSTDATA[i] = 0;
     
     
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postdata);
+    curl_easy_setopt(LOGIN_CURL, CURLOPT_POSTFIELDS, LOGIN_POSTDATA);
     
-    curl_easy_setopt(curl, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
+    curl_easy_setopt(LOGIN_CURL, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
     
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_easy_setopt(LOGIN_CURL, CURLOPT_CUSTOMREQUEST, "POST");
     
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&MEMORY);
-    
-    auto rc = curl_easy_perform(curl);
+    curl_easy_setopt(LOGIN_CURL, CURLOPT_WRITEFUNCTION, write_res_to_mem);
+    curl_easy_setopt(LOGIN_CURL, CURLOPT_WRITEDATA, (void *)&MEMORY);
+}
+
+void login(){
+    auto rc = curl_easy_perform(LOGIN_CURL);
     
     if (rc != CURLE_OK)
         handler(ERR_CURL_PERFORM);
-    
     
     // Result is in format
     // {"access_token": "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX", "token_type": "bearer", "expires_in": 3600, "scope": "*"}
     
     AUTH_HEADER = (char*)realloc(AUTH_HEADER,  strlen(AUTH_HEADER_PREFIX) + strlen(TOKEN_FMT) + 1);
     
-    i = 0;
+    int i = 0;
     memcpy(AUTH_HEADER + i,  AUTH_HEADER_PREFIX,  strlen(AUTH_HEADER_PREFIX));
     i += strlen(AUTH_HEADER_PREFIX);
     
@@ -186,6 +196,9 @@ void login(){
     i += strlen(TOKEN_FMT);
     
     AUTH_HEADER[i] = 0;
+    
+    
+    PRINTF("Response:\n%s\nAUTH_HEADER: %s\n", MEMORY.memory, AUTH_HEADER);
     
     
     HEADERS = curl_slist_append(HEADERS, AUTH_HEADER);
@@ -218,9 +231,9 @@ unsigned long int id2n(const char* str){
 }
 
 void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
-    SET_DBG_STR(body,           cmnt["data"]["body"])
-    SET_DBG_STR(subreddit_name, cmnt["data"]["subreddit"])
-    SET_DBG_STR(author_name,    cmnt["data"]["author"])
+    SET_STR(body,           cmnt["data"]["body"]);
+    SET_STR(subreddit_name, cmnt["data"]["subreddit"]);
+    SET_STR(author_name,    cmnt["data"]["author"]);
     
     
     struct cmnt_meta metadata = {
@@ -245,12 +258,12 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     goto__do_process_this_live_cmnt:
     
     
-    SET_DBG_STR(parent_id,      cmnt["data"]["parent_id"])
+    SET_STR(parent_id,      cmnt["data"]["parent_id"]);
     parent_id += 3; // Skip "t3_" or "t1_" prefix - we can use 'depth' attribute to see if it is a root comment or not
     
-    SET_DBG_STR(permalink,      cmnt["data"]["permalink"])
+    SET_STR(permalink,      cmnt["data"]["permalink"]);
     
-    const time_t RSET_DBG_FLT(created_at,     cmnt["data"]["created_utc"])
+    const time_t RSET_FLT(created_at,     cmnt["data"]["created_utc"]);
     
     
     printf("/r/%s\t/u/%s\t@%shttps://old.reddit.com%s\n%s\n\n\n", subreddit_name, author_name, asctime(localtime(&created_at)), permalink, body); // asctime introduces a newline
@@ -266,17 +279,25 @@ int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
         cmnt_id = id2n((*itr)["data"]["id"].GetString()); // No "t1_" prefix
         if (cmnt_id == last_processed_cmnt_id)
             break;
-        PRINTF("[%d] ", i++);
         process_live_cmnt(*itr, cmnt_id);
     }
     return id2n(replies["data"]["children"][0]["data"]["id"].GetString());
 }
 
+
+const char* FORBIDDEN = ">403 Forbidden<";
+
 bool try_again(rapidjson::Document& d){
     if (d.Parse(MEMORY.memory).HasParseError()){
+        // Response is not JSON
         printf("ERROR: HasParseError\n%s\n", MEMORY.memory);
-        megasleep();
         MEMORY.size = 0; // 'Clear' contents of request
+        
+        if (strncmp(MEMORY.memory + strlen("<html><body><h1"),  FORBIDDEN,  strlen(FORBIDDEN))){
+            sleep(REDDIT_REQUEST_DELAY);
+            login();
+        }
+        
         return true;
     }
     
@@ -288,6 +309,7 @@ bool try_again(rapidjson::Document& d){
         switch (d["error"].GetInt()){
             case 401:
                 // Unauthorised
+                PRINTF("Unauthorised. Logging in again.\n");
                 sleep(REDDIT_REQUEST_DELAY);
                 login();
                 break;
@@ -325,11 +347,11 @@ void process_all_comments_live(){
 }
 
 void process_moderator(rapidjson::Value& user){
-    SET_DBG_STR(user_id,    user["id"])
+    SET_STR(user_id,    user["id"]);
     user_id += 3; // Skip prefix "t2_"
-    SET_DBG_STR(user_name,  user["name"])
+    SET_STR(user_name,  user["name"]);
     
-    const size_t RSET_DBG(added_on, user["date"], GetFloat, "%lu")
+    const size_t RSET(added_on, user["date"], GetFloat);
     
     // TODO: process mod_permissions, converting array of strings like "all" to integer of bits
 }
@@ -430,7 +452,7 @@ void process_submission(const char* url){
     
     MEMORY.size = 0; // 'Clear' contents of request
     
-    SET_DBG_STR(id,             d[0]["data"]["children"][0]["data"]["id"])
+    SET_STR(id,             d[0]["data"]["children"][0]["data"]["id"]);
     // No prefix to ignore
 }
 
@@ -444,6 +466,8 @@ int main(const int argc, const char* argv[]){
     PWD = argv[++i];
     KEY_AND_SECRET = argv[++i];
     
+    LOGIN_POSTDATA = (char*)malloc(strlen(LOGIN_POSTDATA_PREFIX) + strlen(PWD) + strlen(LOGIN_POSTDATA_KEYNAME) + strlen(USR) + 1);
+    
     
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
@@ -452,6 +476,7 @@ int main(const int argc, const char* argv[]){
     
     curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     
+    init_login();
     login();
     
     while (++i < argc){
