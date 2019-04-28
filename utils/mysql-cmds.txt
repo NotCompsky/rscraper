@@ -23,7 +23,7 @@ CREATE TABLE submission (
     id BIGINT UNSIGNED NOT NULL,
     author_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
     subreddit_id BIGINT UNSIGNED NOT NULL,
-    content VARCHAR(40000),
+    content VARBINARY(40000),
     created_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY (id)
 );
@@ -61,6 +61,7 @@ CREATE TABLE tag (
 CREATE TABLE reason_matched (
     id INT UNSIGNED NOT NULL,
     name UNIQUE VARCHAR(128),
+    UNIQUE KEY (name),
     PRIMARY KEY (id)
 );
 
@@ -86,10 +87,14 @@ CREATE TABLE tag2category (
 CREATE TABLE category (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(32),
+    UNIQUE KEY (name),
     PRIMARY KEY (id)
 );
 
 
+# Review tables
+
+SELECT table_name, COLUMN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = 'rscraper' ORDER BY table_name, ORDINAL_POSITION;
 
 
 # Insert some example values
@@ -133,7 +138,7 @@ INSERT INTO tag2category (tag_id, category_id) VALUES (
 
 CREATE USER 'rscraper++'@'localhost' IDENTIFIED BY '[PASSWORD]';
 
-GRANT SELECT, INSERT ON rscraper.* TO 'rscraper++'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON rscraper.* TO 'rscraper++'@'localhost';
 
 
 
@@ -227,19 +232,68 @@ WHERE r.id IN (SELECT subreddit_id FROM user2subreddit_cmnt_count GROUP BY subre
 
 
 
-# Print table of categories to their associated tags
+# Print table of categories to their associated tags and alphas
 
-SELECT r.name, S2T.name
+SELECT r.name, S2T.name, S2T.a
 FROM category r
 LEFT JOIN (
-    SELECT s2t.category_id, T.name
+    SELECT s2t.category_id, T.name, T.a
     FROM tag2category s2t
     JOIN (
-        SELECT t.id, t.name
+        SELECT t.id, t.name, t.a
         FROM tag t
     ) T on T.id = s2t.tag_id
 ) S2T on S2T.category_id = r.id
 ;
+
+
+# Find subreddits that have multiple tags of the same category
+
+SELECT r.name, r.id as 'sub_id', B.category_id, B.str
+FROM subreddit r
+JOIN (
+    SELECT t2c.category_id, A.subreddit_id, COUNT(t2c.category_id) as c, GROUP_CONCAT(A.tag_name, ":", A.tag_id) as str
+    FROM tag2category t2c
+    JOIN (
+        SELECT name as 'tag_name', tag_id, subreddit_id
+        FROM subreddit2tag
+        JOIN (
+            SELECT name, id
+            FROM tag
+        ) C ON C.id = tag_id
+    ) A ON t2c.tag_id = A.tag_id
+    GROUP BY t2c.category_id, A.subreddit_id
+    HAVING c > 1
+) B ON B.subreddit_id = r.id
+;
+
+# Disassociate tag from subreddits, if the subreddit has other tags from the same category
+
+DELETE FROM subreddit2tag
+WHERE tag_id IN (SELECT id FROM tag WHERE name = 'TAG')
+  AND subreddit_id IN (
+    SELECT A.subreddit_id # ,t2c.category_id, A.tag_name, A.tag_id
+    FROM tag2category t2c
+    JOIN (
+        SELECT name as 'tag_name', tag_id, subreddit_id
+        FROM subreddit2tag
+        JOIN (
+            SELECT name, id
+            FROM tag
+        ) C ON C.id = tag_id
+    ) A ON t2c.tag_id = A.tag_id
+    WHERE t2c.category_id IN (
+        SELECT category_id
+        FROM tag2category
+        WHERE tag_id IN (SELECT id FROM tag WHERE name = 'TAG')
+    )
+    AND t2c.tag_id NOT IN (SELECT id FROM tag WHERE name = 'TAG')
+    GROUP BY A.subreddit_id
+)
+;
+
+
+
 
 
 
@@ -816,3 +870,142 @@ GROUP BY A.user_id, t2c.category_id
 ;
 
 
+
+
+
+
+
+
+
+# For a list of subreddits, calculate their similarity based on users in common
+
+SELECT user_id, subreddit_id, count
+FROM user2subreddit_cmnt_count
+WHERE user_id IN (
+    SELECT user_id
+    FROM user2subreddit_cmnt_count
+    WHERE subreddit_id IN (SELECT id FROM subreddit WHERE name LIKE '%programming%')
+    AND count > 1
+    GROUP BY user_id 
+    HAVING COUNT(user_id) > 1
+)
+  AND count > 1
+GROUP BY subreddit_id
+
+# Table of subreddits to the number of users in common with given subreddits
+
+SELECT r.name, A.c
+FROM subreddit r
+JOIN (
+    SELECT subreddit_id, COUNT(subreddit_id) as c
+    FROM user2subreddit_cmnt_count
+    WHERE user_id IN (
+        SELECT user_id
+        FROM user2subreddit_cmnt_count
+        WHERE subreddit_id IN (SELECT id FROM subreddit WHERE name LIKE '%programming%'))
+        AND count > 1
+    )
+      AND count > 1
+      AND subreddit_id NOT IN (SELECT id FROM subreddit WHERE name LIKE '%programming%'))
+    GROUP BY subreddit_id
+) A ON r.id = A.subreddit_id
+ORDER BY A.c
+
+# Table of subreddits to (user/comment)s in common with given subreddits
+
+SELECT r.name, A.c
+FROM subreddit r
+JOIN (
+    SELECT subreddit_id, SUM(count) as c
+    FROM user2subreddit_cmnt_count
+    WHERE user_id IN (
+        SELECT user_id
+        FROM user2subreddit_cmnt_count
+        WHERE subreddit_id IN (SELECT id FROM subreddit WHERE name LIKE '%programming%'))
+        AND count > 1
+    )
+      AND count > 1
+      AND subreddit_id NOT IN (SELECT id FROM subreddit WHERE name LIKE '%programming%'))
+    GROUP BY subreddit_id
+) A ON r.id = A.subreddit_id
+ORDER BY A.c
+
+
+# Table of subreddits to (user/comment)s in common with given subreddits, normalised by the total number of comments by the user
+
+SELECT r.name, A.c
+FROM subreddit r
+JOIN (
+    SELECT s2scc.subreddit_id, SUM(s2scc.count/B.c) as c
+    FROM user2subreddit_cmnt_count s2scc
+    JOIN (
+        SELECT user_id, SUM(count) as c
+        FROM user2subreddit_cmnt_count s2scc
+        GROUP BY user_id
+    ) B ON B.user_id = s2scc.user_id
+    WHERE s2scc.user_id IN (
+        SELECT user_id
+        FROM user2subreddit_cmnt_count
+        WHERE subreddit_id IN (SELECT id FROM subreddit WHERE name IN ('%programming%'))
+        AND count > 1
+    )
+      AND count > 1
+      AND subreddit_id NOT IN (SELECT id FROM subreddit WHERE name LIKE '%programming%'))
+    GROUP BY subreddit_id
+) A ON r.id = A.subreddit_id
+ORDER BY A.c
+;
+
+
+
+
+
+
+
+
+
+
+
+# Table of subreddits to (user/comment)s in common with subreddits of a given tag, normalised by the total number of comments by the user
+
+SELECT r.name, A.c
+FROM subreddit r
+JOIN (
+    SELECT s2scc.subreddit_id, SUM(s2scc.count/B.c) as c
+    FROM user2subreddit_cmnt_count s2scc
+    JOIN (
+        SELECT user_id, SUM(count) as c
+        FROM user2subreddit_cmnt_count s2scc
+        GROUP BY user_id
+    ) B ON B.user_id = s2scc.user_id
+    WHERE s2scc.user_id IN (
+        SELECT user_id
+        FROM user2subreddit_cmnt_count
+        WHERE subreddit_id IN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id IN (SELECT id FROM tag WHERE name IN ('TAG')))
+        AND count > 1
+    )
+      AND count > 1
+      AND subreddit_id NOT IN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id IN (SELECT id FROM tag WHERE name IN ('TAG')))
+      #AND subreddit_id NOT IN (SELECT id FROM subreddit WHERE name LIKE '%programming%'))
+    GROUP BY subreddit_id
+) A ON r.id = A.subreddit_id
+ORDER BY A.c
+;
+
+
+
+
+
+
+# Count comments per subreddit
+
+SELECT r.name, A.c
+FROM subreddit r
+JOIN (
+    SELECT subreddit_id, SUM(count) as c
+    FROM user2subreddit_cmnt_count
+    GROUP BY subreddit_id
+    ORDER BY c DESC
+    LIMIT 100
+) A ON r.id = A.subreddit_id
+;
