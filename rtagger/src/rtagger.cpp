@@ -4,17 +4,7 @@
 
 #include "utils.h" // for count_digits, itoa_nonstandard
 
-/* MySQL */
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
-
-
-sql::Driver* SQL_DRIVER = get_driver_instance();
-sql::Connection* SQL_CON;
-sql::Statement* SQL_STMT;
-sql::ResultSet* SQL_RES;
+#include "rscraper_utils.hpp" // for sql::*
 
 
 constexpr const char* STMT_PRE = 
@@ -168,15 +158,20 @@ void csv2cls(const char* csv){
     memcpy(stmt + stmt_i,  STMT_PRE,  strlen(STMT_PRE));
     stmt_i += strlen(STMT_PRE);
     
+    int n_users = 1;
+    size_t n_allocated_bytes = estimated_n_bytes(csv, n_users) + 1000;
+    
     while (true){
         switch(csv[i]){
             case 0:
             case ',':
                 const uint64_t id = str2id(csv, j, i);
+                
                 stmt_i += itoa_nonstandard(id,  stmt + stmt_i);
                 if (csv[i] == 0)
                     goto goto_break;
                 stmt[stmt_i++] = ',';
+                
                 i += 6; // Skip "id-t2_"
                 j = i + 1; // Start at character after comma
                 break;
@@ -195,8 +190,7 @@ void csv2cls(const char* csv){
     SQL_RES = SQL_STMT->executeQuery(stmt);
     
     int k = 0;
-    int n_users = 1;
-    size_t n_allocated_bytes = estimated_n_bytes(csv, n_users) + 1000;
+    
     DST = (char*)malloc(n_allocated_bytes);
     //DST[k++] = '{'; We obtain an (erroneous) prefix of "]," in the following loop
     // To avoid adding another branch, we simply skip the first character, and overwrite the second with "{" later
