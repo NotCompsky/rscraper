@@ -169,7 +169,6 @@ unsigned long int sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_re
     statement[i++] = '"';
     printf("strlen(content): %lu\n", strlen(content));
     for (auto j = 0;  j < strlen(content);  ++j){
-        printf("%d\n", j);
         if (content[j] == '"'  ||  content[j] == '\\')
             statement[i++] = '\\';
         statement[i++] = content[j];
@@ -368,17 +367,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     
     
     const unsigned long int author_id = id2n_lower(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
-    
-    if (filter_user::bl::matches_id(author_id))
-        // e.g. if author_id matches that of an automoderator bot
-        return;
-    
     const unsigned long int subreddit_id = id2n_lower(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
-    
-    
-    if (filter_subreddit::bl::matches_id(subreddit_id))
-        // e.g. if author_id matches that of an automoderator bot
-        return;
     
     
     struct cmnt_meta metadata = {
@@ -388,6 +377,19 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
         author_id,
         subreddit_id,
     };
+    
+    
+    switch (filter_user::matches_id(author_id)){
+        case 1: return; // blacklist
+        case 2: goto goto__do_process_this_live_cmnt; // whitelist
+        default: break; // 0 is the default
+    }
+    
+    switch (filter_subreddit::matches_id(subreddit_id)){
+        case 1: return; // blacklist
+        case 2: goto goto__do_process_this_live_cmnt; // whitelist
+        default: break; // 0 is the default
+    }
     
     
     if (filter_comment_body::wl::match(metadata, body, strlen(body))){
