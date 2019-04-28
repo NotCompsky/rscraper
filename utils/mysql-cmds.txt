@@ -258,3 +258,25 @@ WHERE s.id NOT IN (
 )
 ORDER BY s.name
 ;
+
+
+# Sort the most commented-in subreddit_ids
+
+SELECT SUM(count), subreddit_id
+FROM user2subreddit_cmnt_count
+GROUP BY subreddit_id
+ORDER BY SUM(count)
+;
+
+# Sort the most commented-in subreddits
+
+SELECT r.name, r.id, C.c
+FROM subreddit r
+JOIN (
+    SELECT SUM(count) as c, subreddit_id
+    FROM user2subreddit_cmnt_count
+    GROUP BY subreddit_id
+) C ON C.subreddit_id = r.id
+ORDER BY C.c
+;
+
