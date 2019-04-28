@@ -482,7 +482,8 @@ int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
     int i = 0;
     for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr){
         cmnt_id = id2n_lower((*itr)["data"]["id"].GetString()); // No "t1_" prefix
-        if (cmnt_id == last_processed_cmnt_id)
+        if (cmnt_id <= last_processed_cmnt_id)
+            // Not '==' since it is possible for comments to have been deleted between calls
             break;
         process_live_cmnt(*itr, cmnt_id);
     }
