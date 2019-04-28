@@ -49,9 +49,9 @@ CREATE TABLE subreddit2tag (
 CREATE TABLE tag (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(128) UNIQUE,
-    r REAL,
-    g REAL,
-    b REAL,
+    r FLOAT,
+    g FLOAT,
+    b FLOAT,
     PRIMARY KEY (id)
 );
 
@@ -70,6 +70,57 @@ CREATE TABLE user2subreddit_cmnt_count (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE tag2category (
+    # Categories are what we group tags in, for the purposes of generating user tags as an average of the subreddit tags in each category.
+    # For instance, /r/python, /r/cpp and /r/programming might be tagged 'coding', and /r/sewing might be tagged 'sewing', but we could usefully tag someone with both 'hobby: coding' and 'language: cpp'
+    # Currently works best (i.e. output makes the most sense) if at most one tag per category is assigned to each subreddit
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    tag_id BIGINT UNSIGNED NOT NULL,
+    category_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE category (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name VARCHAR(32),
+    PRIMARY KEY (id)
+);
+
+
+
+
+# Insert some example values
+
+INSERT INTO category  (name) VALUES ('region'), ('hobby'), ('politics'), ('TV');
+
+INSERT INTO tag       (name, r, g, b)
+VALUES
+    ('UK',              1.0, 0.0, 0.0),
+    ('programming',     0.5, 0.5, 1.0),
+    ('sport',           0.0, 1.0, 0.0),
+    ('US',              0.8, 0.2, 0.4),
+    ('india',           0.2, 1.0, 0.2)
+;
+
+INSERT INTO subreddit (id, name, nsfw)
+VALUES
+    (4594374, 'AskReddit', 2),
+    (113928, 'programming', 2),
+    (4595198, 'C_Programming', 2)
+;
+
+INSERT INTO subreddit2tag (subreddit_id, tag_id)
+SELECT s.id, t.id
+FROM subreddit s, tag t
+WHERE s.name LIKE '%programming%'
+  AND t.name = 'programming'
+;
+
+INSERT INTO tag2category (tag_id, category_id) VALUES (
+    (SELECT id FROM tag      WHERE name = 'programming'),
+    (SELECT id FROM category WHERE name = 'hobby')
+);
+
 
 
 # Grant Permissions
@@ -81,6 +132,63 @@ GRANT SELECT, INSERT ON rscraper.* TO 'rscraper++'@'localhost';
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Print table of tags to their associated subreddits
+
+SELECT r.name, S2T.name
+FROM subreddit r
+LEFT JOIN (
+    SELECT s2t.subreddit_id, T.name
+    FROM subreddit2tag s2t
+    JOIN (
+        SELECT t.id, t.name
+        FROM tag t
+    ) T on T.id = s2t.tag_id
+) S2T on S2T.subreddit_id = r.id
+;
+
+SELECT t.name, S2T.name
+FROM tag t
+LEFT JOIN (
+    SELECT s2t.tag_id, R.name
+    FROM subreddit2tag s2t
+    JOIN (
+        SELECT r.id, r.name
+        FROM subreddit r
+    ) R on R.id = s2t.subreddit_id
+) S2T on S2T.tag_id = t.id
+;
+
+# Print table of categories to their associated tags
+
+SELECT r.name, S2T.name
+FROM category r
+LEFT JOIN (
+    SELECT s2t.category_id, T.name
+    FROM tag2category s2t
+    JOIN (
+        SELECT t.id, t.name
+        FROM tag t
+    ) T on T.id = s2t.tag_id
+) S2T on S2T.category_id = r.id
+;
 
 
 
@@ -396,7 +504,7 @@ ORDER BY A.user_id
 
 
 
-# For a list of user IDs, calculate the mean colour based on the count of their comments in tagged subreddits (WARNING: double counts subreddits if they have multiple coloured tags - this is intended behaviour, as the subreddit should have a colour that is the average of its coloured tags)
+# GHJKHGJHJK: For a list of user IDs, calculate the mean colour based on the count of their comments in tagged subreddits (WARNING: double counts subreddits if they have multiple coloured tags - this is intended behaviour, as the subreddit should have a colour that is the average of its coloured tags)
 
 SELECT S2T.user_id, SUM(S2T.c), SUM(S2T.c*t.r), SUM(S2T.c*t.g), SUM(S2T.c*t.b)
 FROM tag t
@@ -406,7 +514,7 @@ JOIN (
     JOIN (
         SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count
         FROM user2subreddit_cmnt_count u2scc
-        WHERE u2scc.user_id IN (11063919, 34494503, 59635894, 6674527480, 180053962953)
+        WHERE u2scc.user_id IN (SELECT id FROM user)
     ) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id
     GROUP BY U2SCC.user_id, s2t.tag_id
 ) S2T ON S2T.tag_id = t.id
@@ -460,3 +568,167 @@ JOIN (
 ) UU ON UU.subreddit_id = s.id
 GROUP BY UU.user_id
 ;
+
+
+
+
+
+
+
+
+
+
+# ASDFSDF: For a list of user IDs, concatenate the list of count of thier comments in subreddits (does not double count) per subreddit tag_id
+
+SELECT UU.user_id, UU.tag_id, GROUP_CONCAT(s.name, " ", UU.count)
+FROM subreddit s
+JOIN (
+    SELECT u2scc.user_id, u2scc.subreddit_id, A.tag_id, u2scc.count
+    FROM user2subreddit_cmnt_count u2scc
+    JOIN (
+        SELECT subreddit_id, tag_id
+        FROM subreddit2tag
+    ) A ON A.subreddit_id = u2scc.subreddit_id
+) UU ON UU.subreddit_id = s.id
+GROUP BY UU.user_id, UU.tag_id
+;
+
+# ASDFSDF, but using user names and tag names instead of IDs
+# NOTE: Currently, only a small fraction of user IDs are linked to a user name (as only those whose comments match the comment filter of rscrape++ are recorded in 'user' table)
+# This means that a re-ordering of the query would probably be more performant
+
+SELECT u.name, C.tag_id, C.string
+FROM user u
+JOIN (
+    SELECT UU.user_id, UU.tag_id, GROUP_CONCAT(s.name, " ", UU.count) as string
+    FROM subreddit s
+    JOIN (
+        SELECT u2scc.user_id, u2scc.subreddit_id, A.tag_id, u2scc.count
+        FROM user2subreddit_cmnt_count u2scc
+        JOIN (
+            SELECT subreddit_id, tag_id
+            FROM subreddit2tag
+        ) A ON A.subreddit_id = u2scc.subreddit_id
+        WHERE u2scc.user_id IN (SELECT id FROM user)
+    ) UU ON UU.subreddit_id = s.id
+    GROUP BY UU.user_id, UU.tag_id
+) C ON u.id = C.user_id
+;
+
+# ASDFSDF, but grouping by category_id instead of tag_id
+
+SELECT C.user_id, t2c.category_id, GROUP_CONCAT(C.tag_id, ":", C.string) as string
+FROM tag2category t2c
+JOIN (
+    SELECT UU.user_id, UU.tag_id, GROUP_CONCAT(s.name, " ", UU.count) as string
+    FROM subreddit s
+    JOIN (
+        SELECT u2scc.user_id, u2scc.subreddit_id, A.tag_id, u2scc.count
+        FROM user2subreddit_cmnt_count u2scc
+        JOIN (
+            SELECT subreddit_id, tag_id
+            FROM subreddit2tag
+        ) A ON A.subreddit_id = u2scc.subreddit_id
+        WHERE u2scc.user_id IN (SELECT id FROM user)
+    ) UU ON UU.subreddit_id = s.id
+    GROUP BY UU.user_id, UU.tag_id
+) C ON t2c.tag_id = C.tag_id
+GROUP BY C.user_id, t2c.category_id
+;
+
+# Same as above, but using names instead of IDs for users and categories
+
+SELECT E.name, c.name, E.string
+FROM category c
+JOIN (
+    SELECT u.id as user_id, u.name, D.category_id, D.string
+    FROM user u
+    JOIN (
+        SELECT C.user_id, t2c.category_id, GROUP_CONCAT(C.tag_id, ":", C.string) as string
+        FROM tag2category t2c
+        JOIN (
+            SELECT UU.user_id, UU.tag_id, GROUP_CONCAT(s.name, " ", UU.count) as string
+            FROM subreddit s
+            JOIN (
+                SELECT u2scc.user_id, u2scc.subreddit_id, A.tag_id, u2scc.count
+                FROM user2subreddit_cmnt_count u2scc
+                JOIN (
+                    SELECT subreddit_id, tag_id
+                    FROM subreddit2tag
+                ) A ON A.subreddit_id = u2scc.subreddit_id
+                WHERE u2scc.user_id IN (SELECT id FROM user)
+            ) UU ON UU.subreddit_id = s.id
+            GROUP BY UU.user_id, UU.tag_id
+        ) C ON t2c.tag_id = C.tag_id
+        GROUP BY C.user_id, t2c.category_id
+    ) D ON u.id = D.user_id
+) E ON c.id = E.category_id
+ORDER BY E.user_id
+;
+
+# Same as above, but also using tag names
+
+SELECT E.name, c.name, E.string
+FROM category c
+JOIN (
+    SELECT u.id as user_id, u.name, D.category_id, D.string
+    FROM user u
+    JOIN (
+        SELECT C.user_id, t2c.category_id, GROUP_CONCAT(C.tag_name, ":", C.string) as string
+        FROM tag2category t2c
+        JOIN (
+            SELECT F.user_id, F.tag_id, F.string, t.name as tag_name
+            FROM tag t
+            JOIN (
+                SELECT UU.user_id, UU.tag_id, GROUP_CONCAT(s.name, " ", UU.count) as string
+                FROM subreddit s
+                JOIN (
+                    SELECT u2scc.user_id, u2scc.subreddit_id, A.tag_id, u2scc.count
+                    FROM user2subreddit_cmnt_count u2scc
+                    JOIN (
+                        SELECT subreddit_id, tag_id
+                        FROM subreddit2tag
+                    ) A ON A.subreddit_id = u2scc.subreddit_id
+                    WHERE u2scc.user_id IN (SELECT id FROM user)
+                ) UU ON UU.subreddit_id = s.id
+                GROUP BY UU.user_id, UU.tag_id
+            ) F on t.id = F.tag_id
+        ) C ON t2c.tag_id = C.tag_id
+        GROUP BY C.user_id, t2c.category_id
+    ) D ON u.id = D.user_id
+) E ON c.id = E.category_id
+ORDER BY E.user_id
+;
+
+
+
+
+
+
+# GHJKHGJHJK, but calculating a mean colour per category
+
+SELECT A.user_id, SUM(A.c), SUM(A.r), SUM(A.g), SUM(A.b)
+FROM tag2category t2c
+JOIN (
+    SELECT S2T.user_id, S2T.tag_id, S2T.c, S2T.c*t.r as r, S2T.c*t.g as g, S2T.c*t.b as b
+    FROM tag t
+    JOIN (
+        SELECT U2SCC.user_id, s2t.tag_id, SUM(U2SCC.count) as c
+        FROM subreddit2tag s2t
+        JOIN (
+            SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count
+            FROM user2subreddit_cmnt_count u2scc
+            WHERE u2scc.user_id < 10000000
+        ) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id
+        GROUP BY U2SCC.user_id, s2t.tag_id
+    ) S2T ON S2T.tag_id = t.id
+    WHERE t.r IS NOT NULL
+) A ON t2c.tag_id = A.tag_id
+GROUP BY A.user_id
+;
+
+
+
+
+
+
