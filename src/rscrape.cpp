@@ -405,6 +405,34 @@ unsigned long int id2n(const char* str){
     return n;
 }
 
+void count_user_subreddit_cmnt(const unsigned long int user_id,  const unsigned long int subreddit_id){
+    int i;
+    const char* a = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES (1,";
+    const char* b = ") ON DUPLICATE KEY UPDATE count = count + 1;";
+    char stmt[strlen(a) + count_digits(user_id) + 1 + count_digits(subreddit_id) + strlen(b) + 1];
+    
+    
+    i = 0;
+    
+    memcpy(stmt + i,  a,  strlen(a));
+    i += strlen(a);
+    
+    i += itoa_nonstandard(user_id,  stmt + i);
+    
+    stmt[i++] = ',';
+    
+    i += itoa_nonstandard(subreddit_id,  stmt + i);
+    
+    memcpy(stmt + i,  b,  strlen(b));
+    i += strlen(b);
+    
+    stmt[i] = 0;
+    
+    
+    PRINTF("stmt: %s\n", stmt);
+    SQL_STMT->execute(stmt);
+}
+
 void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     SET_STR(body,           cmnt["data"]["body"]);
     SET_STR(subreddit_name, cmnt["data"]["subreddit"]);
@@ -418,6 +446,9 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     
     if (!is_submission_nsfw)
         is_subreddit_nsfw = 0;
+    
+    
+    count_user_subreddit_cmnt(author_id, subreddit_id);
     
     
     struct cmnt_meta metadata = {
@@ -480,19 +511,22 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     sql__add_submission_from_cmnt(submission_id, subreddit_id, is_submission_nsfw);
 }
 
-int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
+unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned long int last_processed_cmnt_id){
     /*
     'replies' object is the 'replies' JSON object which has property 'kind' of value 'Listing'
     */
     unsigned long int cmnt_id;
     int i = 0;
+    
     for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr){
         cmnt_id = id2n_lower((*itr)["data"]["id"].GetString()); // No "t1_" prefix
         if (cmnt_id <= last_processed_cmnt_id)
             // Not '==' since it is possible for comments to have been deleted between calls
             break;
         process_live_cmnt(*itr, cmnt_id);
+        ++i;
     }
+    
     return id2n_lower(replies["data"]["children"][0]["data"]["id"].GetString());
 }
 
@@ -521,7 +555,7 @@ bool try_again(rapidjson::Document& d){
 }
 
 void process_all_comments_live(){
-    int last_processed_cmnt_id = 0;
+    unsigned long int last_processed_cmnt_id = 0;
     
     while (true){
         sleep(REDDIT_REQUEST_DELAY);

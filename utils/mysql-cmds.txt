@@ -58,6 +58,15 @@ CREATE TABLE reason_matched (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE user2subreddit_cmnt_count (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NOT NULL,
+    subreddit_id BIGINT UNSIGNED NOT NULL,
+    count INT UNSIGNED NOT NULL,
+    UNIQUE KEY `user2subreddit` (`user_id`, `subreddit_id`),
+    PRIMARY KEY (id)
+);
+
 
 
 # Grant Permissions
