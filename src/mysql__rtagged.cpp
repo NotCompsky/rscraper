@@ -106,13 +106,14 @@ void free_dst(){
     free(DST - SKIPPED_FIRST_CHAR); // Since we added 1 to it before
 }
 
-int estimated_n_bytes(const char* csv){
+int estimated_n_bytes(const char* csv, int& n_commas){
     int n = 0;
     int i = 0;
     while (true){
-        if (csv[i] == ',')
+        if (csv[i] == ','){
+            ++n_commas;
             n += 2 + strlen("[\"SUBREDDITNAME\",\"rgba(255,255,255,1.0)\"],")*2; // 2 for "": minus ,  2 spaces for ["SUBREDDITNAME","rgba(255,255,255,1.0)"],
-        else if (csv[i] == 0)
+        } else if (csv[i] == 0)
             return 1 + (n+5+11) + 1 + 1; // { ... }\0
         ++i;
         ++n;
@@ -128,13 +129,13 @@ void init_mysql(const char* mysql_url,  const char* mysql_usr,  const char* mysq
     SQL_STMT = SQL_CON->createStatement();
 }
 
-int enlarge_dst(int i,  int n_allocated_bytes){
+size_t enlarge_dst(int i,  size_t n_allocated_bytes){
     // -1 for terminating null byte
     DST[i + 1] = 0; // Necessary to null-terminate for memcpy?
     n_allocated_bytes *= 2;
-    n_allocated_bytes += strlen("],\"id-t2_abcdefgh\":[[\"rgba(255,255,255,1.0)\",\"programming 1,cpp 10,python 5,technology 333\"],") + 1;
-    printf("Requesting realloc of %dB\n", n_allocated_bytes);
-    char* dst = (char*)realloc(DST, n_allocated_bytes*sizeof(char));
+    n_allocated_bytes += 1000;
+    printf("Requesting realloc of %luB\n", n_allocated_bytes);
+    char* dst = (char*)realloc(DST, n_allocated_bytes);
     if (dst != NULL){
         DST = dst;
         return n_allocated_bytes;
@@ -194,7 +195,8 @@ void csv2cls(const char* csv){
     SQL_RES = SQL_STMT->executeQuery(stmt);
     
     int k = 0;
-    int n_allocated_bytes = estimated_n_bytes(csv);
+    int n_users = 1;
+    size_t n_allocated_bytes = estimated_n_bytes(csv, n_users) + 1000;
     DST = (char*)malloc(n_allocated_bytes);
     //DST[k++] = '{'; We obtain an (erroneous) prefix of "]," in the following loop
     // To avoid adding another branch, we simply skip the first character, and overwrite the second with "{" later
@@ -250,8 +252,8 @@ void csv2cls(const char* csv){
         const std::string ss = SQL_RES->getString(7);
         const char*        s = ss.c_str();
         
-        if (k + strlen(s) + 30  >=  n_allocated_bytes)
-            n_allocated_bytes = enlarge_dst(k, n_allocated_bytes + strlen(s) + 40);
+        if (k + strlen(s) + 1000  >=  n_allocated_bytes)
+            n_allocated_bytes = enlarge_dst(k,  n_allocated_bytes + strlen(s));
         
         memcpy(DST + k + 1,  s,  strlen(s));
         k += strlen(s);
