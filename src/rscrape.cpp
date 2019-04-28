@@ -51,33 +51,33 @@ sql::ResultSet* SQL_RES;
 
 const char* USER_AGENT;
 CURL* curl;
-const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
-const int PARAMS_LEN = strlen(PARAMS);
+constexpr const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
+constexpr const int PARAMS_LEN = strlen(PARAMS);
 
-const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
-const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
+constexpr const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
+constexpr const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
 char AUTH_HEADER[strlen("Authorization: bearer ") + strlen("XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX") + 1] = "Authorization: bearer ";
 
-const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
-const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
-const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
-const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
-const char* API_ALLCOMMENTS_URL = "https://oauth.reddit.com/r/all/comments/?limit=100&raw_json=1";
+constexpr const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
+constexpr const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
+constexpr const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
+constexpr const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
+constexpr const char* API_ALLCOMMENTS_URL = "https://oauth.reddit.com/r/all/comments/?limit=100&raw_json=1";
 
 const char* USR;
 const char* PWD;
 const char* KEY_AND_SECRET;
 
 
-const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
-const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
+constexpr const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
+constexpr const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
 char BASIC_AUTH_HEADER[strlen("Authorization: Basic ") + strlen("base-64-encoded-client_key:client_secret----------------") + 1] = "Authorization: Basic ";
 
 
 CURL* LOGIN_CURL;
 struct curl_slist* LOGIN_HEADERS;
-const char* LOGIN_POSTDATA_PREFIX = "grant_type=password&password=";
-const char* LOGIN_POSTDATA_KEYNAME = "&username=";
+constexpr const char* LOGIN_POSTDATA_PREFIX = "grant_type=password&password=";
+constexpr const char* LOGIN_POSTDATA_KEYNAME = "&username=";
 char* LOGIN_POSTDATA;
 
 
@@ -116,8 +116,8 @@ void sql__add_submission_from_cmnt(const unsigned long int id, const unsigned lo
     Checks if a submission entry exists, and if not, creates one (but is based only on the information visible from a comment entry)
     */
     int i;
-    const char* a = "SELECT id FROM submission WHERE id = ";
-    const char* b = "INSERT INTO submission (id, subreddit_id, nsfw) values(";
+    constexpr const char* a = "SELECT id FROM submission WHERE id = ";
+    constexpr const char* b = "INSERT INTO submission (id, subreddit_id, nsfw) values(";
     char statement[strlen(b) + count_digits(id) + 2 + count_digits(subreddit_id) + 2 + 1];
     
     
@@ -165,8 +165,8 @@ void sql__add_submission_from_cmnt(const unsigned long int id, const unsigned lo
 
 void sql__add_cmnt(const unsigned long int cmnt_id, const unsigned long int parent_id, const unsigned long int author_id, const unsigned long int submission_id, const unsigned long int created_at, char* content, const unsigned int reason_matched){
     int i;
-    const char* a = "SELECT id FROM comment WHERE id = ";
-    const char* statement2 = "INSERT INTO comment (id, parent_id, author_id, submission_id, created_at, reason_matched, content) values(";
+    constexpr const char* a = "SELECT id FROM comment WHERE id = ";
+    constexpr const char* statement2 = "INSERT INTO comment (id, parent_id, author_id, submission_id, created_at, reason_matched, content) values(";
     char statement[strlen(statement2) + count_digits(cmnt_id) + 2 + count_digits(parent_id) + 2 + count_digits(author_id) + 2 + count_digits(submission_id) + 2 + count_digits(created_at) + 2 + 1 + strlen(content)*2 + 3 + 1];
     
     
@@ -406,9 +406,9 @@ unsigned long int id2n(const char* str){
 
 void count_user_subreddit_cmnt(const unsigned long int user_id,  const unsigned long int subreddit_id, const char* subreddit_name){
     int i;
-    const char* a = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES (1,";
-    const char* b = ") ON DUPLICATE KEY UPDATE count = count + 1;";
-    const char* c = "INSERT IGNORE INTO subreddit (id, name) VALUES (";
+    constexpr const char* a = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES (1,";
+    constexpr const char* b = ") ON DUPLICATE KEY UPDATE count = count + 1;";
+    constexpr const char* c = "INSERT IGNORE INTO subreddit (id, name) VALUES (";
     char stmt[strlen(a) + count_digits(user_id) + 1 + count_digits(subreddit_id) + strlen(b) + count_digits(subreddit_id) + 2 + strlen(subreddit_name) + 3 + 1];
     
     
@@ -554,7 +554,7 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
 }
 
 
-const char* FORBIDDEN = ">403 Forbidden<";
+constexpr const char* FORBIDDEN = ">403 Forbidden<";
 
 bool try_again(rapidjson::Document& d){
     if (d.Parse(MEMORY.memory).HasParseError())
@@ -606,7 +606,7 @@ void process_moderator(rapidjson::Value& user){
 }
 
 void process_moderators(const char* subreddit, const int subreddit_len){
-    const char* a = "/about/moderators/?raw_json=1";
+    constexpr const char* a = "/about/moderators/?raw_json=1";
     char api_url[strlen(API_SUBREDDIT_URL_PREFIX) + subreddit_len + strlen(a) + 1];
     int i = 0;
     
@@ -718,7 +718,6 @@ int main(const int argc, const char* argv[]){
     
     
     USER_AGENT = argv[++i];
-    
     
     USR = argv[++i];
     PWD = argv[++i];
