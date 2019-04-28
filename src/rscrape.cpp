@@ -470,7 +470,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
         is_subreddit_nsfw = 0;
     
     
-    if (filter_subreddit::to_count(subreddit_id))
+    if (filter_subreddit::to_count(subreddit_id) && filter_user::to_count(author_id))
         count_user_subreddit_cmnt(author_id, subreddit_id, subreddit_name);
     
     
