@@ -14,8 +14,7 @@
 #include <cppconn/statement.h>
 
 #include "rapidjson_utils.h" // for SET_DBG_* macros
-#include "defines.h" // for PRINTF macro
-#include "utils.h" // for sql__file_attr_id, sql__get_id_from_table, sql__insert_into_table_at, count_digits, itoa_nonstandard
+#include "utils.h" // for PRINTF macro, sql__file_attr_id, sql__get_id_from_table, sql__insert_into_table_at, count_digits, itoa_nonstandard
 
 #include "filter_comment_body.cpp" // for filter_comment_body::*
 #include "filter_user.cpp" // for filter_user::*
