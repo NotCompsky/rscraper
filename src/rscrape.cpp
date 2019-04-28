@@ -448,7 +448,8 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
         is_subreddit_nsfw = 0;
     
     
-    count_user_subreddit_cmnt(author_id, subreddit_id);
+    if (filter_subreddit::to_count(subreddit_id))
+        count_user_subreddit_cmnt(author_id, subreddit_id);
     
     
     struct cmnt_meta metadata = {
