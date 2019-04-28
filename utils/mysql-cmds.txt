@@ -1,0 +1,168 @@
+# Init DB
+
+CREATE DATABASE rscraper;
+
+USE rscraper;
+
+
+CREATE TABLE user (
+    id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(128),
+    created_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE subreddit (
+    id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(128),
+    created_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE submission (
+    id BIGINT UNSIGNED NOT NULL,
+    author_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    subreddit_id BIGINT UNSIGNED NOT NULL,
+    content VARCHAR(40000),
+    created_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE comment (
+    id BIGINT UNSIGNED NOT NULL,
+    parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    author_id BIGINT UNSIGNED NOT NULL,
+    submission_id BIGINT UNSIGNED NOT NULL,
+    content VARCHAR(40000) NOT NULL,
+    created_at BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE subreddit2tag (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    subreddit_id BIGINT UNSIGNED NOT NULL,
+    tag_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE tag (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name UNIQUE VARCHAR(128),
+    PRIMARY KEY (id)
+);
+
+
+
+# Grant Permissions
+
+CREATE USER 'rscraper++'@'localhost' IDENTIFIED BY '[PASSWORD]';
+
+GRANT SELECT, INSERT ON rscraper.* TO 'rscraper++'@'localhost';
+
+
+
+
+
+
+
+
+# Tag subreddit SUBREDDIT_NAME with tag TAG_NAME (assuming TAG_NAME exists in tag table)
+
+INSERT INTO subreddit2tag (tag_id, subreddit_id)
+SELECT t.id, s.id
+FROM tag t JOIN subreddit s
+WHERE (t.name = 'TAG_NAME') AND (s.name = 'SUBREDDIT_NAME')
+;
+
+
+
+# Print table of subreddit, username, comment
+
+SELECT r.name AS 'subreddit', R.name AS 'user', R.content
+FROM subreddit r
+JOIN (
+    SELECT s.subreddit_id, P.name, P.content
+    FROM submission s
+    JOIN (
+        SELECT u.name, T.content, T.submission_id
+        FROM user u
+        JOIN (
+            SELECT c.author_id, c.content, c.submission_id
+            FROM comment c
+        ) T ON T.author_id = u.id
+    ) P on P.submission_id = s.id
+) R on R.subreddit_id = r.id
+;
+
+
+
+# Print table of submissions in subreddits tagged with TAG
+
+SELECT R.name, s.id
+FROM submission s
+JOIN (
+    SELECT r.id, r.name
+    FROM subreddit r
+    JOIN (
+        SELECT s2t.subreddit_id
+        FROM subreddit2tag s2t
+        JOIN (
+            SELECT t.id
+            FROM tag t
+            WHERE t.name = 'TAG'
+        ) T on T.id = s2t.tag_id
+    ) S2T on S2T.subreddit_id = r.id
+) R on R.id = s.subreddit_id
+;
+
+
+# Print table of subreddit, username, comment in subreddits tagged with TAG
+
+SELECT C.name, u.name, C.content
+FROM user u
+JOIN (
+    SELECT S.name, c.author_id, c.content
+    FROM comment c
+    JOIN (
+        SELECT R.name, s.id
+        FROM submission s
+        JOIN (
+            SELECT r.id, r.name
+            FROM subreddit r
+            JOIN (
+                SELECT s2t.subreddit_id
+                FROM subreddit2tag s2t
+                JOIN (
+                    SELECT t.id
+                    FROM tag t
+                    WHERE t.name = 'TAG'
+                ) T on T.id = s2t.tag_id
+            ) S2T on S2T.subreddit_id = r.id
+        ) R on R.id = s.subreddit_id
+    ) S on S.id = c.submission_id
+) C on C.author_id = u.id
+;
+
+
+# Print table of permalink, comment in subreddits tagged with TAG1 or TAG2
+
+SELECT CONCAT("https://www.reddit.com/r/", S.name, "/comments/"), c.id, c.content
+FROM comment c
+JOIN (
+    SELECT R.name, s.id
+    FROM submission s
+    JOIN (
+        SELECT r.id, r.name
+        FROM subreddit r
+        JOIN (
+            SELECT s2t.subreddit_id
+            FROM subreddit2tag s2t
+            JOIN (
+                SELECT t.id
+                FROM tag t
+                WHERE t.name IN ('TAG1','TAG2')
+            ) T on T.id = s2t.tag_id
+        ) S2T on S2T.subreddit_id = r.id
+    ) R on R.id = s.subreddit_id
+) S on S.id = c.submission_id
+;
