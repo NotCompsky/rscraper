@@ -7,7 +7,7 @@ SUBREDDITS=`echo "${@:2}" | sed "s/ /','/g"`
 mysql --user="rscraper++" --password="$PASSWORD" --database="rscraper" --execute "INSERT IGNORE INTO tag (name) values('$TAG');"
 
 mysql --user="rscraper++" --password="$PASSWORD" --database="rscraper" --execute "
-INSERT INTO subreddit2tag (tag_id, subreddit_id)
+INSERT IGNORE INTO subreddit2tag (tag_id, subreddit_id)
 SELECT t.id, s.id
 FROM tag t JOIN subreddit s
 WHERE (t.name = '$TAG') AND (s.name in ('$SUBREDDITS'))
