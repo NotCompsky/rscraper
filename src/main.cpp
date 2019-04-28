@@ -107,17 +107,16 @@ void megasleep(){
 }
 
 
-
-
 unsigned long int sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_res, const unsigned long int cmnt_id, const unsigned long int parent_id, const unsigned long int author_id, const unsigned long int submission_id, const unsigned long int created_at, char* content){
     int i;
-    char statement[count_digits(cmnt_id) + 2 + count_digits(parent_id) + 2 + count_digits(author_id) + 2 + count_digits(submission_id) + 2 + count_digits(created_at) + 2 + 1 + strlen(content)*2 + 3 + 1];
+    const char* a = "SELECT id FROM comment WHERE id = ";
+    const char* statement2 = "INSERT INTO comment (id, parent_id, author_id, submission_id, created_at, content) values(";
+    char statement[strlen(statement2) + count_digits(cmnt_id) + 2 + count_digits(parent_id) + 2 + count_digits(author_id) + 2 + count_digits(submission_id) + 2 + count_digits(created_at) + 2 + 1 + strlen(content)*2 + 3 + 1];
     
     goto__select_from_table__dsfsdfs:
     
     i = 0;
     
-    const char* a = "SELECT id FROM comment WHERE id = ";
     memcpy(statement + i,  a,  strlen(a));
     i += strlen(a);
     
@@ -138,7 +137,7 @@ unsigned long int sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_re
     printf("Creating new entry in 'comment' for '%lu'\n", cmnt_id);
     
     i = 0;
-    const char* statement2 = "INSERT INTO comment (id, parent_id, author_id, submission_id, created_at, content) values(";
+    
     memcpy(statement + i,  statement2,  strlen(statement2));
     i += strlen(statement2);
     
