@@ -2,13 +2,10 @@
 #include <curl/curl.h>
 #include "rapidjson/document.h" // for rapidjson::Document
 #include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
-#include <stdio.h> // for printf
 #include <stdlib.h> // for free, malloc, realloc
 #include <string.h> // for memcpy
 #include <time.h> // for asctime
 #include <unistd.h> // for sleep
-
-#include <execinfo.h> // for printing stack trace
 
 /* MySQL */
 #include <cppconn/driver.h>
@@ -23,6 +20,12 @@
 #include "filter_comment_body.cpp" // for filter_comment_body::*
 #include "filter_user.cpp" // for filter_user::*
 #include "filter_subreddit.cpp" // for filter_subreddit::*
+
+
+#ifdef DEBUG
+    #include <stdio.h> // for printf
+    #include <execinfo.h> // for printing stack trace
+#endif
 
 
 enum {
@@ -92,13 +95,14 @@ struct MemoryStruct MEMORY;
 
 void handler(int n){
     void* arr[10];
-    
+
+#ifdef DEBUG
     size_t size = backtrace(arr, 10);
     
     fprintf(stderr, "%s\n", MEMORY.memory);
     fprintf(stderr, "E(%d):\n", n);
     backtrace_symbols_fd(arr, size, STDERR_FILENO);
-    
+#endif
     
     free(MEMORY.memory);
     free(LOGIN_POSTDATA);
