@@ -1,4 +1,4 @@
-#include <b64/encode.h> // for 
+#include <b64/encode.h> // for base64::encode
 #include <curl/curl.h>
 #include "rapidjson/document.h" // for rapidjson::Document
 #include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
@@ -10,10 +10,20 @@
 
 #include <execinfo.h> // for printing stack trace
 
+/* MySQL */
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/resultset.h>
+#include <cppconn/statement.h>
+
 #include "rapidjson_utils.h" // for SET_DBG_* macros
-#include "utils.h" // for PRINTF macro
+#include "defines.h" // for PRINTF macro
+#include "utils.h" // for sql__file_attr_id, sql__get_id_from_table, sql__insert_into_table_at, count_digits, itoa_nonstandard
 
 #include "filter_comment_body.cpp" // for filter_comment_body::*
+#include "filter_user.cpp" // for filter_user::*
+#include "filter_subreddit.cpp" // for filter_subreddit::*
+
 
 enum {
     SUCCESS,
@@ -26,6 +36,14 @@ enum {
 };
 
 #define REDDIT_REQUEST_DELAY 1
+
+
+
+sql::Driver* SQL_DRIVER;
+sql::Connection* SQL_CON;
+sql::Statement* SQL_STMT;
+sql::ResultSet* SQL_RES;
+
 
 
 const char* USER_AGENT = "rscraper++:0.0.1-dev0 (by /u/Compsky)";
@@ -88,6 +106,90 @@ void megasleep(){
     sleep(5);
 }
 
+
+
+
+unsigned long int sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_res, const unsigned long int cmnt_id, const unsigned long int parent_id, const unsigned long int author_id, const unsigned long int submission_id, const unsigned long int created_at, char* content){
+    int i;
+    char statement[count_digits(cmnt_id) + 2 + count_digits(parent_id) + 2 + count_digits(author_id) + 2 + count_digits(submission_id) + 2 + count_digits(created_at) + 2 + 1 + strlen(content)*2 + 3 + 1];
+    
+    goto__select_from_table__dsfsdfs:
+    
+    i = 0;
+    
+    const char* a = "SELECT id FROM comment WHERE id = ";
+    memcpy(statement + i,  a,  strlen(a));
+    i += strlen(a);
+    
+    i += itoa_nonstandard(cmnt_id, statement + i);
+    
+    statement[i++] = ';';
+    statement[i] = 0;
+    
+    printf("stmt: %s\n", statement);
+    sql_res = sql_stmt->executeQuery(statement);
+    
+    if (sql_res->next()){
+        // Entry already existed in table
+        printf("Result ID: %d\n", sql_res->getInt(1));
+        return sql_res->getInt(1);
+    }
+    
+    printf("Creating new entry in 'comment' for '%lu'\n", cmnt_id);
+    
+    i = 0;
+    const char* statement2 = "INSERT INTO comment (id, parent_id, author_id, submission_id, created_at, content) values(";
+    memcpy(statement + i,  statement2,  strlen(statement2));
+    i += strlen(statement2);
+    
+    i += itoa_nonstandard(cmnt_id, statement + i);
+    
+    statement[i++] = ',';
+    statement[i++] = ' ';
+    
+    i += itoa_nonstandard(parent_id, statement + i);
+    
+    statement[i++] = ',';
+    statement[i++] = ' ';
+    
+    i += itoa_nonstandard(author_id, statement + i);
+    
+    statement[i++] = ',';
+    statement[i++] = ' ';
+    
+    i += itoa_nonstandard(submission_id, statement + i);
+    statement[i++] = ',';
+    statement[i++] = ' ';
+    
+    i += itoa_nonstandard(created_at, statement + i);
+    
+    statement[i++] = ',';
+    statement[i++] = ' ';
+    
+    statement[i++] = '"';
+    printf("strlen(content): %lu\n", strlen(content));
+    while (*content != 0){
+        if (*content == '"'  ||  *content == '\\')
+            statement[i++] = '\\';
+        statement[i++] = *content;
+        ++content;
+    }
+    statement[i++] = '"';
+    
+    statement[i++] = ')';
+    statement[i++] = ';';
+    statement[i] = 0;
+    
+    printf("stmt: %s\n", statement);
+    sql_stmt->execute(statement);
+    
+    goto goto__select_from_table__dsfsdfs;
+}
+
+
+
+
+
 size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
     size_t total_size = size * n;
     struct MemoryStruct* mem = (struct MemoryStruct*)buf;
@@ -147,8 +249,8 @@ void init_login(){
         handler(ERR_CANNOT_INIT_CURL);
     
     curl_easy_setopt(LOGIN_CURL, CURLOPT_USERAGENT, USER_AGENT);
-    
     curl_easy_setopt(LOGIN_CURL, CURLOPT_HTTPHEADER, LOGIN_HEADERS);
+    curl_easy_setopt(LOGIN_CURL, CURLOPT_TIMEOUT, 20);
     
     i = 0;
     
@@ -215,19 +317,47 @@ int slashindx(const char* str){
     return i;
 }
 
+unsigned long int id2n_lower(const char* str){
+    unsigned long n = 0;
+    //PRINTF("id2n_lower(%s) -> ", str);
+    while (*str != 0){
+        n *= (10 + 26);
+        if (*str >= '0'  &&  *str <= '9')
+            n += *str - '0';
+#ifdef DEBUG
+        else if (*str < 'a'  ||  *str > 'z'){
+            printf("ERROR: Bad alphanumeric: %s\n", str);
+            handler(ERR);
+        }
+#endif
+        else
+            n += *str - 'a' + 10;
+        ++str;
+    }
+    //PRINTF("%lu\n", n);
+    return n;
+}
 
 unsigned long int id2n(const char* str){
-    unsigned long int n = 0;
+    unsigned long n = 0;
+    PRINTF("id2n(%s) -> ", str);
     while (*str != 0){
-        n *= 10 + 26 + 26;
+        n *= (10 + 26 + 26);
         if (*str >= '0'  &&  *str <= '9')
             n += *str - '0';
         else if (*str >= 'a'  &&  *str <= 'z')
             n += *str - 'a' + 10;
+#ifdef DEBUG
+        else if (*str < 'A'  ||  *str > 'Z'){
+            printf("ERROR: Bad alphanumeric: %s\n", str);
+            handler(ERR);
+        }
+#endif
         else
             n += *str - 'A' + 10 + 26;
         ++str;
     }
+    PRINTF("%lu\n", n);
     return n;
 }
 
@@ -237,12 +367,26 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     SET_STR(author_name,    cmnt["data"]["author"]);
     
     
+    const unsigned long int author_id = id2n_lower(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
+    
+    if (filter_user::bl::matches_id(author_id))
+        // e.g. if author_id matches that of an automoderator bot
+        return;
+    
+    const unsigned long int subreddit_id = id2n_lower(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
+    
+    
+    if (filter_subreddit::bl::matches_id(subreddit_id))
+        // e.g. if author_id matches that of an automoderator bot
+        return;
+    
+    
     struct cmnt_meta metadata = {
         author_name,
         subreddit_name,
         
-        id2n(cmnt["data"]["author_fullname"].GetString() + 3), // Skip "t2_" prefix
-        id2n(cmnt["data"]["subreddit_id"].GetString() + 3), // Skip "t3_" prefix
+        author_id,
+        subreddit_id,
     };
     
     
@@ -259,15 +403,30 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     goto__do_process_this_live_cmnt:
     
     
-    SET_STR(parent_id,      cmnt["data"]["parent_id"]);
-    parent_id += 3; // Skip "t3_" or "t1_" prefix - we can use 'depth' attribute to see if it is a root comment or not
-    
     SET_STR(permalink,      cmnt["data"]["permalink"]);
     
     const time_t RSET_FLT(created_at,     cmnt["data"]["created_utc"]);
     
     
     printf("/r/%s\t/u/%s\t@%shttps://old.reddit.com%s\n%s\n\n\n", subreddit_name, author_name, asctime(localtime(&created_at)), permalink, body); // asctime introduces a newline
+    
+    
+    sql__insert_into_table_at(SQL_STMT, SQL_RES, "user", author_name, author_id);
+    sql__insert_into_table_at(SQL_STMT, SQL_RES, "subreddit", subreddit_name, subreddit_id);
+    
+    unsigned long int parent_id = id2n_lower(cmnt["data"]["parent_id"].GetString() + 3);
+    unsigned long int submission_id;
+    
+    if (cmnt["data"]["parent_id"].GetString()[1] == '3'){
+        // "t3_" or "t1_" prefix
+        submission_id = parent_id;
+        parent_id = 0;
+    } else {
+        submission_id = id2n_lower(cmnt["data"]["link_id"].GetString() + 3);
+    }
+    
+    const char* cmnt_content = cmnt["data"]["body"].GetString();
+    sql__add_cmnt(SQL_STMT, SQL_RES, cmnt_id, parent_id, author_id, submission_id, created_at, (char*)cmnt_content);
 }
 
 int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
@@ -277,12 +436,12 @@ int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
     int cmnt_id;
     int i = 0;
     for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr){
-        cmnt_id = id2n((*itr)["data"]["id"].GetString()); // No "t1_" prefix
+        cmnt_id = id2n_lower((*itr)["data"]["id"].GetString()); // No "t1_" prefix
         if (cmnt_id == last_processed_cmnt_id)
             break;
         process_live_cmnt(*itr, cmnt_id);
     }
-    return id2n(replies["data"]["children"][0]["data"]["id"].GetString());
+    return id2n_lower(replies["data"]["children"][0]["data"]["id"].GetString());
 }
 
 
@@ -460,7 +619,16 @@ int main(const int argc, const char* argv[]){
     MEMORY.memory = (char*)malloc(0);
     AUTH_HEADER = (char*)malloc(0);
     
+    
     int i = 0;
+    
+    
+    SQL_DRIVER = get_driver_instance();
+    SQL_CON = SQL_DRIVER->connect(argv[1], argv[2], argv[3]);
+    i += 3;
+    SQL_CON->setSchema("rscraper");
+    SQL_STMT = SQL_CON->createStatement();
+    
     
     USR = argv[++i];
     PWD = argv[++i];
@@ -475,6 +643,7 @@ int main(const int argc, const char* argv[]){
         handler(ERR_CANNOT_INIT_CURL);
     
     curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);
     
     init_login();
     login();

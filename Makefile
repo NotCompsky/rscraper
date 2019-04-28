@@ -1,8 +1,8 @@
 default:
-	g++ src/main.cpp -o build/main -O3 -lcurl -lb64 -lboost_regex
+	g++ src/main.cpp -o build/main -O3 -lcurl -lb64 -lboost_regex -lmysqlcppconn
 
 debug:
-	g++ src/main.cpp -o build/main -g -lcurl -lb64 -lboost_regex -DDEBUG
+	g++ src/main.cpp -o build/main -g -lcurl -lb64 -lboost_regex -lmysqlcppconn -DDEBUG
 
 j:
 	g++ src/json.cpp -o j -O3
