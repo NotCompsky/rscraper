@@ -1,5 +1,6 @@
-default: src/rscrape.cpp src/mysql__cmnts_from_subs_tagged.cpp docs/main.md
+default: src/rscrape.cpp
 
+all: src/rscrape.cpp src/mysql__cmnts_from_subs_tagged.cpp docs/main.md
 
 src/rscrape.cpp:
 	g++ src/rscrape.cpp -o build/rscrape++ -O3 -lcurl -lb64 -lboost_regex -lmysqlcppconn
