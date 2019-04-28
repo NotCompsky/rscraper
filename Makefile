@@ -6,7 +6,8 @@ src/rscrape.cpp:
 	g++ src/rscrape.cpp -o build/rscrape++ -O3 -lcurl -lb64 -lboost_regex -lmysqlcppconn
 
 src/mysql__cmnts_from_subs_tagged.cpp:
-	g++ src/mysql__cmnts_from_subs_tagged.cpp -o build/srch-tagged-subs -lmysqlcppconn
+	g++ src/mysql__cmnts_from_subs_tagged.cpp -o build/srch-by-reason -lmysqlcppconn
+	g++ src/mysql__cmnts_from_subs_tagged.cpp -o build/srch-tagged-subs -lmysqlcppconn -DSUB2TAG
 
 docs/main.md:
 	pandoc -s -t man docs/main.md -o man/main.1

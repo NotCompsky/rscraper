@@ -213,3 +213,39 @@ JOIN (
     ) P on P.submission_id = s.id
 ) R on R.subreddit_id = r.id
 ;
+
+
+
+
+
+
+# Print table of tagged subreddits and their tags, sorted by tag name
+
+SELECT s.name, B.name as 'tag'
+FROM subreddit s
+JOIN (
+    SELECT A.subreddit_id, t.name
+    FROM tag t
+    JOIN (
+        SELECT s2t.subreddit_id, s2t.tag_id
+        FROM subreddit2tag s2t
+    ) A ON A.tag_id = t.id
+) B ON B.subreddit_id = s.id
+ORDER BY tag
+;
+
+
+# Print table of untagged subreddits
+
+SELECT s.name as 'tag'
+FROM subreddit s
+WHERE s.id NOT IN (
+    SELECT A.subreddit_id
+    FROM tag t
+    JOIN (
+        SELECT s2t.subreddit_id, s2t.tag_id
+        FROM subreddit2tag s2t
+    ) A ON A.tag_id = t.id
+)
+ORDER BY s.name
+;

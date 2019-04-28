@@ -17,6 +17,7 @@ sql::Statement* SQL_STMT;
 sql::ResultSet* SQL_RES;
 
 
+#ifdef SUB2TAG
 char STMT[2048] = 
     "SELECT S.name, S.id, c.id, c.content "
     "FROM comment c "
@@ -39,6 +40,26 @@ const char* STMT_POST =
             ") S2T on S2T.subreddit_id = r.id "
         ") R on R.id = s.subreddit_id "
     ") S on S.id = c.submission_id;";
+#else
+char STMT[2048] = 
+    "SELECT r.name, D.submission_id, D.comment_id, D.content, D.reason "
+    "FROM subreddit r "
+    "JOIN ( "
+        "SELECT C.comment_id, C.content, C.submission_id, s.subreddit_id, C.reason "
+        "FROM submission s "
+        "JOIN ( "
+            "SELECT c.id as 'comment_id', c.content, c.submission_id, B.name as 'reason' "
+            "FROM comment c "
+            "JOIN ( "
+                "SELECT rm.id, rm.name "
+                "FROM reason_matched rm "
+                "WHERE rm.name IN (";
+
+const char* STMT_POST = 
+            ")) B on B.id = c.reason_matched "
+        ") C on C.submission_id = s.id "
+    ") D on D.subreddit_id = r.id;";
+#endif
 
 char URL[1024] = "https://www.reddit.com/r/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const int URL_PREFIX_LEN = strlen("https://www.reddit.com/r/");
@@ -92,26 +113,12 @@ int main(const int argc, const char* argv[]){
     SQL_RES = SQL_STMT->executeQuery(STMT);
     
     while (SQL_RES->next()){
-        /*write(1, URL, strlen(URL));
-        write(1, COMMENTS, strlen(COMMENTS));
-        write(1, &SLASH, 1);*/
-        
         const std::string ssubname = SQL_RES->getString(1);
         const char* subname = ssubname.c_str();
         const unsigned long int post_id = SQL_RES->getUInt64(2);
         const unsigned long int cmnt_id = SQL_RES->getUInt64(3);
         const std::string sbody = SQL_RES->getString(4);
         const char* body = sbody.c_str();
-        
-        /*
-        char post_id_str[9];
-        post_id_str[id2str(post_id, post_id_str) - 1] = 0;
-        
-        char cmnt_id_str[9];
-        cmnt_id_str[id2str(cmnt_id, cmnt_id_str) - 1] = 0;
-        
-        printf("https://www.reddit.com/r/%s/comments/%s//%s\n\n%s\n\n\n", subname, post_id_str, cmnt_id_str, body);
-        */
         
         i = URL_PREFIX_LEN;
         
