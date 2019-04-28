@@ -51,9 +51,11 @@ const char* USER_AGENT = "rscraper++:0.0.1-dev0 (by /u/Compsky)";
 CURL* curl;
 const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
 const int PARAMS_LEN = strlen(PARAMS);
+
 const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
 const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
-char* AUTH_HEADER;
+char AUTH_HEADER[strlen("Authorization: bearer ") + strlen("XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX") + 1] = "Authorization: bearer ";
+
 const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
 const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
 const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
@@ -67,6 +69,8 @@ const char* KEY_AND_SECRET;
 
 const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
 const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
+char BASIC_AUTH_HEADER[strlen("Authorization: Basic ") + strlen("base-64-encoded-client_key:client_secret----------------") + 1] = "Authorization: Basic ";
+
 
 CURL* LOGIN_CURL;
 struct curl_slist* LOGIN_HEADERS;
@@ -81,6 +85,7 @@ struct curl_slist* HEADERS;
 struct MemoryStruct {
     char* memory;
     size_t size;
+    size_t n_allocated;
 };
 
 struct MemoryStruct MEMORY;
@@ -96,15 +101,10 @@ void handler(int n){
     
     
     free(MEMORY.memory);
-    free(AUTH_HEADER);
     free(LOGIN_POSTDATA);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
     exit(n);
-}
-
-void megasleep(){
-    sleep(5);
 }
 
 
@@ -239,8 +239,12 @@ size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
     size_t total_size = size * n;
     struct MemoryStruct* mem = (struct MemoryStruct*)buf;
     
-    mem->memory = (char*)realloc(mem->memory,  mem->size + total_size + 1);
+    if (mem->size + total_size  >  mem->n_allocated){
+        mem->memory = (char*)realloc(mem->memory,  (mem->size + total_size + 1)*3/2);
+        mem->n_allocated = (mem->size + total_size + 1)*3/2;
+    }
     // Larger requests are not written in just one call
+    
     if (!mem->memory)
         handler(ERR_CANNOT_WRITE_RES);
     
@@ -262,6 +266,7 @@ int request(const char* reqtype, const char* url){
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&MEMORY);
     
+    MEMORY.size = 0; // 'Clear' last request
     
     if (curl_easy_perform(curl) != CURLE_OK)
         handler(ERR_CURL_PERFORM);
@@ -273,20 +278,15 @@ void init_login(){
     
     base64::encoder base64_encoder;
     
-    AUTH_HEADER = (char*)realloc(AUTH_HEADER,  strlen(BASIC_AUTH_PREFIX) + strlen(BASIC_AUTH_FMT) + 1);
+    i = strlen(BASIC_AUTH_PREFIX);
     
-    i = 0;
-    
-    memcpy(AUTH_HEADER + i,  BASIC_AUTH_PREFIX,  strlen(BASIC_AUTH_PREFIX));
-    i += strlen(BASIC_AUTH_PREFIX);
-    
-    base64_encoder.encode(KEY_AND_SECRET,  strlen(KEY_AND_SECRET),  AUTH_HEADER + i);
+    base64_encoder.encode(KEY_AND_SECRET,  strlen(KEY_AND_SECRET),  BASIC_AUTH_HEADER + i);
     i += strlen(BASIC_AUTH_FMT);
     
-    AUTH_HEADER[i] = 0;
+    BASIC_AUTH_HEADER[i] = 0;
     
     
-    LOGIN_HEADERS = curl_slist_append(LOGIN_HEADERS, AUTH_HEADER); // SEGFAULT
+    LOGIN_HEADERS = curl_slist_append(LOGIN_HEADERS, BASIC_AUTH_HEADER);
     
     
     LOGIN_CURL = curl_easy_init();
@@ -325,19 +325,15 @@ void init_login(){
 }
 
 void login(){
-    auto rc = curl_easy_perform(LOGIN_CURL);
+    MEMORY.size = 0; // 'Clear' last request
     
-    if (rc != CURLE_OK)
+    if (curl_easy_perform(LOGIN_CURL) != CURLE_OK)
         handler(ERR_CURL_PERFORM);
     
     // Result is in format
     // {"access_token": "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX", "token_type": "bearer", "expires_in": 3600, "scope": "*"}
     
-    AUTH_HEADER = (char*)realloc(AUTH_HEADER,  strlen(AUTH_HEADER_PREFIX) + strlen(TOKEN_FMT) + 1);
-    
-    int i = 0;
-    memcpy(AUTH_HEADER + i,  AUTH_HEADER_PREFIX,  strlen(AUTH_HEADER_PREFIX));
-    i += strlen(AUTH_HEADER_PREFIX);
+    int i = strlen(AUTH_HEADER_PREFIX);
     
     memcpy(AUTH_HEADER + i,  MEMORY.memory + strlen("{\"access_token\": \""),  strlen(TOKEN_FMT));
     i += strlen(TOKEN_FMT);
@@ -351,8 +347,6 @@ void login(){
     HEADERS = {};
     HEADERS = curl_slist_append(HEADERS, AUTH_HEADER);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, HEADERS);
-    
-    MEMORY.size = 0; // No longer need contents of request
 }
 
 int slashindx(const char* str){
@@ -502,8 +496,6 @@ bool try_again(rapidjson::Document& d){
     if (d.Parse(MEMORY.memory).HasParseError())
         handler(ERR_PARSE);
     
-    MEMORY.size = 0; // 'Clear' contents of request
-    
     if (!d.HasMember("error"))
         return false;
     else {
@@ -573,8 +565,6 @@ void process_moderators(const char* subreddit, const int subreddit_len){
     if (d.Parse(MEMORY.memory).HasParseError())
         handler(ERR_INVALID_PJ);
     
-    MEMORY.size = 0; // 'Clear' contents of request
-    
     
     for (rapidjson::Value::ValueIterator itr = d["data"]["children"].Begin();  itr != d["data"]["children"].End();  ++itr)
         process_moderator(*itr);
@@ -604,8 +594,6 @@ void process_submission_duplicates(const char* submission_id, const int submissi
     request("GET", api_url);
     
     PRINTF("%s\n", MEMORY.memory);
-    
-    MEMORY.size = 0;
 }
 
 void process_submission(const char* url){
@@ -643,15 +631,13 @@ void process_submission(const char* url){
     if (d.Parse(MEMORY.memory).HasParseError())
         handler(ERR_INVALID_PJ);
     
-    MEMORY.size = 0; // 'Clear' contents of request
-    
     SET_STR(id,             d[0]["data"]["children"][0]["data"]["id"]);
     // No prefix to ignore
 }
 
 int main(const int argc, const char* argv[]){
     MEMORY.memory = (char*)malloc(0);
-    AUTH_HEADER = (char*)malloc(0);
+    MEMORY.n_allocated = 0;
     
     
     PRINTF("filter_comment_body::wl::regexpr_str: %s\n", filter_comment_body::wl::regexpr_str);
