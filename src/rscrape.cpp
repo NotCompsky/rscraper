@@ -691,6 +691,4 @@ int main(const int argc, const char* argv[]){
     }
     
     process_all_comments_live();
-    
-    handler(0);
 }
