@@ -49,6 +49,9 @@ CREATE TABLE subreddit2tag (
 CREATE TABLE tag (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(128) UNIQUE,
+    r REAL,
+    g REAL,
+    b REAL,
     PRIMARY KEY (id)
 );
 
@@ -203,28 +206,7 @@ JOIN (
 
 # Print table of subreddit, username, comment, reason_matched
 
-SELECT R.reason, r.name AS 'subreddit', R.name AS 'user', R.content
-FROM subreddit r
-JOIN (
-    SELECT s.subreddit_id, P.name, P.content, P.reason
-    FROM submission s
-    JOIN (
-        SELECT u.name, T.content, T.submission_id, T.reason
-        FROM user u
-        JOIN (
-            SELECT c.author_id, c.content, c.submission_id, RAISON.name as reason
-            FROM comment c
-            JOIN (
-                SELECT id, name
-                FROM reason_matched
-            ) RAISON ON RAISON.id = c.reason_matched
-        ) T ON T.author_id = u.id
-    ) P on P.submission_id = s.id
-) R on R.subreddit_id = r.id
-;
-
-
-# Print table of subreddit, username, comment, reason_matched for a list of users
+Optionally for a list of users
 
 SELECT R.reason, r.name AS 'subreddit', R.name AS 'user', R.content
 FROM subreddit r
@@ -240,12 +222,54 @@ JOIN (
             JOIN (
                 SELECT id, name
                 FROM reason_matched
+                # WHERE name IN ('REASON1')
             ) RAISON ON RAISON.id = c.reason_matched
         ) T ON T.author_id = u.id
-        WHERE u.name IN ('USERNAME1','USERNAME2')
+        # WHERE u.name IN ('USERNAME1','USERNAME2')
     ) P on P.submission_id = s.id
 ) R on R.subreddit_id = r.id
 ;
+
+
+
+
+
+
+
+# Print table of subreddit, username, comment, reason_matched for users with more than 2 comments recorded, ordered by username
+
+Optionally for a list of users
+
+SELECT R.reason, r.name AS 'subreddit', R.name AS 'user', R.content
+FROM subreddit r
+JOIN (
+    SELECT s.subreddit_id, P.name, P.content, P.reason
+    FROM submission s
+    JOIN (
+        SELECT u.name, T.content, T.submission_id, T.reason
+        FROM user u
+        JOIN (
+            SELECT rm.name as reason, C_COUNTED.author_id, C_COUNTED.content, C_COUNTED.submission_id
+            FROM reason_matched rm
+            JOIN (
+                SELECT c.author_id, c.content, c.submission_id, c.reason_matched
+                FROM comment c
+                JOIN (
+                    SELECT c_counter.author_id
+                    FROM comment c_counter
+                    GROUP BY c_counter.author_id
+                    HAVING COUNT(c_counter.author_id) > 2
+                ) C_COUNTER ON C_COUNTER.author_id = c.author_id
+            ) C_COUNTED ON C_COUNTED.reason_matched = rm.id
+        ) T ON T.author_id = u.id
+        # WHERE u.name IN ('USERNAME1','USERNAME2')
+    ) P on P.submission_id = s.id
+) R on R.subreddit_id = r.id
+ORDER BY user
+;
+
+
+
 
 
 
@@ -284,13 +308,6 @@ ORDER BY s.name
 ;
 
 
-# Sort the most commented-in subreddit_ids
-
-SELECT SUM(count), subreddit_id
-FROM user2subreddit_cmnt_count
-GROUP BY subreddit_id
-ORDER BY SUM(count)
-;
 
 # Sort the most commented-in subreddits
 
@@ -305,7 +322,30 @@ ORDER BY C.c
 ;
 
 
+
+
+# Sort the most commented-in subreddits, and show percentages
+
+SELECT r.name, r.id, C.c, ROUND(
+    100.0*C.c/(SELECT SUM(count) FROM user2subreddit_cmnt_count)
+    , 2
+) as '%'
+FROM subreddit r
+JOIN (
+    SELECT SUM(count) as c, subreddit_id
+    FROM user2subreddit_cmnt_count
+    GROUP BY subreddit_id
+) C ON C.subreddit_id = r.id
+WHERE C.c > 100
+ORDER BY C.c
+;
+
+
+
+
 # List comments per subreddit for list of usernames
+
+Optionally for list of users
 
 SELECT UU.user, s.name as 'subreddit', UU.count
 FROM subreddit s
@@ -320,3 +360,103 @@ JOIN (
 ) UU ON UU.subreddit_id = s.id
 ;
 
+
+
+
+
+
+# Table of user_id, tag_id, subreddit_id, count for a select list of user_ids
+
+SELECT U2SCC.user_id, s2t.tag_id, U2SCC.subreddit_id, U2SCC.count
+FROM subreddit2tag s2t
+JOIN (
+    SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count
+    FROM user2subreddit_cmnt_count u2scc
+    WHERE u2scc.user_id IN (11063919, 34494503, 59635894, 6674527480, 180053962953)
+) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id
+ORDER BY U2SCC.user_id
+;
+
+
+# Table of user_id, tag_id, subreddit, count for a select list of user_ids
+
+SELECT A.user_id, A.tag_id, s.name, A.count
+FROM subreddit s
+JOIN (
+    SELECT U2SCC.user_id, s2t.tag_id, U2SCC.subreddit_id, U2SCC.count
+    FROM subreddit2tag s2t
+    JOIN (
+        SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count
+        FROM user2subreddit_cmnt_count u2scc
+        WHERE u2scc.user_id IN (11063919, 34494503, 59635894, 6674527480, 180053962953)
+    ) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id
+) A ON A.subreddit_id = s.id
+ORDER BY A.user_id
+;
+
+
+
+# For a list of user IDs, calculate the mean colour based on the count of their comments in tagged subreddits (WARNING: double counts subreddits if they have multiple coloured tags - this is intended behaviour, as the subreddit should have a colour that is the average of its coloured tags)
+
+SELECT S2T.user_id, SUM(S2T.c), SUM(S2T.c*t.r), SUM(S2T.c*t.g), SUM(S2T.c*t.b)
+FROM tag t
+JOIN (
+    SELECT U2SCC.user_id, s2t.tag_id, SUM(U2SCC.count) as c
+    FROM subreddit2tag s2t
+    JOIN (
+        SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count
+        FROM user2subreddit_cmnt_count u2scc
+        WHERE u2scc.user_id IN (11063919, 34494503, 59635894, 6674527480, 180053962953)
+    ) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id
+    GROUP BY U2SCC.user_id, s2t.tag_id
+) S2T ON S2T.tag_id = t.id
+WHERE t.r IS NOT NULL
+GROUP BY S2T.user_id
+;
+
+
+# For a list of user IDs, concatenate the list of count of thier comments in all subreddits (does not double count)
+
+SELECT UU.user_id, GROUP_CONCAT(s.name, " ", UU.count)
+FROM subreddit s
+JOIN (
+    SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count
+    FROM user2subreddit_cmnt_count u2scc
+    WHERE u2scc.user_id IN (11063919, 34494503, 59635894, 6674527480, 180053962953)
+) UU ON UU.subreddit_id = s.id
+GROUP BY UU.user_id
+;
+
+
+
+
+# For a list of user IDs, concatenate the list of count of thier comments in tagged subreddits (does not double count)
+
+SELECT UU.user_id, GROUP_CONCAT(s.name, " ", UU.count)
+FROM subreddit s
+JOIN (
+    SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count
+    FROM user2subreddit_cmnt_count u2scc
+    WHERE u2scc.user_id IN (11063919, 34494503, 59635894, 6674527480, 180053962953)
+      AND u2scc.subreddit_id IN (
+        SELECT subreddit_id
+        FROM subreddit2tag
+      )
+) UU ON UU.subreddit_id = s.id
+GROUP BY UU.user_id
+;
+
+
+
+SELECT UU.user_id, GROUP_CONCAT(s.name, " ", UU.count)
+FROM subreddit s
+JOIN (
+    SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count
+    FROM user2subreddit_cmnt_count u2scc
+    WHERE u2scc.subreddit_id IN (
+        SELECT subreddit_id
+        FROM subreddit2tag
+      )
+) UU ON UU.subreddit_id = s.id
+GROUP BY UU.user_id
+;
