@@ -5,3 +5,5 @@ man/*
 src/submission_ignore_field.c
 src/filter_*.cpp
 *.kate-swp
+_info.txt
+
