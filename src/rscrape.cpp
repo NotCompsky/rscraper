@@ -111,82 +111,37 @@ void handler(int n){
 }
 
 
+constexpr const char* SQL__INSERT_SUBMISSION_FROM_CMNT_STR = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
+char SQL__INSERT_SUBMISSION_FROM_CMNT[strlen(SQL__INSERT_SUBMISSION_FROM_CMNT_STR) + 100*strlen("(01234567890123456789,01234567890123456789,2),") + 1] = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
+int SQL__INSERT_SUBMISSION_FROM_CMNT_INDX;
+
+
+
+
 void sql__add_submission_from_cmnt(const unsigned long int id, const unsigned long int subreddit_id, const char is_submission_nsfw){
     /*
     Checks if a submission entry exists, and if not, creates one (but is based only on the information visible from a comment entry)
     */
-    int i;
-    constexpr const char* a = "SELECT id FROM submission WHERE id = ";
-    constexpr const char* b = "INSERT INTO submission (id, subreddit_id, nsfw) values(";
-    char statement[strlen(b) + count_digits(id) + 2 + count_digits(subreddit_id) + 2 + 1];
+    int i = SQL__INSERT_SUBMISSION_FROM_CMNT_INDX;
+    char* statement = SQL__INSERT_SUBMISSION_FROM_CMNT;
     
-    
-    i = 0;
-    
-    memcpy(statement + i,  a,  strlen(a));
-    i += strlen(a);
-    
+    statement[i++] = '(';
     i += itoa_nonstandard(id, statement + i);
-    
-    statement[i++] = ';';
-    statement[i] = 0;
-    
-    PRINTF("stmt: %s\n", statement);
-    SQL_RES = SQL_STMT->executeQuery(statement);
-    
-    if (SQL_RES->next()){
-        // Entry already existed in table
-        return;
-    }
-    
-    
-    i = 0;
-    
-    memcpy(statement + i,  b,  strlen(b));
-    i += strlen(b);
-    
-    i += itoa_nonstandard(id, statement + i);
-    
     statement[i++] = ',';
-    
     i += itoa_nonstandard(subreddit_id, statement + i);
-    
     statement[i++] = ',';
     statement[i++] = '0' + is_submission_nsfw;
-    
     statement[i++] = ')';
-    statement[i++] = ';';
-    statement[i] = 0;
+    statement[i++] = ',';
     
-    PRINTF("stmt: %s\n", statement);
-    SQL_STMT->execute(statement);
+    SQL__INSERT_SUBMISSION_FROM_CMNT_INDX = i;
 }
 
 
 void sql__add_cmnt(const unsigned long int cmnt_id, const unsigned long int parent_id, const unsigned long int author_id, const unsigned long int submission_id, const unsigned long int created_at, char* content, const unsigned int reason_matched){
     int i;
-    constexpr const char* a = "SELECT id FROM comment WHERE id = ";
-    constexpr const char* statement2 = "INSERT INTO comment (id, parent_id, author_id, submission_id, created_at, reason_matched, content) values(";
+    constexpr const char* statement2 = "INSERT IGNORE INTO comment (id, parent_id, author_id, submission_id, created_at, reason_matched, content) values(";
     char statement[strlen(statement2) + count_digits(cmnt_id) + 2 + count_digits(parent_id) + 2 + count_digits(author_id) + 2 + count_digits(submission_id) + 2 + count_digits(created_at) + 2 + 1 + strlen(content)*2 + 3 + 1];
-    
-    
-    i = 0;
-    
-    memcpy(statement + i,  a,  strlen(a));
-    i += strlen(a);
-    
-    i += itoa_nonstandard(cmnt_id, statement + i);
-    
-    statement[i++] = ';';
-    statement[i] = 0;
-    
-    PRINTF("stmt: %s\n", statement);
-    SQL_RES = SQL_STMT->executeQuery(statement);
-    
-    if (SQL_RES->next()){
-        // Entry already existed in table
-        return;
-    }
     
     
     i = 0;
@@ -404,55 +359,50 @@ unsigned long int id2n(const char* str){
     return n;
 }
 
+constexpr const char* SQL__INSERT_INTO_USER2SUBCNT_STR = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
+char SQL__INSERT_INTO_USER2SUBCNT[strlen(SQL__INSERT_INTO_USER2SUBCNT_STR) + 100*(1 + 1+1+20+1+20 + 1 + 1) + 1] = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
+int SQL__INSERT_INTO_USER2SUBCNT_INDX;
+
+
+constexpr const char* SQL__INSERT_INTO_SUBREDDIT_STR = "INSERT IGNORE INTO subreddit (id, name) VALUES ";
+char SQL__INSERT_INTO_SUBREDDIT[strlen(SQL__INSERT_INTO_SUBREDDIT_STR) + 100*(1 + 20+1+128 + 1 + 1) + 1] = "INSERT IGNORE INTO subreddit (id, name) VALUES ";
+int SQL__INSERT_INTO_SUBREDDIT_INDX;
+
+
 void count_user_subreddit_cmnt(const unsigned long int user_id,  const unsigned long int subreddit_id, const char* subreddit_name){
     int i;
-    constexpr const char* a = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES (1,";
-    constexpr const char* b = ") ON DUPLICATE KEY UPDATE count = count + 1;";
-    constexpr const char* c = "INSERT IGNORE INTO subreddit (id, name) VALUES (";
-    char stmt[strlen(a) + count_digits(user_id) + 1 + count_digits(subreddit_id) + strlen(b) + count_digits(subreddit_id) + 2 + strlen(subreddit_name) + 3 + 1];
+    char* stmt;
     
     
-    i = 0;
+    i = SQL__INSERT_INTO_USER2SUBCNT_INDX;
+    stmt = SQL__INSERT_INTO_USER2SUBCNT;
     
-    memcpy(stmt + i,  a,  strlen(a));
-    i += strlen(a);
-    
+    stmt[i++] = '(';
+    stmt[i++] = '1';
+    stmt[i++] = ',';
     i += itoa_nonstandard(user_id,  stmt + i);
-    
+    stmt[i++] = ',';
+    i += itoa_nonstandard(subreddit_id,  stmt + i);
+    stmt[i++] = ')';
     stmt[i++] = ',';
     
+    SQL__INSERT_INTO_USER2SUBCNT_INDX = i;
+    
+    
+    i = SQL__INSERT_INTO_SUBREDDIT_INDX;
+    stmt = SQL__INSERT_INTO_SUBREDDIT;
+    
+    stmt[i++] = '(';
     i += itoa_nonstandard(subreddit_id,  stmt + i);
-    
-    memcpy(stmt + i,  b,  strlen(b));
-    i += strlen(b);
-    
-    stmt[i] = 0;
-    
-    PRINTF("stmt: %s\n", stmt);
-    SQL_STMT->execute(stmt);
-    
-    
-    i = 0;
-    
-    memcpy(stmt + i,  c,  strlen(c));
-    i += strlen(c);
-    
-    i += itoa_nonstandard(subreddit_id,  stmt + i);
-    
     stmt[i++] = ',';
     stmt[i++] = '"';
-    
     memcpy(stmt + i,  subreddit_name,  strlen(subreddit_name));
     i += strlen(subreddit_name);
-    
     stmt[i++] = '"';
     stmt[i++] = ')';
-    stmt[i++] = ';';
+    stmt[i++] = ',';
     
-    stmt[i] = 0;
-    
-    PRINTF("stmt: %s\n", stmt);
-    SQL_STMT->execute(stmt);
+    SQL__INSERT_INTO_SUBREDDIT_INDX = i;
 }
 
 void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
@@ -541,6 +491,10 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
     unsigned long int cmnt_id;
     int i = 0;
     
+    SQL__INSERT_SUBMISSION_FROM_CMNT_INDX = strlen(SQL__INSERT_SUBMISSION_FROM_CMNT_STR);
+    SQL__INSERT_INTO_USER2SUBCNT_INDX = strlen(SQL__INSERT_INTO_USER2SUBCNT_STR);
+    SQL__INSERT_INTO_SUBREDDIT_INDX = strlen(SQL__INSERT_INTO_SUBREDDIT_STR);
+    
     for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr){
         cmnt_id = id2n_lower((*itr)["data"]["id"].GetString()); // No "t1_" prefix
         if (cmnt_id <= last_processed_cmnt_id)
@@ -548,6 +502,28 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
             break;
         process_live_cmnt(*itr, cmnt_id);
         ++i;
+    }
+    
+    if (SQL__INSERT_SUBMISSION_FROM_CMNT_INDX != strlen(SQL__INSERT_SUBMISSION_FROM_CMNT_STR)){
+        SQL__INSERT_SUBMISSION_FROM_CMNT[SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = 0;
+        SQL__INSERT_SUBMISSION_FROM_CMNT[--SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = ';'; // Overwrite trailing comma
+        PRINTF("stmt: %s\n", SQL__INSERT_SUBMISSION_FROM_CMNT);
+        SQL_STMT->execute(SQL__INSERT_SUBMISSION_FROM_CMNT);
+    }
+    
+    if (SQL__INSERT_INTO_USER2SUBCNT_INDX != strlen(SQL__INSERT_INTO_USER2SUBCNT_STR)){
+        --SQL__INSERT_INTO_USER2SUBCNT_INDX; // Overwrite trailing comma
+        constexpr const char* b = " ON DUPLICATE KEY UPDATE count = count + 1;";
+        memcpy(SQL__INSERT_INTO_USER2SUBCNT + SQL__INSERT_INTO_USER2SUBCNT_INDX,  b,  strlen(b) + 1);
+        PRINTF("stmt: %s\n", SQL__INSERT_INTO_USER2SUBCNT);
+        SQL_STMT->execute(SQL__INSERT_INTO_USER2SUBCNT);
+    }
+    
+    if (SQL__INSERT_INTO_SUBREDDIT_INDX != strlen(SQL__INSERT_INTO_SUBREDDIT_STR)){
+        SQL__INSERT_INTO_SUBREDDIT[SQL__INSERT_INTO_SUBREDDIT_INDX] = 0;
+        SQL__INSERT_INTO_SUBREDDIT[--SQL__INSERT_INTO_SUBREDDIT_INDX] = ';';
+        PRINTF("stmt: %s\n", SQL__INSERT_INTO_SUBREDDIT);
+        SQL_STMT->execute(SQL__INSERT_INTO_SUBREDDIT);
     }
     
     return id2n_lower(replies["data"]["children"][0]["data"]["id"].GetString());
@@ -702,9 +678,6 @@ void process_submission(const char* url){
 int main(const int argc, const char* argv[]){
     MEMORY.memory = (char*)malloc(0);
     MEMORY.n_allocated = 0;
-    
-    
-    PRINTF("filter_comment_body::wl::regexpr_str: %s\n", filter_comment_body::wl::regexpr_str);
     
     
     int i = 0;
