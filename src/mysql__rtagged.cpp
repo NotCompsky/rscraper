@@ -18,27 +18,29 @@ sql::ResultSet* SQL_RES;
 
 
 constexpr const char* STMT_PRE = 
-    "SELECT A.user_id, SUM(A.c), SUM(A.r), SUM(A.g), SUM(A.b) "
+    "SELECT A.user_id, SUM(A.c), SUM(A.r), SUM(A.g), SUM(A.b), SUM(A.a), GROUP_CONCAT(A.string) "
     "FROM tag2category t2c "
     "JOIN ( "
-        "SELECT S2T.user_id, S2T.tag_id, S2T.c, S2T.c*t.r as r, S2T.c*t.g as g, S2T.c*t.b as b "
+        "SELECT S2T.user_id, S2T.tag_id, S2T.c, S2T.c*t.r as r, S2T.c*t.g as g, S2T.c*t.b as b, S2T.c*t.a as a, string "
         "FROM tag t "
-        "JOIN ( "
-            "SELECT U2SCC.user_id, s2t.tag_id, SUM(U2SCC.count) as c "
+        "RIGHT JOIN ( "
+            "SELECT U2SCC.user_id, s2t.tag_id, SUM(U2SCC.count) as c, GROUP_CONCAT(U2SCC.name, \" \", U2SCC.count) as string "
             "FROM subreddit2tag s2t "
             "JOIN ( "
-                "SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count "
+                "SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count, S.name "
                 "FROM user2subreddit_cmnt_count u2scc "
+                "JOIN ( "
+                    "SELECT id, name "
+                    "FROM subreddit "
+                ") S ON S.id = u2scc.subreddit_id "
                 "WHERE u2scc.user_id IN (";
 
 constexpr const char* STMT_POST = 
             ")) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id "
             "GROUP BY U2SCC.user_id, s2t.tag_id "
         ") S2T ON S2T.tag_id = t.id "
-        "WHERE t.r IS NOT NULL "
     ") A ON t2c.tag_id = A.tag_id "
-    "GROUP BY A.user_id "
-    ";";
+    "GROUP BY A.user_id, t2c.category_id;";
 
 constexpr const char* id_t2_ = "id-t2_";
 
@@ -96,11 +98,12 @@ void write_cl_channel(char* dst,  const int n_cmnts,  float x){
 }
 
 
+unsigned long int SKIPPED_FIRST_CHAR = 0;
 char* DST;
 
 extern "C"
 void free_dst(){
-    free(DST-1); // Since we added 1 to it before
+    free(DST - SKIPPED_FIRST_CHAR); // Since we added 1 to it before
 }
 
 int estimated_n_bytes(const char* csv){
@@ -108,7 +111,7 @@ int estimated_n_bytes(const char* csv){
     int i = 0;
     while (true){
         if (csv[i] == ',')
-            n += 2 + 14*2; // 2 for "": minues ,  14 for each "rgb(123456)",
+            n += 2 + strlen("[\"SUBREDDITNAME\",\"rgba(255,255,255,1.0)\"],")*2; // 2 for "": minus ,  2 spaces for ["SUBREDDITNAME","rgba(255,255,255,1.0)"],
         else if (csv[i] == 0)
             return 1 + (n+5+11) + 1 + 1; // { ... }\0
         ++i;
@@ -123,6 +126,20 @@ void init_mysql(const char* mysql_url,  const char* mysql_usr,  const char* mysq
     SQL_CON = SQL_DRIVER->connect(mysql_url, mysql_usr, mysql_pwd);
     SQL_CON->setSchema("rscraper");
     SQL_STMT = SQL_CON->createStatement();
+}
+
+int enlarge_dst(int i,  int n_allocated_bytes){
+    // -1 for terminating null byte
+    DST[i + 1] = 0; // Necessary to null-terminate for memcpy?
+    n_allocated_bytes *= 2;
+    n_allocated_bytes += strlen("],\"id-t2_abcdefgh\":[[\"rgba(255,255,255,1.0)\",\"programming 1,cpp 10,python 5,technology 333\"],") + 1;
+    printf("Requesting realloc of %dB\n", n_allocated_bytes);
+    char* dst = (char*)realloc(DST, n_allocated_bytes*sizeof(char));
+    if (dst != NULL){
+        DST = dst;
+        return n_allocated_bytes;
+    }
+    // TODO: else out of memory
 }
 
 extern "C"
@@ -186,13 +203,6 @@ void csv2cls(const char* csv){
         const uint64_t id = SQL_RES->getUInt64(1);
         const int n_cmnts = SQL_RES->getInt(2);
         
-        if (k <= n_allocated_bytes - strlen("],\"id-t2_abcdefgh\":[\"rgb(255,255,255)\",") - 1){
-            // -1 for terminating null byte
-            n_allocated_bytes = (n_allocated_bytes * 3) / 2;
-            n_allocated_bytes += strlen("],\"id-t2_abcdefgh\":[\"rgb(255,255,255)\",") + 1;
-            DST = (char*)realloc(DST, n_allocated_bytes);
-        }
-        
         if (id != last_id){
             DST[k] = ']'; // Overwrite trailing comma left by RGBs
             DST[++k] = ',';
@@ -203,26 +213,63 @@ void csv2cls(const char* csv){
             DST[++k] = '"';
             DST[++k] = ':';
             DST[++k] = '[';
+            last_id = id;
         }
+        DST[++k] = '[';
         DST[++k] = '"';
         DST[++k] = 'r';
         DST[++k] = 'g';
         DST[++k] = 'b';
+        DST[++k] = 'a';
         DST[++k] = '(';
         for (auto c = 3;  c < 6;  ++c){
             k += itoa_nonstandard((unsigned char)(255*SQL_RES->getDouble(c)),  DST + k + 1);
             DST[++k] = ',';
         }
-        DST[k] = ')'; // Clear trailing comma
+        const double a = SQL_RES->getDouble(6) / n_cmnts;
+        char a1;
+        char a2;
+        if (a == 1.0d){
+            a1 = '1';
+            a2 = '0';
+        } else {
+            a1 = '0';
+            a2 = '0' + (unsigned char)(10*a);
+        }
+        DST[++k] = a1;
+        DST[++k] = '.';
+        DST[++k] = a2;
+        
+        DST[++k] = ')';
         DST[++k] = '"';
+        DST[++k] = ',';
+        
+        
+        DST[++k] = '"';
+        
+        const std::string ss = SQL_RES->getString(7);
+        const char*        s = ss.c_str();
+        
+        if (k + strlen(s) + 30  >=  n_allocated_bytes)
+            n_allocated_bytes = enlarge_dst(k, n_allocated_bytes + strlen(s) + 40);
+        
+        memcpy(DST + k + 1,  s,  strlen(s));
+        k += strlen(s);
+        
+        DST[++k] = '"';
+        DST[++k] = ']';
+        
+        
         DST[++k] = ',';
         
         DST[k+1] = 0;
     }
+    SKIPPED_FIRST_CHAR = 0;
     if (k != 0){
         DST[k] = ']';
         --k; // Clear trailing comma
         ++DST; // Skip first character
+        SKIPPED_FIRST_CHAR = 1;
     }
     DST[0] = '{';
     DST[++k] = '}';
