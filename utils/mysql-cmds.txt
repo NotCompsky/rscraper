@@ -224,6 +224,30 @@ JOIN (
 ;
 
 
+# Print table of subreddit, username, comment, reason_matched for a list of users
+
+SELECT R.reason, r.name AS 'subreddit', R.name AS 'user', R.content
+FROM subreddit r
+JOIN (
+    SELECT s.subreddit_id, P.name, P.content, P.reason
+    FROM submission s
+    JOIN (
+        SELECT u.name, T.content, T.submission_id, T.reason
+        FROM user u
+        JOIN (
+            SELECT c.author_id, c.content, c.submission_id, RAISON.name as reason
+            FROM comment c
+            JOIN (
+                SELECT id, name
+                FROM reason_matched
+            ) RAISON ON RAISON.id = c.reason_matched
+        ) T ON T.author_id = u.id
+        WHERE u.name IN ('USERNAME1','USERNAME2')
+    ) P on P.submission_id = s.id
+) R on R.subreddit_id = r.id
+;
+
+
 
 
 
@@ -278,5 +302,21 @@ JOIN (
     GROUP BY subreddit_id
 ) C ON C.subreddit_id = r.id
 ORDER BY C.c
+;
+
+
+# List comments per subreddit for list of usernames
+
+SELECT UU.user, s.name as 'subreddit', UU.count
+FROM subreddit s
+JOIN (
+    SELECT U.name as 'user', u2scc.subreddit_id, u2scc.count
+    FROM user2subreddit_cmnt_count u2scc
+    JOIN (
+        SELECT u.name, u.id
+        FROM user u
+        # WHERE u.name IN ('USERNAME1','USERNAME2')
+    ) U ON U.id = u2scc.user_id
+) UU ON UU.subreddit_id = s.id
 ;
 
