@@ -168,11 +168,11 @@ unsigned long int sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_re
     
     statement[i++] = '"';
     printf("strlen(content): %lu\n", strlen(content));
-    while (*content != 0){
-        if (*content == '"'  ||  *content == '\\')
+    for (auto j = 0;  j < strlen(content);  ++j){
+        printf("%d\n", j);
+        if (content[j] == '"'  ||  content[j] == '\\')
             statement[i++] = '\\';
-        statement[i++] = *content;
-        ++content;
+        statement[i++] = content[j];
     }
     statement[i++] = '"';
     
