@@ -108,7 +108,7 @@ void handler(int n){
 }
 
 
-void sql__add_submission_from_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_res, const unsigned long int id, const unsigned long int subreddit_id, const char is_submission_nsfw){
+void sql__add_submission_from_cmnt(const unsigned long int id, const unsigned long int subreddit_id, const char is_submission_nsfw){
     /*
     Checks if a submission entry exists, and if not, creates one (but is based only on the information visible from a comment entry)
     */
@@ -129,9 +129,9 @@ void sql__add_submission_from_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql
     statement[i] = 0;
     
     PRINTF("stmt: %s\n", statement);
-    sql_res = sql_stmt->executeQuery(statement);
+    SQL_RES = SQL_STMT->executeQuery(statement);
     
-    if (sql_res->next()){
+    if (SQL_RES->next()){
         // Entry already existed in table
         return;
     }
@@ -156,11 +156,11 @@ void sql__add_submission_from_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql
     statement[i] = 0;
     
     PRINTF("stmt: %s\n", statement);
-    sql_stmt->execute(statement);
+    SQL_STMT->execute(statement);
 }
 
 
-void sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_res, const unsigned long int cmnt_id, const unsigned long int parent_id, const unsigned long int author_id, const unsigned long int submission_id, const unsigned long int created_at, char* content){
+void sql__add_cmnt(const unsigned long int cmnt_id, const unsigned long int parent_id, const unsigned long int author_id, const unsigned long int submission_id, const unsigned long int created_at, char* content){
     int i;
     const char* a = "SELECT id FROM comment WHERE id = ";
     const char* statement2 = "INSERT INTO comment (id, parent_id, author_id, submission_id, created_at, content) values(";
@@ -178,9 +178,9 @@ void sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_res, const unsi
     statement[i] = 0;
     
     PRINTF("stmt: %s\n", statement);
-    sql_res = sql_stmt->executeQuery(statement);
+    SQL_RES = SQL_STMT->executeQuery(statement);
     
-    if (sql_res->next()){
+    if (SQL_RES->next()){
         // Entry already existed in table
         return;
     }
@@ -228,7 +228,7 @@ void sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_res, const unsi
     statement[i] = 0;
     
     PRINTF("stmt: %s\n", statement);
-    sql_stmt->execute(statement);
+    SQL_STMT->execute(statement);
 }
 
 
@@ -256,15 +256,11 @@ size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
 }
 
 
-int request(const char* reqtype, const char* url){
-    PRINTF("%s\t%s\n", reqtype, url);
+int request(const char* url){
+    PRINTF("GET\t%s\n", url);
     // Writes response contents to MEMORY
     
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, reqtype);
-    
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&MEMORY);
     
     MEMORY.size = 0; // 'Clear' last request
     
@@ -470,8 +466,8 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     }
     
     const char* cmnt_content = cmnt["data"]["body"].GetString();
-    sql__add_cmnt(SQL_STMT, SQL_RES, cmnt_id, parent_id, author_id, submission_id, created_at, (char*)cmnt_content);
-    sql__add_submission_from_cmnt(SQL_STMT, SQL_RES, submission_id, subreddit_id, is_submission_nsfw);
+    sql__add_cmnt(cmnt_id, parent_id, author_id, submission_id, created_at, (char*)cmnt_content);
+    sql__add_submission_from_cmnt(submission_id, subreddit_id, is_submission_nsfw);
 }
 
 int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
@@ -521,7 +517,7 @@ void process_all_comments_live(){
         sleep(REDDIT_REQUEST_DELAY);
         
         
-        request("GET", API_ALLCOMMENTS_URL);
+        request(API_ALLCOMMENTS_URL);
         
         rapidjson::Document d;
         
@@ -560,7 +556,7 @@ void process_moderators(const char* subreddit, const int subreddit_len){
     api_url[i] = 0;
     
     
-    request("GET", api_url);
+    request(api_url);
     
     rapidjson::Document d;
     if (d.Parse(MEMORY.memory).HasParseError())
@@ -592,7 +588,7 @@ void process_submission_duplicates(const char* submission_id, const int submissi
     api_url[i] = 0;
     
     
-    request("GET", api_url);
+    request(api_url);
     
     PRINTF("%s\n", MEMORY.memory);
 }
@@ -625,7 +621,7 @@ void process_submission(const char* url){
     api_url_indx += PARAMS_LEN;
     api_url[api_url_indx] = 0;
     
-    request("GET", api_url);
+    request(api_url);
     
     
     rapidjson::Document d;
@@ -668,6 +664,12 @@ int main(const int argc, const char* argv[]){
     
     curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);
+    
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+    
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&MEMORY);
+    
     
     init_login();
     login();
