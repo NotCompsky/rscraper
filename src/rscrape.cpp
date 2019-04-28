@@ -49,7 +49,7 @@ sql::ResultSet* SQL_RES;
 
 
 
-const char* USER_AGENT = "rscraper++:0.0.1-dev0 (by /u/Compsky)";
+const char* USER_AGENT;
 CURL* curl;
 const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
 const int PARAMS_LEN = strlen(PARAMS);
@@ -715,6 +715,9 @@ int main(const int argc, const char* argv[]){
     i += 3;
     SQL_CON->setSchema("rscraper");
     SQL_STMT = SQL_CON->createStatement();
+    
+    
+    USER_AGENT = argv[++i];
     
     
     USR = argv[++i];
