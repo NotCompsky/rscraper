@@ -160,10 +160,10 @@ void sql__add_submission_from_cmnt(const unsigned long int id, const unsigned lo
 }
 
 
-void sql__add_cmnt(const unsigned long int cmnt_id, const unsigned long int parent_id, const unsigned long int author_id, const unsigned long int submission_id, const unsigned long int created_at, char* content){
+void sql__add_cmnt(const unsigned long int cmnt_id, const unsigned long int parent_id, const unsigned long int author_id, const unsigned long int submission_id, const unsigned long int created_at, char* content, const unsigned int reason_matched){
     int i;
     const char* a = "SELECT id FROM comment WHERE id = ";
-    const char* statement2 = "INSERT INTO comment (id, parent_id, author_id, submission_id, created_at, content) values(";
+    const char* statement2 = "INSERT INTO comment (id, parent_id, author_id, submission_id, created_at, reason_matched, content) values(";
     char statement[strlen(statement2) + count_digits(cmnt_id) + 2 + count_digits(parent_id) + 2 + count_digits(author_id) + 2 + count_digits(submission_id) + 2 + count_digits(created_at) + 2 + 1 + strlen(content)*2 + 3 + 1];
     
     
@@ -211,6 +211,11 @@ void sql__add_cmnt(const unsigned long int cmnt_id, const unsigned long int pare
     statement[i++] = ' ';
     
     i += itoa_nonstandard(created_at, statement + i);
+    
+    statement[i++] = ',';
+    statement[i++] = ' ';
+    
+    i += itoa_nonstandard(reason_matched,  statement + i);
     
     statement[i++] = ',';
     statement[i++] = ' ';
@@ -433,7 +438,8 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     }
     
     
-    if (filter_comment_body::wl::match(metadata, body, strlen(body))){
+    unsigned int reason_matched;
+    if ((reason_matched = filter_comment_body::wl::match(metadata, body, strlen(body)))){
         PRINTF("MATCHED: %s\n", filter_comment_body::wl::what[0].str().c_str());
         goto goto__do_process_this_live_cmnt;
     }
@@ -466,7 +472,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     }
     
     const char* cmnt_content = cmnt["data"]["body"].GetString();
-    sql__add_cmnt(cmnt_id, parent_id, author_id, submission_id, created_at, (char*)cmnt_content);
+    sql__add_cmnt(cmnt_id, parent_id, author_id, submission_id, created_at, (char*)cmnt_content, reason_matched);
     sql__add_submission_from_cmnt(submission_id, subreddit_id, is_submission_nsfw);
 }
 

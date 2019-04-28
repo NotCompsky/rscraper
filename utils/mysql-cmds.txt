@@ -35,6 +35,7 @@ CREATE TABLE comment (
     submission_id BIGINT UNSIGNED NOT NULL,
     content VARCHAR(40000) NOT NULL,
     created_at BIGINT UNSIGNED NOT NULL,
+    reason_matched INT UNSIGNED NOT NULL,
     PRIMARY KEY (id)
 );
 
@@ -47,6 +48,12 @@ CREATE TABLE subreddit2tag (
 
 CREATE TABLE tag (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name VARCHAR(128) UNIQUE,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE reason_matched (
+    id INT UNSIGNED NOT NULL,
     name UNIQUE VARCHAR(128),
     PRIMARY KEY (id)
 );
@@ -165,4 +172,44 @@ JOIN (
         ) S2T on S2T.subreddit_id = r.id
     ) R on R.id = s.subreddit_id
 ) S on S.id = c.submission_id
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Print table of subreddit, username, comment, reason_matched
+
+SELECT R.reason, r.name AS 'subreddit', R.name AS 'user', R.content
+FROM subreddit r
+JOIN (
+    SELECT s.subreddit_id, P.name, P.content, P.reason
+    FROM submission s
+    JOIN (
+        SELECT u.name, T.content, T.submission_id, T.reason
+        FROM user u
+        JOIN (
+            SELECT c.author_id, c.content, c.submission_id, RAISON.name as reason
+            FROM comment c
+            JOIN (
+                SELECT id, name
+                FROM reason_matched
+            ) RAISON ON RAISON.id = c.reason_matched
+        ) T ON T.author_id = u.id
+    ) P on P.submission_id = s.id
+) R on R.subreddit_id = r.id
 ;
