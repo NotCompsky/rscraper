@@ -32,7 +32,8 @@ enum {
     ERR_CANNOT_WRITE_RES,
     ERR_CURL_PERFORM,
     ERR_CANNOT_SET_PROXY,
-    ERR_INVALID_PJ
+    ERR_INVALID_PJ,
+    ERR_PARSE
 };
 
 #define REDDIT_REQUEST_DELAY 1
@@ -107,13 +108,64 @@ void megasleep(){
 }
 
 
-unsigned long int sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_res, const unsigned long int cmnt_id, const unsigned long int parent_id, const unsigned long int author_id, const unsigned long int submission_id, const unsigned long int created_at, char* content){
+void sql__add_submission_from_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_res, const unsigned long int id, const unsigned long int subreddit_id, const char is_submission_nsfw){
+    /*
+    Checks if a submission entry exists, and if not, creates one (but is based only on the information visible from a comment entry)
+    */
+    int i;
+    const char* a = "SELECT id FROM submission WHERE id = ";
+    const char* b = "INSERT INTO submission (id, subreddit_id, nsfw) values(";
+    char statement[strlen(b) + count_digits(id) + 2 + count_digits(subreddit_id) + 2 + 1];
+    
+    
+    i = 0;
+    
+    memcpy(statement + i,  a,  strlen(a));
+    i += strlen(a);
+    
+    i += itoa_nonstandard(id, statement + i);
+    
+    statement[i++] = ';';
+    statement[i] = 0;
+    
+    PRINTF("stmt: %s\n", statement);
+    sql_res = sql_stmt->executeQuery(statement);
+    
+    if (sql_res->next()){
+        // Entry already existed in table
+        return;
+    }
+    
+    
+    i = 0;
+    
+    memcpy(statement + i,  b,  strlen(b));
+    i += strlen(b);
+    
+    i += itoa_nonstandard(id, statement + i);
+    
+    statement[i++] = ',';
+    
+    i += itoa_nonstandard(subreddit_id, statement + i);
+    
+    statement[i++] = ',';
+    statement[i++] = '0' + is_submission_nsfw;
+    
+    statement[i++] = ')';
+    statement[i++] = ';';
+    statement[i] = 0;
+    
+    PRINTF("stmt: %s\n", statement);
+    sql_stmt->execute(statement);
+}
+
+
+void sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_res, const unsigned long int cmnt_id, const unsigned long int parent_id, const unsigned long int author_id, const unsigned long int submission_id, const unsigned long int created_at, char* content){
     int i;
     const char* a = "SELECT id FROM comment WHERE id = ";
     const char* statement2 = "INSERT INTO comment (id, parent_id, author_id, submission_id, created_at, content) values(";
     char statement[strlen(statement2) + count_digits(cmnt_id) + 2 + count_digits(parent_id) + 2 + count_digits(author_id) + 2 + count_digits(submission_id) + 2 + count_digits(created_at) + 2 + 1 + strlen(content)*2 + 3 + 1];
     
-    goto__select_from_table__dsfsdfs:
     
     i = 0;
     
@@ -125,16 +177,14 @@ unsigned long int sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_re
     statement[i++] = ';';
     statement[i] = 0;
     
-    printf("stmt: %s\n", statement);
+    PRINTF("stmt: %s\n", statement);
     sql_res = sql_stmt->executeQuery(statement);
     
     if (sql_res->next()){
         // Entry already existed in table
-        printf("Result ID: %d\n", sql_res->getInt(1));
-        return sql_res->getInt(1);
+        return;
     }
     
-    printf("Creating new entry in 'comment' for '%lu'\n", cmnt_id);
     
     i = 0;
     
@@ -166,7 +216,6 @@ unsigned long int sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_re
     statement[i++] = ' ';
     
     statement[i++] = '"';
-    printf("strlen(content): %lu\n", strlen(content));
     for (auto j = 0;  j < strlen(content);  ++j){
         if (content[j] == '"'  ||  content[j] == '\\')
             statement[i++] = '\\';
@@ -178,10 +227,8 @@ unsigned long int sql__add_cmnt(sql::Statement* sql_stmt, sql::ResultSet* sql_re
     statement[i++] = ';';
     statement[i] = 0;
     
-    printf("stmt: %s\n", statement);
+    PRINTF("stmt: %s\n", statement);
     sql_stmt->execute(statement);
-    
-    goto goto__select_from_table__dsfsdfs;
 }
 
 
@@ -316,7 +363,7 @@ int slashindx(const char* str){
 }
 
 unsigned long int id2n_lower(const char* str){
-    unsigned long n = 0;
+    unsigned long int n = 0;
     //PRINTF("id2n_lower(%s) -> ", str);
     while (*str != 0){
         n *= (10 + 26);
@@ -324,7 +371,7 @@ unsigned long int id2n_lower(const char* str){
             n += *str - '0';
 #ifdef DEBUG
         else if (*str < 'a'  ||  *str > 'z'){
-            printf("ERROR: Bad alphanumeric: %s\n", str);
+            fprintf(stderr, "Bad alphanumeric: %s\n", str);
             handler(ERR);
         }
 #endif
@@ -347,7 +394,7 @@ unsigned long int id2n(const char* str){
             n += *str - 'a' + 10;
 #ifdef DEBUG
         else if (*str < 'A'  ||  *str > 'Z'){
-            printf("ERROR: Bad alphanumeric: %s\n", str);
+            fprintf(stderr, "Bad alphanumeric: %s\n", str);
             handler(ERR);
         }
 #endif
@@ -359,7 +406,7 @@ unsigned long int id2n(const char* str){
     return n;
 }
 
-void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
+void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     SET_STR(body,           cmnt["data"]["body"]);
     SET_STR(subreddit_name, cmnt["data"]["subreddit"]);
     SET_STR(author_name,    cmnt["data"]["author"]);
@@ -367,6 +414,11 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     
     const unsigned long int author_id = id2n_lower(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
     const unsigned long int subreddit_id = id2n_lower(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
+    const bool is_submission_nsfw = cmnt["data"]["over_18"].GetBool();
+    char is_subreddit_nsfw = 2; // 0 for certainly SFW, 1 for certainly NSFW. 2 for unknown.
+    
+    if (!is_submission_nsfw)
+        is_subreddit_nsfw = 0;
     
     
     struct cmnt_meta metadata = {
@@ -392,7 +444,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     
     
     if (filter_comment_body::wl::match(metadata, body, strlen(body))){
-        printf("MATCHED: %s\n", filter_comment_body::wl::what[0].str().c_str());
+        PRINTF("MATCHED: %s\n", filter_comment_body::wl::what[0].str().c_str());
         goto goto__do_process_this_live_cmnt;
     }
     // if filter_comment_body::bl: return;
@@ -407,9 +459,6 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     SET_STR(permalink,      cmnt["data"]["permalink"]);
     
     const time_t RSET_FLT(created_at,     cmnt["data"]["created_utc"]);
-    
-    
-    printf("/r/%s\t/u/%s\t@%shttps://old.reddit.com%s\n%s\n\n\n", subreddit_name, author_name, asctime(localtime(&created_at)), permalink, body); // asctime introduces a newline
     
     
     sql__insert_into_table_at(SQL_STMT, SQL_RES, "user", author_name, author_id);
@@ -428,13 +477,14 @@ void process_live_cmnt(rapidjson::Value& cmnt, const int cmnt_id){
     
     const char* cmnt_content = cmnt["data"]["body"].GetString();
     sql__add_cmnt(SQL_STMT, SQL_RES, cmnt_id, parent_id, author_id, submission_id, created_at, (char*)cmnt_content);
+    sql__add_submission_from_cmnt(SQL_STMT, SQL_RES, submission_id, subreddit_id, is_submission_nsfw);
 }
 
 int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
     /*
     'replies' object is the 'replies' JSON object which has property 'kind' of value 'Listing'
     */
-    int cmnt_id;
+    unsigned long int cmnt_id;
     int i = 0;
     for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr){
         cmnt_id = id2n_lower((*itr)["data"]["id"].GetString()); // No "t1_" prefix
@@ -449,18 +499,8 @@ int process_live_replies(rapidjson::Value& replies, int last_processed_cmnt_id){
 const char* FORBIDDEN = ">403 Forbidden<";
 
 bool try_again(rapidjson::Document& d){
-    if (d.Parse(MEMORY.memory).HasParseError()){
-        // Response is not JSON
-        printf("ERROR: HasParseError\n%s\n", MEMORY.memory);
-        MEMORY.size = 0; // 'Clear' contents of request
-        
-        if (strncmp(MEMORY.memory + strlen("<html><body><h1"),  FORBIDDEN,  strlen(FORBIDDEN)) == strlen(FORBIDDEN)){
-            sleep(REDDIT_REQUEST_DELAY);
-            login();
-        }
-        
-        return true;
-    }
+    if (d.Parse(MEMORY.memory).HasParseError())
+        handler(ERR_PARSE);
     
     MEMORY.size = 0; // 'Clear' contents of request
     
@@ -475,7 +515,6 @@ bool try_again(rapidjson::Document& d){
                 login();
                 break;
             default:
-                printf("%s\n", MEMORY.memory);
                 handler(ERR);
         }
         return true;
@@ -495,12 +534,6 @@ void process_all_comments_live(){
         
         if (try_again(d))
             continue;
-        
-        if (d.IsNull()  ||  !d.HasMember("data")){
-            printf("ERROR: d or d[\"data\"] NOT OBJECT\n%s\n", MEMORY.memory);
-            MEMORY.size = 0; // 'Clear' contents of request
-            continue;
-        }
         
         last_processed_cmnt_id = process_live_replies(d, last_processed_cmnt_id);
     }
@@ -619,6 +652,9 @@ void process_submission(const char* url){
 int main(const int argc, const char* argv[]){
     MEMORY.memory = (char*)malloc(0);
     AUTH_HEADER = (char*)malloc(0);
+    
+    
+    PRINTF("filter_comment_body::wl::regexpr_str: %s\n", filter_comment_body::wl::regexpr_str);
     
     
     int i = 0;
