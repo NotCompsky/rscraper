@@ -7,14 +7,9 @@
 #include <time.h> // for asctime
 #include <unistd.h> // for sleep
 
-/* MySQL */
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
-
 #include "rapidjson_utils.h" // for SET_DBG_* macros
 #include "utils.h" // for PRINTF macro, sql__file_attr_id, sql__get_id_from_table, sql__insert_into_table_at, count_digits, itoa_nonstandard
+#include "rscraper_utils.hpp" // for sql::*, init_mysql_from_file
 
 #include "filter_comment_body.cpp" // for filter_comment_body::*
 #include "filter_user.cpp" // for filter_user::*
@@ -39,13 +34,6 @@ enum {
 };
 
 #define REDDIT_REQUEST_DELAY 1
-
-
-
-sql::Driver* SQL_DRIVER;
-sql::Connection* SQL_CON;
-sql::Statement* SQL_STMT;
-sql::ResultSet* SQL_RES;
 
 
 
@@ -683,9 +671,8 @@ int main(const int argc, const char* argv[]){
     int i = 0;
     
     
-    SQL_DRIVER = get_driver_instance();
-    SQL_CON = SQL_DRIVER->connect(argv[1], argv[2], argv[3]);
-    i += 3;
+    init_mysql_from_file(argv[1]);
+    i += 1;
     SQL_CON->setSchema("rscraper");
     SQL_STMT = SQL_CON->createStatement();
     
