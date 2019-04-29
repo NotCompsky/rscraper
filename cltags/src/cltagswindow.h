@@ -20,6 +20,8 @@ struct tag2cl{
 
 class SelectColourButton : public QPushButton{
     Q_OBJECT
+  private:
+    void display_subs_w_tag();
   private Q_SLOTS:
     void mousePressEvent(QMouseEvent* e);
   public:

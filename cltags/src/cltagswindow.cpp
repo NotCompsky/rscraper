@@ -3,6 +3,7 @@
 #include <QColorDialog>
 #include <QVBoxLayout>
 #include <QDebug>
+#include <QMessageBox>
 
 /* MySQL */
 #include <cppconn/driver.h>
@@ -22,6 +23,15 @@ char STMT_GETCATTAGS[strlen(STMT_GETCATTAGS_STR) + DIGITS_IN_UINT64 + strlen(" O
 constexpr const char* STMT_SETCL_STR = "UPDATE tag SET ";
 char STMT_SETCL[strlen("UPDATE tag SET r=0.123,g=0.123,b=0.123,a=0.123 WHERE id=01234567890123456789") + 1] = "UPDATE tag SET r=";
 
+
+#define SUBREDDIT_NAME_MAX 128
+constexpr const char* SQL__SELECT_SUBS_W_TAG_PRE = "SELECT r.name FROM subreddit r JOIN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id = ";
+constexpr const char* SQL__SELECT_SUBS_W_TAG_POST = ") A ON A.subreddit_id = r.id";
+char SQL__SELECT_SUBS_W_TAG[strlen(SQL__SELECT_SUBS_W_TAG_PRE) + 20 + strlen(SQL__SELECT_SUBS_W_TAG_POST) + 1] = "SELECT r.name FROM subreddit r JOIN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id = ";
+
+/*char* DISPLAY_TAGS_RES = (char*)malloc(4096);
+size_t DISPLAY_TAGS_RES_SIZE = 4096;*/
+QString DISPLAY_TAGS_RES = "";
 
 
 void format_stmt_setcl(uint64_t id, int ir, int ig, int ib, int ia){
@@ -91,11 +101,52 @@ void SelectColourButton::set_colour(){
 void SelectColourButton::mousePressEvent(QMouseEvent* e){
     switch(e->button()){
         case Qt::LeftButton:
-            set_colour();
+            this->set_colour();
             return;
         case Qt::RightButton:
+            this->display_subs_w_tag();
             return;
     }
+}
+
+/*
+void resize_display_tags_res(size_t n){
+    DISPLAY_TAGS_RES_SIZE = 2*n;
+    DISPLAY_TAGS_RES = (char*)realloc(DISPLAY_TAGS_RES, DISPLAY_TAGS_RES_SIZE); // TODO: Check for nullptr
+}
+*/
+
+void SelectColourButton::display_subs_w_tag(){
+    int i = strlen(SQL__SELECT_SUBS_W_TAG_PRE);
+    i += itoa_nonstandard(this->tag_id,  SQL__SELECT_SUBS_W_TAG + i);
+    memcpy(SQL__SELECT_SUBS_W_TAG + i,  SQL__SELECT_SUBS_W_TAG_POST,  strlen(SQL__SELECT_SUBS_W_TAG_POST));
+    i += strlen(SQL__SELECT_SUBS_W_TAG_POST);
+    SQL__SELECT_SUBS_W_TAG[i] = 0;
+    
+    qDebug() << SQL__SELECT_SUBS_W_TAG;
+    
+    SQL_RES = SQL_STMT->executeQuery(SQL__SELECT_SUBS_W_TAG);
+    
+    //size_t j = 0;
+    
+    while (SQL_RES->next()){
+        const std::string ss = SQL_RES->getString(1);
+        DISPLAY_TAGS_RES += QString::fromStdString(ss);
+        DISPLAY_TAGS_RES += '\n';
+        /*const char* s        = ss.c_str();
+        memcpy(DISPLAY_TAGS_RES + j,  s,  strlen(s));
+        j += strlen(s);
+        DISPLAY_TAGS_RES[j++] = '\n';
+        if (j > DISPLAY_TAGS_RES_SIZE + SUBREDDIT_NAME_MAX)
+            resize_display_tags_res(j);*/
+    }
+    
+    /*DISPLAY_TAGS_RES[i] = 0;
+    QString qstr(DISPLAY_TAGS_RES);*/
+    
+    QMessageBox::information(this, tr("Tagged Subreddits"), DISPLAY_TAGS_RES, QMessageBox::Cancel);
+    
+    DISPLAY_TAGS_RES = "";
 }
 
 
