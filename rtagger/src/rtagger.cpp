@@ -65,28 +65,6 @@ constexpr uint64_t str2id(const char* str,  const int start_index,  const int en
 
 static_assert(str2id("6l4z3", 0, 5) == 11063919); // /u/AutoModerator
 
-void write_cl_channel(char* dst,  const int n_cmnts,  float x){
-    // 0 <= x <= 1
-    unsigned char m;
-    unsigned char n;
-    x *= 255;
-    x /= n_cmnts;
-    
-    m = x;
-    
-    n = m % 16;
-    if (n < 10)
-        dst[1] = '0' + n;
-    else
-        dst[1] = 'a' + n - 10;
-    
-    n = m / 16;
-    if (n < 10)
-        dst[0] = '0' + n;
-    else
-        dst[0] = 'a' + n - 10;
-}
-
 
 unsigned long int SKIPPED_FIRST_CHAR = 0;
 char* DST;
@@ -219,7 +197,7 @@ void csv2cls(const char* csv){
         DST[++k] = 'a';
         DST[++k] = '(';
         for (auto c = 3;  c < 6;  ++c){
-            k += itoa_nonstandard((unsigned char)(255*SQL_RES->getDouble(c)),  DST + k + 1);
+            k += itoa_nonstandard((uint64_t)255*SQL_RES->getDouble(c),  DST + k + 1);
             DST[++k] = ',';
         }
         const double a = SQL_RES->getDouble(6) / n_cmnts;
