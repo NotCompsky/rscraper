@@ -197,7 +197,7 @@ void csv2cls(const char* csv){
         DST[++k] = 'a';
         DST[++k] = '(';
         for (auto c = 3;  c < 6;  ++c){
-            k += itoa_nonstandard((uint64_t)255*SQL_RES->getDouble(c),  DST + k + 1);
+            k += itoa_nonstandard((uint64_t)(255.0d * SQL_RES->getDouble(c) / n_cmnts),  DST + k + 1);
             DST[++k] = ',';
         }
         const double a = SQL_RES->getDouble(6) / n_cmnts;
