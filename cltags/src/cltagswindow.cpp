@@ -2,7 +2,6 @@
 #include "utils.h" // for itoa_nonstandard
 #include <QColorDialog>
 #include <QVBoxLayout>
-#include <QDebug>
 #include <QMessageBox>
 
 /* MySQL */
@@ -94,7 +93,6 @@ void SelectColourButton::set_colour(){
     int r, g, b, a;
     this->colour.getRgb(&r, &g, &b, &a);
     format_stmt_setcl(this->tag_id, r, g, b, a);
-    qDebug() << STMT_SETCL;
     SQL_STMT->execute(STMT_SETCL);
 }
 
@@ -122,8 +120,6 @@ void SelectColourButton::display_subs_w_tag(){
     memcpy(SQL__SELECT_SUBS_W_TAG + i,  SQL__SELECT_SUBS_W_TAG_POST,  strlen(SQL__SELECT_SUBS_W_TAG_POST));
     i += strlen(SQL__SELECT_SUBS_W_TAG_POST);
     SQL__SELECT_SUBS_W_TAG[i] = 0;
-    
-    qDebug() << SQL__SELECT_SUBS_W_TAG;
     
     SQL_RES = SQL_STMT->executeQuery(SQL__SELECT_SUBS_W_TAG);
     
