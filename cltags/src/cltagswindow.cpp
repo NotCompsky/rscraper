@@ -64,7 +64,6 @@ void format_stmt_setcl(uint64_t id, int ir, int ig, int ib, int ia){
 SelectColourButton::SelectColourButton(const uint64_t id, const double r, const double g, const double b, const double a, const char* name, QWidget* parent){
     this->tag_id = id;
     this->setText(name);
-    connect(this, SIGNAL(clicked()), this, SLOT(set_colour()));
     this->setAutoFillBackground(true);
     this->setFlat(true);
     this->colour = QColor(255*r, 255*g, 255*b, 255*a);
@@ -87,6 +86,16 @@ void SelectColourButton::set_colour(){
     format_stmt_setcl(this->tag_id, r, g, b, a);
     qDebug() << STMT_SETCL;
     SQL_STMT->execute(STMT_SETCL);
+}
+
+void SelectColourButton::mousePressEvent(QMouseEvent* e){
+    switch(e->button()){
+        case Qt::LeftButton:
+            set_colour();
+            return;
+        case Qt::RightButton:
+            return;
+    }
 }
 
 

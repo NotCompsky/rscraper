@@ -5,6 +5,8 @@
 #include <QDialogButtonBox>
 #include <QPushButton>
 #include <QDialog>
+#include <QMouseEvent>
+
 
 typedef __uint32_t uint32_t;
 typedef __uint64_t uint64_t;
@@ -18,6 +20,8 @@ struct tag2cl{
 
 class SelectColourButton : public QPushButton{
     Q_OBJECT
+  private Q_SLOTS:
+    void mousePressEvent(QMouseEvent* e);
   public:
     uint64_t tag_id; // Should be const
     QColor colour;
