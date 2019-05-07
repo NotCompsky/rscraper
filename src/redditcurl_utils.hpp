@@ -151,9 +151,6 @@ void login(){
 void init(const char* fp){
     FILE* f = fopen(fp, "r");
     size_t size;
-    char* mysql_url = nullptr;
-    char* mysql_usr = nullptr;
-    char* mysql_pwd = nullptr;
     getline(&USR,               &size, f);
     getline(&PWD,               &size, f);
     getline(&KEY_AND_SECRET,    &size, f);
