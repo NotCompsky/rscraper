@@ -1028,13 +1028,17 @@ JOIN (
 
 # Usernames to subreddits moderated
 
-SELECT A.user_id, r.name
-FROM subreddit r
+SELECT u.name, B.name
+FROM user u
 JOIN (
-    SELECT user_id, subreddit_id
-    FROM moderator
-) A ON A.subreddit_id = r.id
-ORDER BY A.user_id
+    SELECT A.user_id, r.name
+    FROM subreddit r
+    JOIN (
+        SELECT user_id, subreddit_id
+        FROM moderator
+    ) A ON A.subreddit_id = r.id
+) B ON B.user_id = u.id
+ORDER BY u.id
 ;
 
 # The above, but limited to users who moderate 'SUBREDDIT'
@@ -1053,18 +1057,35 @@ JOIN (
 ORDER BY A.user_id
 ;
 
-# Subreddits by number of mods in common with 'SUBREDDIT'
+# Usernames to number of subreddits moderated
 
-SELECT r.name, COUNT(r.id) as c
-FROM subreddit r
+SELECT u.name, COUNT(B.subreddit_id) AS c
+FROM user u
 JOIN (
     SELECT user_id, subreddit_id
     FROM moderator
-    WHERE user_id IN (
-        SELECT user_id
+) B ON B.user_id = u.id
+GROUP BY u.name
+ORDER BY c
+;
+
+# Subreddits with mods in common with 'SUBREDDIT'
+
+SELECT r.name, COUNT(r.id) as c, GROUP_CONCAT(A.name)
+FROM subreddit r
+JOIN (
+    SELECT u.name, B.subreddit_id
+    FROM user u
+    JOIN (
+        SELECT user_id, subreddit_id
         FROM moderator
-        WHERE subreddit_id IN (SELECT id FROM subreddit WHERE name = 'SUBREDDIT')
-    )
+        WHERE user_id IN (
+            SELECT user_id
+            FROM moderator
+            WHERE user_id != 11063919
+              AND subreddit_id IN (SELECT id FROM subreddit WHERE name = 'SUBREDDIT')
+        )
+    ) B ON B.user_id = u.id
 ) A ON A.subreddit_id = r.id
 GROUP BY r.id
 HAVING c > 1

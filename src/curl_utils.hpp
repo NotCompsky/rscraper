@@ -2,6 +2,9 @@
 #define __MYCU__
 #include <curl/curl.h>
 #include "error_codes.hpp" // for myerr:*
+#ifdef DEBUG
+#include <stdio.h> // for printf
+#endif
 
 /* Defined in redditcurl_utils.hpp */
 namespace myrcu {
@@ -50,6 +53,9 @@ size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
 
 int request(const char* url){
     // Writes response contents to MEMORY
+  #ifdef DEBUG
+    printf("GET %s\n", url);
+  #endif
     
     curl_easy_setopt(curl, CURLOPT_URL, url);
     

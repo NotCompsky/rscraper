@@ -76,6 +76,9 @@ uint64_t calc_permission(const char* str){
     }
 }
 
+constexpr const char* SQL__INSERT_USER__PRE  = "INSERT IGNORE INTO user (id, name) VALUES (";
+char SQL__INSERT_USER[strlen(SQL__INSERT_USER__PRE) + 20 + 1 + 128 + 1 + 1] = "INSERT IGNORE INTO user (id, name) VALUES (";
+
 constexpr const char* SQL__INSERT_MOD_PRE = "INSERT IGNORE INTO moderator (subreddit_id, user_id, permissions, added_on) VALUES ";
 constexpr size_t BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA = 1 + 20 + 1 + 20 + 1 + 20 + 1; // Maximum length of a single entry
 char* SQL__INSERT_MOD = (char*)malloc(strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA);
@@ -106,6 +109,12 @@ void sql__resize_insert_mod(){
 constexpr const char* SQL__GET_USER_MODDED_SUBS_PRE = "SELECT subreddit_id FROM moderator WHERE user_id = ";
 char SQL__GET_USER_MODDED_SUBS[strlen(SQL__GET_USER_MODDED_SUBS_PRE) + 20 + 1] = "SELECT subreddit_id FROM moderator WHERE user_id = ";
 
+
+constexpr const char* SQL__GET_MODS_OF__PRE  = "SELECT u.id, u.name FROM user u JOIN (SELECT user_id FROM moderator WHERE permissions != 0 AND subreddit_id = ";
+constexpr const char* SQL__GET_MODS_OF__POST = ") A ON A.user_id = u.id";
+char SQL__GET_MODS_OF[strlen(SQL__GET_MODS_OF__PRE) + 20 + 1] = "SELECT u.id, u.name FROM user u JOIN (SELECT user_id FROM moderator WHERE permissions != 0 AND subreddit_id = ";
+
+
 bool previously_got_user_modded_subs(const uint64_t user_id){
     auto i = strlen(SQL__GET_USER_MODDED_SUBS_PRE);
     i += itoa_nonstandard(user_id,  SQL__GET_USER_MODDED_SUBS + i);
@@ -120,7 +129,9 @@ bool previously_got_user_modded_subs(const uint64_t user_id){
     
     while (true){
         const uint64_t subreddit_id = mysu::SQL_RES->getUInt64(1);
-        if (std::find(SUBS_TO_SCRAPE.begin(), SUBS_TO_SCRAPE.end(), subreddit_id) == SUBS_TO_SCRAPE.end())
+        if (subreddit_id == 0);
+            // TODO: Fix the reason some subreddits are 0 (probably 404'd)
+        else if (std::find(SUBS_TO_SCRAPE.begin(), SUBS_TO_SCRAPE.end(), subreddit_id) == SUBS_TO_SCRAPE.end())
             SUBS_TO_SCRAPE.push_back(subreddit_id);
         if (!mysu::SQL_RES->next())
             return true;
@@ -177,10 +188,26 @@ void add_user_modded_subs(const char* user_name,  const uint64_t user_id){
     
     for (rapidjson::Value::ValueIterator itr = d["data"].Begin();  itr != d["data"].End();  ++itr){
         const uint64_t subreddit_id = myru::id2n_lower((*itr)["name"].GetString() + 3); // Skip t5_ prefix
+        if (subreddit_id == 0)
+            // TODO: Fix the reason some subreddits are 0 (probably 404'd)
+            continue;
         const char* subreddit_name  = (*itr)["sr"].GetString();
         if (std::find(SUBS_TO_SCRAPE.begin(), SUBS_TO_SCRAPE.end(), subreddit_id) == SUBS_TO_SCRAPE.end())
             record_user_modded_subreddit(user_id, subreddit_id, subreddit_name);
     }
+}
+
+void process_mod(const uint64_t subreddit_id,  const uint64_t user_id,  const char* user_name){
+  #ifdef SPIDER
+    if (filter_user::matches_id(user_id))
+        // It is a **very** good idea to filter out AutoModerator
+        return;
+    
+    if (previously_got_user_modded_subs(user_id))
+        return;
+    
+    add_user_modded_subs(user_name, user_id);
+  #endif
 }
 
 void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user){
@@ -215,16 +242,22 @@ void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user){
     SQL__INSERT_MOD_INDX = i;
     
     
-#ifdef SPIDER
-    if (filter_user::matches_id(user_id))
-        // It is a **very** good idea to filter out AutoModerator
-        return;
+    // TODO: Collect these following small commands into one per subreddit
+    i = strlen(SQL__INSERT_USER__PRE);
+    i += itoa_nonstandard(user_id,  SQL__INSERT_USER + i);
+    SQL__INSERT_USER[i++] = ',';
+    SQL__INSERT_USER[i++] = '"';
+    memcpy(SQL__INSERT_USER + i,  user_name,  strlen(user_name));
+    i += strlen(user_name);
+    SQL__INSERT_USER[i++] = '"';
+    SQL__INSERT_USER[i++] = ')';
+    SQL__INSERT_USER[i] = 0;
     
-    if (previously_got_user_modded_subs(user_id))
-        return;
+    PRINTF("SQL__INSERT_USER: %s\n", SQL__INSERT_USER);
+    mysu::SQL_STMT->execute(SQL__INSERT_USER);
     
-    add_user_modded_subs(user_name, user_id);
-#endif
+    
+    process_mod(subreddit_id, user_id, user_name);
 }
 
 void subreddit_id2name(const uint64_t id){
@@ -247,9 +280,37 @@ void subreddit_id2name(const uint64_t id){
 }
 
 void get_mods_of(const uint64_t subreddit_id){
+    int i;
+    
+    i = strlen(SQL__GET_MODS_OF__PRE);
+    i += itoa_nonstandard(subreddit_id,  SQL__GET_MODS_OF + i);
+    memcpy(SQL__GET_MODS_OF + i,  SQL__GET_MODS_OF__POST,  strlen(SQL__GET_MODS_OF__POST));
+    i += strlen(SQL__GET_MODS_OF__POST);
+    SQL__GET_MODS_OF[i] = 0;
+    
+    mysu::SQL_RES = mysu::SQL_STMT->executeQuery(SQL__GET_MODS_OF);
+    
+    if (!mysu::SQL_RES->next())
+        goto goto__getmodsofnotcached;
+    
+    while (true){
+        const uint64_t user_id = mysu::SQL_RES->getUInt64(1);
+        const std::string ss  = mysu::SQL_RES->getString(2);
+        const char* user_name = ss.c_str();
+        process_mod(subreddit_id, user_id, user_name);
+        if (!mysu::SQL_RES->next())
+            return;
+    }
+    
+    
+    
+    goto__getmodsofnotcached:
+    
     subreddit_id2name(subreddit_id);
     
-    int i = strlen(URL_PRE);
+    PRINTF("Not cached: %s\n", SUBREDDIT_NAME);
+    
+    i = strlen(URL_PRE);
     memcpy(URL + i,  SUBREDDIT_NAME,  SUBREDDIT_NAME_LEN);
     i += SUBREDDIT_NAME_LEN;
     memcpy(URL + i,  URL_POST,  strlen(URL_POST));
@@ -271,14 +332,6 @@ void get_mods_of(const uint64_t subreddit_id){
     
     if (myrcu::try_again(d))
         goto goto_getmodsoftryagain;
-    
-    const uint64_t subreddit_id = mysu::get_subreddit_id(SUBREDDIT_NAME);
-    
-    if (subreddit_id == 0){
-        // Subreddit not found int table
-        // TODO: Scrape subreddit details if it does not already exist
-        fprintf(stderr, "Subreddit #%d not found in subreddit table\n", subreddit_id);
-    }
     
     SQL__INSERT_MOD_INDX = strlen(SQL__INSERT_MOD_PRE);
     
@@ -321,7 +374,9 @@ int main(const int argc, const char* argv[]){
     myrcu::init_browser_curl();
 #endif
     
-    for (auto i = 0;  SUBS_TO_SCRAPE[i] != 0;  ++i){
+    for (auto i = 0;  i < SUBS_TO_SCRAPE.size();  ++i){
         get_mods_of(SUBS_TO_SCRAPE[i]);
     }
+    
+    return 0;
 }
