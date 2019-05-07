@@ -36,8 +36,8 @@ constexpr const char* URL_POST = "/about/moderators/?raw_json=1";
 char URL[strlen(URL_PRE) + myru::SUBREDDIT_NAME_MAX + strlen(URL_POST) + 1] = "https://oauth.reddit.com/r/";
 
 
-constexpr const char* SQL__INSERT_USER_MODDED_SUB_PRE = "INSERT INTO moderator (permissions, added_on, user_id, subreddit_id) VALUES (0,0,";
-char SQL__INSERT_USER_MODDED_SUB[strlen(SQL__INSERT_USER_MODDED_SUB_PRE) + 20 + 1 + 20 + 1 + 1] = "INSERT INTO moderator (permissions, added_on, user_id, subreddit_id) VALUES (0,0,";
+constexpr const char* SQL__INSERT_USER_MODDED_SUB_PRE = "INSERT INTO moderator (permissions, added_on, rank, user_id, subreddit_id) VALUES (0,0,0,";
+char SQL__INSERT_USER_MODDED_SUB[strlen(SQL__INSERT_USER_MODDED_SUB_PRE) + 20 + 1 + 20 + 1 + 1] = "INSERT INTO moderator (permissions, added_on, rank, user_id, subreddit_id) VALUES (0,0,0,";
 // NOTE: Do not need 'IGNORE' as this is only called if there were no previous results
 
 
@@ -80,8 +80,9 @@ constexpr const char* SQL__INSERT_USER__PRE  = "INSERT IGNORE INTO user (id, nam
 char SQL__INSERT_USER[strlen(SQL__INSERT_USER__PRE) + 20 + 1 + 128 + 1 + 1] = "INSERT IGNORE INTO user (id, name) VALUES (";
 
 constexpr const char* SQL__INSERT_MOD_PRE = "INSERT IGNORE INTO moderator (subreddit_id, user_id, permissions, added_on, rank) VALUES ";
+constexpr const char* SQL__INSERT_MOD_POST = " ON DUPLICATE KEY UPDATE rank=VALUES(rank), permissions=VALUES(permissions)";
 constexpr size_t BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA = 1 + 20 + 1 + 20 + 1 + 20 + 1 + 10 + 1; // Maximum length of a single entry
-char* SQL__INSERT_MOD = (char*)malloc(strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA);
+char* SQL__INSERT_MOD = (char*)malloc(strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA + strlen(SQL__INSERT_MOD_POST) + 1);
 // Some subreddits have thousands of moderators. I do not know the limit.
 size_t SQL__INSERT_MOD_SIZE = strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA;
 size_t SQL__INSERT_MOD_INDX;
@@ -337,9 +338,12 @@ void get_mods_of(const uint64_t subreddit_id){
     
     SQL__INSERT_MOD_INDX = strlen(SQL__INSERT_MOD_PRE);
     
+    unsigned int rank = 0;
     for (rapidjson::Value::ValueIterator itr = d["data"]["children"].Begin();  itr != d["data"]["children"].End();  ++itr)
-        process_mod(subreddit_id, *itr);
+        process_mod(subreddit_id, *itr, ++rank);
     
+    memcpy(SQL__INSERT_MOD + SQL__INSERT_MOD_INDX,  SQL__INSERT_MOD_POST,  strlen(SQL__INSERT_MOD_POST));
+    i += strlen(SQL__INSERT_MOD_POST);
     SQL__INSERT_MOD[--SQL__INSERT_MOD_INDX] = 0; // Overwrite trailing comma
     
     
