@@ -38,7 +38,7 @@ uint64_t calc_permission(const char* str){
                 case 'c':
                     return 1; // access
                 default:
-                    return ~0; // all
+                    return ~0; // all // Most likely
             }
         case 'c':
             switch(str[1]){
@@ -63,7 +63,7 @@ uint64_t calc_permission(const char* str){
     }
 }
 
-constexpr const char* SQL__INSERT_MOD_PRE = "INSERT INTO moderator (subreddit_id, user_id, permissions) VALUES ";
+constexpr const char* SQL__INSERT_MOD_PRE = "INSERT IGNORE INTO moderator (subreddit_id, user_id, permissions) VALUES ";
 constexpr size_t BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA = 1 + 20 + 1 + 20 + 1 + 20 + 1; // Maximum length of a single entry
 char* SQL__INSERT_MOD = (char*)malloc(strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA);
 // Some subreddits have thousands of moderators. I do not know the limit.
