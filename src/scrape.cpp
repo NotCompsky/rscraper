@@ -279,8 +279,6 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
 }
 
 
-constexpr const char* FORBIDDEN = ">403 Forbidden<";
-
 bool try_again(rapidjson::Document& d){
     if (d.Parse(mycu::MEMORY.memory).HasParseError())
         myrcu::handler(myerr::JSON_PARSING);
