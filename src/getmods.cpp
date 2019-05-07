@@ -79,8 +79,8 @@ uint64_t calc_permission(const char* str){
 constexpr const char* SQL__INSERT_USER__PRE  = "INSERT IGNORE INTO user (id, name) VALUES (";
 char SQL__INSERT_USER[strlen(SQL__INSERT_USER__PRE) + 20 + 1 + 128 + 1 + 1] = "INSERT IGNORE INTO user (id, name) VALUES (";
 
-constexpr const char* SQL__INSERT_MOD_PRE = "INSERT IGNORE INTO moderator (subreddit_id, user_id, permissions, added_on) VALUES ";
-constexpr size_t BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA = 1 + 20 + 1 + 20 + 1 + 20 + 1; // Maximum length of a single entry
+constexpr const char* SQL__INSERT_MOD_PRE = "INSERT IGNORE INTO moderator (subreddit_id, user_id, permissions, added_on, rank) VALUES ";
+constexpr size_t BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA = 1 + 20 + 1 + 20 + 1 + 20 + 1 + 10 + 1; // Maximum length of a single entry
 char* SQL__INSERT_MOD = (char*)malloc(strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA);
 // Some subreddits have thousands of moderators. I do not know the limit.
 size_t SQL__INSERT_MOD_SIZE = strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA;
@@ -210,7 +210,7 @@ void process_mod(const uint64_t subreddit_id,  const uint64_t user_id,  const ch
   #endif
 }
 
-void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user){
+void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user,  unsigned int rank){
     SET_STR(user_id_str,    user["id"]);
     user_id_str += 3; // Skip prefix "t2_"
     const uint64_t user_id = myru::id2n_lower(user_id_str);
@@ -236,6 +236,8 @@ void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user){
     i += itoa_nonstandard(permissions,  stmt + i);
     stmt[i++] = ',';
     i += itoa_nonstandard(added_on,  stmt + i);
+    stmt[i++] = ',';
+    i += itoa_nonstandard(rank,  stmt + i);
     stmt[i++] = ')';
     stmt[i++] = ',';
     
@@ -361,12 +363,12 @@ uint64_t subreddit2id(const char* name){
 }
 
 int main(const int argc, const char* argv[]){
-    mysu::init(argv[1]); // Init SQL
-    myrcu::init(argv[3], argv[4], argv[5], argv[2]); // Init CURL
+    mysu::init(argv[1]);  // Init SQL
+    myrcu::init(argv[2]); // Init CURL
     
     memcpy(SQL__INSERT_MOD,  SQL__INSERT_MOD_PRE,  strlen(SQL__INSERT_MOD_PRE));
     
-    for (auto i = 6;  i < argc;  ++i){
+    for (auto i = 3;  i < argc;  ++i){
         SUBS_TO_SCRAPE.push_back(subreddit2id(argv[i]));
     }
     

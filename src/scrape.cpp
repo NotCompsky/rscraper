@@ -293,8 +293,8 @@ void process_all_comments_live(){
 }
 
 int main(const int argc, const char* argv[]){
-    mysu::init(argv[1]); // Init SQL
-    myrcu::init(argv[3], argv[4], argv[5], argv[2]); // Init CURL
+    mysu::init(argv[1]);  // Init SQL
+    myrcu::init(argv[2]); // Init CURL
     
     process_all_comments_live();
 }

@@ -21,7 +21,6 @@ namespace myrcu {
 
 constexpr int REDDIT_REQUEST_DELAY = 1;
 
-const char* USER_AGENT;
 constexpr const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
 constexpr const int PARAMS_LEN = strlen(PARAMS);
 
@@ -35,9 +34,10 @@ constexpr const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
 constexpr const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
 constexpr const char* API_ALLCOMMENTS_URL = "https://oauth.reddit.com/r/all/comments/?limit=100&raw_json=1";
 
-const char* USR;
-const char* PWD;
-const char* KEY_AND_SECRET;
+const char* USR             = nullptr;
+const char* PWD             = nullptr;
+const char* KEY_AND_SECRET  = nullptr;
+const char* USER_AGENT      = nullptr;
 
 
 constexpr const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
@@ -148,16 +148,24 @@ void login(){
 }
 
 
-void init(const char* usr,  const char* pwd,  const char* key_n_secret,  const char* user_agent){
+void init(const char* fp){
+    FILE* f = fopen(fp, "r");
+    size_t size;
+    char* mysql_url = nullptr;
+    char* mysql_usr = nullptr;
+    char* mysql_pwd = nullptr;
+    getline(&USR,               &size, f);
+    getline(&PWD,               &size, f);
+    getline(&KEY_AND_SECRET,    &size, f);
+    getline(&USER_AGENT,        &size, f);
+    /* Remove trailing newlines */
+    USR[strlen(USR)-1] = 0;
+    PWD[strlen(PWD)-1] = 0;
+    KEY_AND_SECRET[strlen(KEY_AND_SECRET)-1] = 0;
+    USER_AGENT[strlen(USER_AGENT)-1] = 0;
+    
     mycu::MEMORY.memory = (char*)malloc(0);
     mycu::MEMORY.n_allocated = 0;
-    
-    
-    USER_AGENT = user_agent;
-    
-    USR = usr;
-    PWD = pwd;
-    KEY_AND_SECRET = key_n_secret;
     
     LOGIN_POSTDATA = (char*)malloc(strlen(LOGIN_POSTDATA_PREFIX) + strlen(PWD) + strlen(LOGIN_POSTDATA_KEYNAME) + strlen(USR) + 1);
     
