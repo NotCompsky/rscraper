@@ -1,3 +1,8 @@
+/*
+ * Scrape comments from /r/all as they appear
+ */
+
+
 #include <string.h> // for memcpy
 #include <unistd.h> // for sleep
 
