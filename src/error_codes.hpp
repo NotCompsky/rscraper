@@ -11,7 +11,10 @@ enum {
     CANNOT_SET_PROXY,
     INVALID_PJ,
     JSON_PARSING,
-    BAD_ARGUMENT
+    BAD_ARGUMENT,
+    UNACCOUNTED_FOR_SERVER_CODE,
+    SUBREDDIT_NOT_IN_DB,
+    IMPOSSIBLE // Should never happen
 };
 }
 #endif

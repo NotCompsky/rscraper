@@ -95,7 +95,10 @@ CREATE TABLE moderator (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id BIGINT UNSIGNED NOT NULL,
     subreddit_id BIGINT UNSIGNED NOT NULL,
-    permissions BIGINT UNSIGNED NOT NULL,
+    permissions BIGINT UNSIGNED NOT NULL, # Note that this is only nonzero if we've scraped the moderators of the subreddit, rather than the moderated subreddits of a user
+    added_on BIGINT UNSIGNED NOT NULL,
+    removed_by BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    last_updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, # Update with 'last_updated=now()'
     UNIQUE KEY `user2subreddit` (`user_id`, `subreddit_id`),
     PRIMARY KEY (id)
 );
@@ -1018,3 +1021,53 @@ JOIN (
     LIMIT 100
 ) A ON r.id = A.subreddit_id
 ;
+
+
+
+
+
+# Usernames to subreddits moderated
+
+SELECT A.user_id, r.name
+FROM subreddit r
+JOIN (
+    SELECT user_id, subreddit_id
+    FROM moderator
+) A ON A.subreddit_id = r.id
+ORDER BY A.user_id
+;
+
+# The above, but limited to users who moderate 'SUBREDDIT'
+
+SELECT A.user_id, r.name
+FROM subreddit r
+JOIN (
+    SELECT user_id, subreddit_id
+    FROM moderator
+    WHERE user_id IN (
+        SELECT user_id
+        FROM moderator
+        WHERE subreddit_id IN (SELECT id FROM subreddit WHERE name = 'SUBREDDIT')
+    )
+) A ON A.subreddit_id = r.id
+ORDER BY A.user_id
+;
+
+# Subreddits by number of mods in common with 'SUBREDDIT'
+
+SELECT r.name, COUNT(r.id) as c
+FROM subreddit r
+JOIN (
+    SELECT user_id, subreddit_id
+    FROM moderator
+    WHERE user_id IN (
+        SELECT user_id
+        FROM moderator
+        WHERE subreddit_id IN (SELECT id FROM subreddit WHERE name = 'SUBREDDIT')
+    )
+) A ON A.subreddit_id = r.id
+GROUP BY r.id
+HAVING c > 1
+ORDER BY c ASC
+;
+

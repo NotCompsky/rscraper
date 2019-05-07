@@ -25,10 +25,23 @@
 
 #include "filter_user.cpp" // for filter_user::*
 
+#ifdef SPIDER
+#include <vector> // for std::vector
+#include <algorithm> // for std::find
+#endif
+
 
 constexpr const char* URL_PRE  = "https://oauth.reddit.com/r/";
 constexpr const char* URL_POST = "/about/moderators/?raw_json=1";
 char URL[strlen(URL_PRE) + myru::SUBREDDIT_NAME_MAX + strlen(URL_POST) + 1] = "https://oauth.reddit.com/r/";
+
+
+constexpr const char* SQL__INSERT_USER_MODDED_SUB_PRE = "INSERT INTO moderator (permissions, added_on, user_id, subreddit_id) VALUES (0,0,";
+char SQL__INSERT_USER_MODDED_SUB[strlen(SQL__INSERT_USER_MODDED_SUB_PRE) + 20 + 1 + 20 + 1 + 1] = "INSERT INTO moderator (permissions, added_on, user_id, subreddit_id) VALUES (0,0,";
+// NOTE: Do not need 'IGNORE' as this is only called if there were no previous results
+
+
+std::vector<uint64_t> SUBS_TO_SCRAPE;
 
 
 uint64_t calc_permission(const char* str){
@@ -63,12 +76,26 @@ uint64_t calc_permission(const char* str){
     }
 }
 
-constexpr const char* SQL__INSERT_MOD_PRE = "INSERT IGNORE INTO moderator (subreddit_id, user_id, permissions) VALUES ";
+constexpr const char* SQL__INSERT_MOD_PRE = "INSERT IGNORE INTO moderator (subreddit_id, user_id, permissions, added_on) VALUES ";
 constexpr size_t BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA = 1 + 20 + 1 + 20 + 1 + 20 + 1; // Maximum length of a single entry
 char* SQL__INSERT_MOD = (char*)malloc(strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA);
 // Some subreddits have thousands of moderators. I do not know the limit.
 size_t SQL__INSERT_MOD_SIZE = strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA;
 size_t SQL__INSERT_MOD_INDX;
+
+constexpr const char* SQL__INSERT_SUBREDDIT_NAME_PRE = "INSERT IGNORE INTO subreddit (id, name) VALUES (";
+char SQL__INSERT_SUBREDDIT_NAME[strlen(SQL__INSERT_SUBREDDIT_NAME_PRE) + 20+1+128+1 + 1] = "INSERT IGNORE INTO subreddit (id, name) VALUES (";
+char SUBREDDIT_NAME[128];
+size_t SUBREDDIT_NAME_LEN;
+
+
+constexpr const char* SQL__GET_SUBREDDIT_ID_PRE = "SELECT id FROM subreddit WHERE name = \"";
+char SQL__GET_SUBREDDIT_ID[strlen(SQL__GET_SUBREDDIT_ID_PRE) + 20+1+128+1 + 1] = "SELECT id FROM subreddit WHERE name = \"";
+
+
+
+constexpr const char* SQL__SELECT_SUBREDDIT_NAME_PRE = "SELECT name FROM subreddit WHERE id = ";
+char SQL__SELECT_SUBREDDIT_NAME[strlen(SQL__SELECT_SUBREDDIT_NAME_PRE) + 20+1+128+1 + 1] = "SELECT name FROM subreddit WHERE id = ";
 
 void sql__resize_insert_mod(){
     SQL__INSERT_MOD_INDX *= 2;
@@ -76,13 +103,91 @@ void sql__resize_insert_mod(){
     // TODO: Check for nullptr
 }
 
+constexpr const char* SQL__GET_USER_MODDED_SUBS_PRE = "SELECT subreddit_id FROM moderator WHERE user_id = ";
+char SQL__GET_USER_MODDED_SUBS[strlen(SQL__GET_USER_MODDED_SUBS_PRE) + 20 + 1] = "SELECT subreddit_id FROM moderator WHERE user_id = ";
+
+bool previously_got_user_modded_subs(const uint64_t user_id){
+    auto i = strlen(SQL__GET_USER_MODDED_SUBS_PRE);
+    i += itoa_nonstandard(user_id,  SQL__GET_USER_MODDED_SUBS + i);
+    SQL__GET_USER_MODDED_SUBS[i] = 0;
+    
+    PRINTF("SQL__GET_USER_MODDED_SUBS: %s\n", SQL__GET_USER_MODDED_SUBS);
+    
+    mysu::SQL_RES = mysu::SQL_STMT->executeQuery(SQL__GET_USER_MODDED_SUBS);
+    
+    if (!mysu::SQL_RES->next())
+        return false;
+    
+    while (true){
+        const uint64_t subreddit_id = mysu::SQL_RES->getUInt64(1);
+        if (std::find(SUBS_TO_SCRAPE.begin(), SUBS_TO_SCRAPE.end(), subreddit_id) == SUBS_TO_SCRAPE.end())
+            SUBS_TO_SCRAPE.push_back(subreddit_id);
+        if (!mysu::SQL_RES->next())
+            return true;
+    }
+}
+
+void insert_subreddit_nameid(const char* name,  const uint64_t id){
+    auto i = strlen(SQL__INSERT_SUBREDDIT_NAME_PRE);
+    i += itoa_nonstandard(id,  SQL__INSERT_SUBREDDIT_NAME + i);
+    SQL__INSERT_SUBREDDIT_NAME[i++] = ',';
+    SQL__INSERT_SUBREDDIT_NAME[i++] = '"';
+    memcpy(SQL__INSERT_SUBREDDIT_NAME + i,  name,  strlen(name));
+    i += strlen(name);
+    SQL__INSERT_SUBREDDIT_NAME[i++] = '"';
+    SQL__INSERT_SUBREDDIT_NAME[i++] = ')';
+    SQL__INSERT_SUBREDDIT_NAME[i] = 0;
+    
+    mysu::SQL_STMT->execute(SQL__INSERT_SUBREDDIT_NAME);
+}
+
+void record_user_modded_subreddit(const uint64_t user_id,  const uint64_t subreddit_id,  const char* subreddit_name){
+    auto i = strlen(SQL__INSERT_USER_MODDED_SUB_PRE);
+    i += itoa_nonstandard(user_id,  SQL__INSERT_USER_MODDED_SUB + i);
+    SQL__INSERT_USER_MODDED_SUB[i++] = ',';
+    i += itoa_nonstandard(subreddit_id,  SQL__INSERT_USER_MODDED_SUB + i);
+    SQL__INSERT_USER_MODDED_SUB[i++] = ')';
+    SQL__INSERT_USER_MODDED_SUB[i] = 0;
+    
+    mysu::SQL_STMT->execute(SQL__INSERT_USER_MODDED_SUB);
+    
+    
+    insert_subreddit_nameid(subreddit_name, subreddit_id);
+    
+    
+    SUBS_TO_SCRAPE.push_back(subreddit_id);
+}
+
+void add_user_modded_subs(const char* user_name,  const uint64_t user_id){
+    rapidjson::Document d;
+    
+    goto__getusermoddedsubs:
+    
+    sleep(myrcu::REDDIT_REQUEST_DELAY);
+    myrcu::get_user_moderated_subs(user_name);
+    
+    if (mycu::MEMORY.memory[0] == '<'){
+        // <!doctype html>
+        fprintf(stderr, "Reddit returned 404 for /user/%s/moderated_subreddits.json\n");
+        return;
+    }
+    
+    if (myrcu::try_again(d))
+        goto goto__getusermoddedsubs;
+    
+    for (rapidjson::Value::ValueIterator itr = d["data"].Begin();  itr != d["data"].End();  ++itr){
+        const uint64_t subreddit_id = myru::id2n_lower((*itr)["name"].GetString() + 3); // Skip t5_ prefix
+        const char* subreddit_name  = (*itr)["sr"].GetString();
+        if (std::find(SUBS_TO_SCRAPE.begin(), SUBS_TO_SCRAPE.end(), subreddit_id) == SUBS_TO_SCRAPE.end())
+            record_user_modded_subreddit(user_id, subreddit_id, subreddit_name);
+    }
+}
+
 void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user){
     SET_STR(user_id_str,    user["id"]);
     user_id_str += 3; // Skip prefix "t2_"
     const uint64_t user_id = myru::id2n_lower(user_id_str);
     SET_STR(user_name,  user["name"]);
-    
-    const uint64_t RSET(added_on, user["date"], GetFloat); // Have to convert from float to uint64_t
     
     uint64_t permissions = 0;
     for (rapidjson::Value::ValueIterator itr = user["mod_permissions"].Begin();  itr != user["mod_permissions"].End();  ++itr)
@@ -94,41 +199,86 @@ void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user){
     auto i = SQL__INSERT_MOD_INDX;
     char* stmt = SQL__INSERT_MOD;
     
+    const uint64_t added_on = user["date"].GetFloat(); // Have to, due to .0 ending
+    
     stmt[i++] = '(';
     i += itoa_nonstandard(subreddit_id,  stmt + i);
     stmt[i++] = ',';
     i += itoa_nonstandard(user_id,  stmt + i);
     stmt[i++] = ',';
     i += itoa_nonstandard(permissions,  stmt + i);
+    stmt[i++] = ',';
+    i += itoa_nonstandard(added_on,  stmt + i);
     stmt[i++] = ')';
     stmt[i++] = ',';
     
     SQL__INSERT_MOD_INDX = i;
+    
+    
+#ifdef SPIDER
+    if (filter_user::matches_id(user_id))
+        // It is a **very** good idea to filter out AutoModerator
+        return;
+    
+    if (previously_got_user_modded_subs(user_id))
+        return;
+    
+    add_user_modded_subs(user_name, user_id);
+#endif
 }
 
-void get_mods_of(const char* subreddit_name){
+void subreddit_id2name(const uint64_t id){
+    int i = strlen(SQL__SELECT_SUBREDDIT_NAME_PRE);
+    i += itoa_nonstandard(id,  SQL__SELECT_SUBREDDIT_NAME + i);
+    SQL__SELECT_SUBREDDIT_NAME[i] = 0;
+    
+    PRINTF("SQL__SELECT_SUBREDDIT_NAME: %s\n", SQL__SELECT_SUBREDDIT_NAME); // tmp
+    
+    mysu::SQL_RES = mysu::SQL_STMT->executeQuery(SQL__SELECT_SUBREDDIT_NAME);
+    
+    if (mysu::SQL_RES->next()){
+        const std::string ss = mysu::SQL_RES->getString(1);
+        const char* s        = ss.c_str();
+        SUBREDDIT_NAME_LEN = strlen(s);
+        memcpy(SUBREDDIT_NAME,  s,  SUBREDDIT_NAME_LEN);
+        return;
+    }
+    myrcu::handler(myerr::IMPOSSIBLE);
+}
+
+void get_mods_of(const uint64_t subreddit_id){
+    subreddit_id2name(subreddit_id);
+    
     int i = strlen(URL_PRE);
-    memcpy(URL + i,  subreddit_name,  strlen(subreddit_name));
-    i += strlen(subreddit_name);
+    memcpy(URL + i,  SUBREDDIT_NAME,  SUBREDDIT_NAME_LEN);
+    i += SUBREDDIT_NAME_LEN;
     memcpy(URL + i,  URL_POST,  strlen(URL_POST));
     i += strlen(URL_POST);
     URL[i] = 0;
     
+    goto_getmodsoftryagain:
+    
+    sleep(myrcu::REDDIT_REQUEST_DELAY);
     mycu::request(URL);
+    
+    if (mycu::MEMORY.memory[0] == '<'){
+        // <!doctype html>
+        fprintf(stderr, "Reddit returned 404 for %s\n", URL);
+        return;
+    }
     
     rapidjson::Document d;
     
-    if (myrcu::try_again(d)){
-        sleep(myrcu::REDDIT_REQUEST_DELAY);
-        get_mods_of(subreddit_name);
-    }
+    if (myrcu::try_again(d))
+        goto goto_getmodsoftryagain;
     
-    const uint64_t subreddit_id = mysu::get_subreddit_id(subreddit_name);
+    const uint64_t subreddit_id = mysu::get_subreddit_id(SUBREDDIT_NAME);
     
-    if (subreddit_id == 0)
+    if (subreddit_id == 0){
         // Subreddit not found int table
         // TODO: Scrape subreddit details if it does not already exist
-        myrcu::handler(myerr::UNKNOWN);
+        fprintf(stderr, "Subreddit #%d not found in subreddit table\n", subreddit_id);
+    }
     
     SQL__INSERT_MOD_INDX = strlen(SQL__INSERT_MOD_PRE);
     
@@ -138,9 +288,23 @@ void get_mods_of(const char* subreddit_name){
     SQL__INSERT_MOD[--SQL__INSERT_MOD_INDX] = 0; // Overwrite trailing comma
     
     
-    printf("%s\n", SQL__INSERT_MOD); // tmp
-    
     mysu::SQL_STMT->execute(SQL__INSERT_MOD);
+}
+
+uint64_t subreddit2id(const char* name){
+    auto i = strlen(SQL__GET_SUBREDDIT_ID_PRE);
+    memcpy(SQL__GET_SUBREDDIT_ID + i,  name,  strlen(name));
+    i += strlen(name);
+    SQL__GET_SUBREDDIT_ID[i++] = '"';
+    SQL__GET_SUBREDDIT_ID[i] = 0;
+    
+    PRINTF("SQL__GET_SUBREDDIT_ID: %s\n", SQL__GET_SUBREDDIT_ID); // tmp
+    mysu::SQL_RES = mysu::SQL_STMT->executeQuery(SQL__GET_SUBREDDIT_ID);
+    
+    if (mysu::SQL_RES->next())
+        return mysu::SQL_RES->getUInt64(1);
+    fprintf(stderr, "Cannot translate subreddit name to ID - subreddit not in subreddit table");
+    myrcu::handler(myerr::SUBREDDIT_NOT_IN_DB);
 }
 
 int main(const int argc, const char* argv[]){
@@ -150,7 +314,14 @@ int main(const int argc, const char* argv[]){
     memcpy(SQL__INSERT_MOD,  SQL__INSERT_MOD_PRE,  strlen(SQL__INSERT_MOD_PRE));
     
     for (auto i = 6;  i < argc;  ++i){
-        sleep(myrcu::REDDIT_REQUEST_DELAY);
-        get_mods_of(argv[i]);
+        SUBS_TO_SCRAPE.push_back(subreddit2id(argv[i]));
+    }
+    
+#ifdef SPIDER
+    myrcu::init_browser_curl();
+#endif
+    
+    for (auto i = 0;  SUBS_TO_SCRAPE[i] != 0;  ++i){
+        get_mods_of(SUBS_TO_SCRAPE[i]);
     }
 }

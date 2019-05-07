@@ -14,12 +14,6 @@ unsigned long int id2n_lower(const char* str){
         n *= (10 + 26);
         if (*str >= '0'  &&  *str <= '9')
             n += *str - '0';
-#ifdef DEBUG
-        else if (*str < 'a'  ||  *str > 'z'){
-            fprintf(stderr, "Bad alphanumeric: %s\n", str);
-            handler(myerr::BAD_ARGUMENT);
-        }
-#endif
         else
             n += *str - 'a' + 10;
         ++str;

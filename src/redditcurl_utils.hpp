@@ -195,12 +195,46 @@ bool try_again(rapidjson::Document& d){
                 login();
                 break;
             default:
-                handler(myerr::UNKNOWN);
+                handler(myerr::UNACCOUNTED_FOR_SERVER_CODE);
         }
         return true;
     }
 }
 
+
+constexpr const char* URL__USER_MOD_OF__PRE  = "https://www.reddit.com/user/";
+constexpr const char* URL__USER_MOD_OF__POST = "/moderated_subreddits.json";
+char URL__USER_MOD_OF[strlen(URL__USER_MOD_OF__PRE) + 128 + strlen(URL__USER_MOD_OF__POST) + 1] = "https://www.reddit.com/user/";
+
+CURL* BROWSER_CURL;
+
+void init_browser_curl(){
+    BROWSER_CURL = curl_easy_init();
+    if (!BROWSER_CURL)
+        handler(myerr::CANNOT_INIT_CURL);
+    curl_easy_setopt(BROWSER_CURL, CURLOPT_USERAGENT, USER_AGENT);
+}
+
+void get_user_moderated_subs(const char* username){
+    auto i = strlen(URL__USER_MOD_OF__PRE);
+    memcpy(URL__USER_MOD_OF + i,  username,  strlen(username));
+    i += strlen(username);
+    memcpy(URL__USER_MOD_OF + i,  URL__USER_MOD_OF__POST,  strlen(URL__USER_MOD_OF__POST));
+    i += strlen(URL__USER_MOD_OF__POST);
+    URL__USER_MOD_OF[i] = 0;
+    
+    curl_easy_setopt(BROWSER_CURL, CURLOPT_WRITEFUNCTION, mycu::write_res_to_mem);
+    curl_easy_setopt(BROWSER_CURL, CURLOPT_WRITEDATA, (void *)&mycu::MEMORY);
+    
+    //mycu::request(URL__USER_MOD_OF);
+    PRINTF("GET %s\n", URL__USER_MOD_OF);
+    curl_easy_setopt(BROWSER_CURL, CURLOPT_URL, URL__USER_MOD_OF);
+    
+    mycu::MEMORY.size = 0; // 'Clear' last request
+    
+    if (curl_easy_perform(BROWSER_CURL) != CURLE_OK)
+        handler(myerr::CURL_PERFORM);
+}
 
 } // END namespace
 #endif

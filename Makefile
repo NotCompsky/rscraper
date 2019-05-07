@@ -11,6 +11,8 @@ build/rscrape++:
 build/getmods:
 	g++ src/getmods.cpp -o build/getmods -O3 -lcurl -lb64 -lmysqlcppconn
 
+build/getmods-spider:
+	g++ src/getmods.cpp -o build/getmods-spider -O3 -lcurl -lb64 -lmysqlcppconn -DSPIDER
 
 
 # MySQL Utils #
