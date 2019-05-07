@@ -99,7 +99,7 @@ CREATE TABLE moderator (
     added_on BIGINT UNSIGNED NOT NULL,
     removed_by BIGINT UNSIGNED NOT NULL DEFAULT 0,
     last_updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, # Update with 'last_updated=now()'
-    rank INT UNSIGNED NOT NULL,
+    rank INT UNSIGNED NOT NULL, # Starts at 1 - 0 means it was not set
     UNIQUE KEY `user2subreddit` (`user_id`, `subreddit_id`),
     PRIMARY KEY (id)
 );
