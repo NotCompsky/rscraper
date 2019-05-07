@@ -6,10 +6,6 @@
 #include <string.h> // for memcpy
 #include <unistd.h> // for sleep
 
-#include "rapidjson/document.h" // for rapidjson::Document
-#include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
-// NOTE: These are to prefer local headers, as rapidjson is a header-only library. This allows easy use of any version of rapidjson, as those provided by repositories might be dated.
-
 #include "rapidjson_utils.h" // for SET_DBG_* macros
 #include "utils.h" // for PRINTF macro, sql__file_attr_id, sql__get_id_from_table, sql__insert_into_table_at, count_digits, itoa_nonstandard
 
@@ -17,7 +13,7 @@
 
 #include "reddit_utils.hpp" // for myru::*
 #include "curl_utils.hpp" // for mycu::*
-#include "redditcurl_utils.hpp" // for myrcu::*
+#include "redditcurl_utils.hpp" // for myrcu::*, rapidjson::*
 #include "sql_utils.hpp" // for mysu::*
 
 #include "filter_comment_body.cpp" // for filter_comment_body::*
@@ -278,28 +274,6 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
     return myru::id2n_lower(replies["data"]["children"][0]["data"]["id"].GetString());
 }
 
-
-bool try_again(rapidjson::Document& d){
-    if (d.Parse(mycu::MEMORY.memory).HasParseError())
-        myrcu::handler(myerr::JSON_PARSING);
-    
-    if (!d.HasMember("error"))
-        return false;
-    else {
-        switch (d["error"].GetInt()){
-            case 401:
-                // Unauthorised
-                PRINTF("Unauthorised. Logging in again.\n");
-                sleep(myrcu::REDDIT_REQUEST_DELAY);
-                myrcu::login();
-                break;
-            default:
-                myrcu::handler(myerr::UNKNOWN);
-        }
-        return true;
-    }
-}
-
 void process_all_comments_live(){
     unsigned long int last_processed_cmnt_id = 0;
     
@@ -311,7 +285,7 @@ void process_all_comments_live(){
         
         rapidjson::Document d;
         
-        if (try_again(d))
+        if (myrcu::try_again(d))
             continue;
         
         last_processed_cmnt_id = process_live_replies(d, last_processed_cmnt_id);

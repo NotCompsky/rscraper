@@ -2,6 +2,11 @@
 #define __MYRCU__
 #include <b64/encode.h> // for base64::encode
 #include <stdlib.h> // for free, malloc, realloc
+
+#include "rapidjson/document.h" // for rapidjson::Document
+#include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
+// NOTE: These are to prefer local headers, as rapidjson is a header-only library. This allows easy use of any version of rapidjson, as those provided by repositories might be dated.
+
 #include "error_codes.hpp" // for myerr:*
 #include "curl_utils.hpp" // for mycu::*
 
@@ -173,6 +178,27 @@ void init(const char* usr,  const char* pwd,  const char* key_n_secret,  const c
     
     init_login();
     login();
+}
+
+bool try_again(rapidjson::Document& d){
+    if (d.Parse(mycu::MEMORY.memory).HasParseError())
+        handler(myerr::JSON_PARSING);
+    
+    if (!d.HasMember("error"))
+        return false;
+    else {
+        switch (d["error"].GetInt()){
+            case 401:
+                // Unauthorised
+                PRINTF("Unauthorised. Logging in again.\n");
+                sleep(REDDIT_REQUEST_DELAY);
+                login();
+                break;
+            default:
+                handler(myerr::UNKNOWN);
+        }
+        return true;
+    }
 }
 
 

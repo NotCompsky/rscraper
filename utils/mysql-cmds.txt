@@ -91,6 +91,15 @@ CREATE TABLE category (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE moderator (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NOT NULL,
+    subreddit_id BIGINT UNSIGNED NOT NULL,
+    permissions BIGINT UNSIGNED NOT NULL,
+    UNIQUE KEY `user2subreddit` (`user_id`, `subreddit_id`),
+    PRIMARY KEY (id)
+);
+
 
 # Review tables
 

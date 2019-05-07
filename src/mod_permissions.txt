@@ -1,0 +1,11 @@
+# Permissions not listed in documentation, but are all (as of April 2018) listed at https://old.reddit.com/r/redditdev/comments/8qnct2/adding_new_moderator_permissions_for_chat/
+
+all>~0
+access>1
+config>2
+flair>4
+mail>8
+posts>16
+wiki>32
+chat_config>64
+chat_operator>128
