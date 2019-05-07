@@ -1,102 +1,23 @@
-#include <b64/encode.h> // for base64::encode
-#include <curl/curl.h>
+#include <string.h> // for memcpy
+#include <unistd.h> // for sleep
+
 #include "rapidjson/document.h" // for rapidjson::Document
 #include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
-#include <stdlib.h> // for free, malloc, realloc
-#include <string.h> // for memcpy
-#include <time.h> // for asctime
-#include <unistd.h> // for sleep
+// NOTE: These are to prefer local headers, as rapidjson is a header-only library. This allows easy use of any version of rapidjson, as those provided by repositories might be dated.
 
 #include "rapidjson_utils.h" // for SET_DBG_* macros
 #include "utils.h" // for PRINTF macro, sql__file_attr_id, sql__get_id_from_table, sql__insert_into_table_at, count_digits, itoa_nonstandard
-#include "rscraper_utils.hpp" // for sql::*, init_mysql_from_file
+
+#include "error_codes.hpp" // for myerr:*
+
+#include "reddit_utils.hpp" // for myru::*
+#include "curl_utils.hpp" // for mycu::*
+#include "redditcurl_utils.hpp" // for myrcu::*
+#include "sql_utils.hpp" // for mysu::*
 
 #include "filter_comment_body.cpp" // for filter_comment_body::*
 #include "filter_user.cpp" // for filter_user::*
 #include "filter_subreddit.cpp" // for filter_subreddit::*
-
-
-#ifdef DEBUG
-    #include <stdio.h> // for printf
-    #include <execinfo.h> // for printing stack trace
-#endif
-
-
-enum {
-    SUCCESS,
-    ERR,
-    ERR_CANNOT_INIT_CURL,
-    ERR_CANNOT_WRITE_RES,
-    ERR_CURL_PERFORM,
-    ERR_CANNOT_SET_PROXY,
-    ERR_INVALID_PJ,
-    ERR_PARSE
-};
-
-#define REDDIT_REQUEST_DELAY 1
-
-
-
-const char* USER_AGENT;
-CURL* curl;
-constexpr const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
-constexpr const int PARAMS_LEN = strlen(PARAMS);
-
-constexpr const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
-constexpr const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
-char AUTH_HEADER[strlen("Authorization: bearer ") + strlen("XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX") + 1] = "Authorization: bearer ";
-
-constexpr const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
-constexpr const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
-constexpr const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
-constexpr const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
-constexpr const char* API_ALLCOMMENTS_URL = "https://oauth.reddit.com/r/all/comments/?limit=100&raw_json=1";
-
-const char* USR;
-const char* PWD;
-const char* KEY_AND_SECRET;
-
-
-constexpr const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
-constexpr const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
-char BASIC_AUTH_HEADER[strlen("Authorization: Basic ") + strlen("base-64-encoded-client_key:client_secret----------------") + 1] = "Authorization: Basic ";
-
-
-CURL* LOGIN_CURL;
-struct curl_slist* LOGIN_HEADERS;
-constexpr const char* LOGIN_POSTDATA_PREFIX = "grant_type=password&password=";
-constexpr const char* LOGIN_POSTDATA_KEYNAME = "&username=";
-char* LOGIN_POSTDATA;
-
-
-
-struct curl_slist* HEADERS;
-
-struct MemoryStruct {
-    char* memory;
-    size_t size;
-    size_t n_allocated;
-};
-
-struct MemoryStruct MEMORY;
-
-void handler(int n){
-    void* arr[10];
-
-#ifdef DEBUG
-    size_t size = backtrace(arr, 10);
-    
-    fprintf(stderr, "%s\n", MEMORY.memory);
-    fprintf(stderr, "E(%d):\n", n);
-    backtrace_symbols_fd(arr, size, STDERR_FILENO);
-#endif
-    
-    free(MEMORY.memory);
-    free(LOGIN_POSTDATA);
-    curl_easy_cleanup(curl);
-    curl_global_cleanup();
-    exit(n);
-}
 
 
 constexpr const char* SQL__INSERT_SUBMISSION_FROM_CMNT_STR = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
@@ -179,172 +100,7 @@ void sql__add_cmnt(const unsigned long int cmnt_id, const unsigned long int pare
     statement[i] = 0;
     
     PRINTF("stmt: %s\n", statement);
-    SQL_STMT->execute(statement);
-}
-
-
-
-
-
-size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
-    size_t total_size = size * n;
-    struct MemoryStruct* mem = (struct MemoryStruct*)buf;
-    
-    if (mem->size + total_size  >  mem->n_allocated){
-        mem->memory = (char*)realloc(mem->memory,  (mem->size + total_size + 1)*3/2);
-        mem->n_allocated = (mem->size + total_size + 1)*3/2;
-    }
-    // Larger requests are not written in just one call
-    
-    if (!mem->memory)
-        handler(ERR_CANNOT_WRITE_RES);
-    
-    memcpy(mem->memory + mem->size,  content,  total_size);
-    mem->size += total_size;
-    mem->memory[mem->size] = 0;
-    
-    return total_size;
-}
-
-
-int request(const char* url){
-    PRINTF("GET\t%s\n", url);
-    // Writes response contents to MEMORY
-    
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    
-    MEMORY.size = 0; // 'Clear' last request
-    
-    if (curl_easy_perform(curl) != CURLE_OK)
-        handler(ERR_CURL_PERFORM);
-}
-
-void init_login(){
-    int i;
-    
-    
-    base64::encoder base64_encoder;
-    
-    i = strlen(BASIC_AUTH_PREFIX);
-    
-    base64_encoder.encode(KEY_AND_SECRET,  strlen(KEY_AND_SECRET),  BASIC_AUTH_HEADER + i);
-    i += strlen(BASIC_AUTH_FMT);
-    
-    BASIC_AUTH_HEADER[i] = 0;
-    
-    
-    LOGIN_HEADERS = curl_slist_append(LOGIN_HEADERS, BASIC_AUTH_HEADER);
-    
-    
-    LOGIN_CURL = curl_easy_init();
-    if (!LOGIN_CURL)
-        handler(ERR_CANNOT_INIT_CURL);
-    
-    curl_easy_setopt(LOGIN_CURL, CURLOPT_USERAGENT, USER_AGENT);
-    curl_easy_setopt(LOGIN_CURL, CURLOPT_HTTPHEADER, LOGIN_HEADERS);
-    curl_easy_setopt(LOGIN_CURL, CURLOPT_TIMEOUT, 20);
-    
-    i = 0;
-    
-    memcpy(LOGIN_POSTDATA + i,  LOGIN_POSTDATA_PREFIX,  strlen(LOGIN_POSTDATA_PREFIX));
-    i += strlen(LOGIN_POSTDATA_PREFIX);
-    
-    memcpy(LOGIN_POSTDATA + i,  PWD,  strlen(PWD));
-    i += strlen(PWD);
-    
-    memcpy(LOGIN_POSTDATA + i,  LOGIN_POSTDATA_KEYNAME,  strlen(LOGIN_POSTDATA_KEYNAME));
-    i += strlen(LOGIN_POSTDATA_KEYNAME);
-    
-    memcpy(LOGIN_POSTDATA + i,  USR,  strlen(USR));
-    i += strlen(USR);
-    
-    LOGIN_POSTDATA[i] = 0;
-    
-    
-    curl_easy_setopt(LOGIN_CURL, CURLOPT_POSTFIELDS, LOGIN_POSTDATA);
-    
-    curl_easy_setopt(LOGIN_CURL, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
-    
-    curl_easy_setopt(LOGIN_CURL, CURLOPT_CUSTOMREQUEST, "POST");
-    
-    curl_easy_setopt(LOGIN_CURL, CURLOPT_WRITEFUNCTION, write_res_to_mem);
-    curl_easy_setopt(LOGIN_CURL, CURLOPT_WRITEDATA, (void *)&MEMORY);
-}
-
-void login(){
-    MEMORY.size = 0; // 'Clear' last request
-    
-    if (curl_easy_perform(LOGIN_CURL) != CURLE_OK)
-        handler(ERR_CURL_PERFORM);
-    
-    // Result is in format
-    // {"access_token": "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX", "token_type": "bearer", "expires_in": 3600, "scope": "*"}
-    
-    int i = strlen(AUTH_HEADER_PREFIX);
-    
-    memcpy(AUTH_HEADER + i,  MEMORY.memory + strlen("{\"access_token\": \""),  strlen(TOKEN_FMT));
-    i += strlen(TOKEN_FMT);
-    
-    AUTH_HEADER[i] = 0;
-    
-    
-    PRINTF("Response:\n%s\nAUTH_HEADER: %s\n", MEMORY.memory, AUTH_HEADER);
-    
-    
-    HEADERS = {};
-    HEADERS = curl_slist_append(HEADERS, AUTH_HEADER);
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, HEADERS);
-}
-
-int slashindx(const char* str){
-    int i = 0;
-    while (str[i] != '/')
-        ++i;
-    return i;
-}
-
-unsigned long int id2n_lower(const char* str){
-    unsigned long int n = 0;
-    //PRINTF("id2n_lower(%s) -> ", str);
-    while (*str != 0){
-        n *= (10 + 26);
-        if (*str >= '0'  &&  *str <= '9')
-            n += *str - '0';
-#ifdef DEBUG
-        else if (*str < 'a'  ||  *str > 'z'){
-            fprintf(stderr, "Bad alphanumeric: %s\n", str);
-            handler(ERR);
-        }
-#endif
-        else
-            n += *str - 'a' + 10;
-        ++str;
-    }
-    //PRINTF("%lu\n", n);
-    return n;
-}
-
-unsigned long int id2n(const char* str){
-    unsigned long n = 0;
-    PRINTF("id2n(%s) -> ", str);
-    while (*str != 0){
-        n *= (10 + 26 + 26);
-        if (*str >= '0'  &&  *str <= '9')
-            n += *str - '0';
-        else if (*str >= 'a'  &&  *str <= 'z')
-            n += *str - 'a' + 10;
-#ifdef DEBUG
-        else if (*str < 'A'  ||  *str > 'Z'){
-            fprintf(stderr, "Bad alphanumeric: %s\n", str);
-            handler(ERR);
-        }
-#endif
-        else
-            n += *str - 'A' + 10 + 26;
-        ++str;
-    }
-    PRINTF("%lu\n", n);
-    return n;
+    mysu::SQL_STMT->execute(statement);
 }
 
 constexpr const char* SQL__INSERT_INTO_USER2SUBCNT_STR = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
@@ -399,8 +155,8 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     SET_STR(author_name,    cmnt["data"]["author"]);
     
     
-    const unsigned long int author_id = id2n_lower(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
-    const unsigned long int subreddit_id = id2n_lower(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
+    const unsigned long int author_id = myru::id2n_lower(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
+    const unsigned long int subreddit_id = myru::id2n_lower(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
     const bool is_submission_nsfw = cmnt["data"]["over_18"].GetBool();
     char is_subreddit_nsfw = 2; // 0 for certainly SFW, 1 for certainly NSFW. 2 for unknown.
     
@@ -453,10 +209,10 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     const time_t RSET_FLT(created_at,     cmnt["data"]["created_utc"]);
     
     
-    sql__insert_into_table_at(SQL_STMT, SQL_RES, "user", author_name, author_id);
-    sql__insert_into_table_at(SQL_STMT, SQL_RES, "subreddit", subreddit_name, subreddit_id);
+    sql__insert_into_table_at(mysu::SQL_STMT, mysu::SQL_RES, "user", author_name, author_id);
+    sql__insert_into_table_at(mysu::SQL_STMT, mysu::SQL_RES, "subreddit", subreddit_name, subreddit_id);
     
-    unsigned long int parent_id = id2n_lower(cmnt["data"]["parent_id"].GetString() + 3);
+    unsigned long int parent_id = myru::id2n_lower(cmnt["data"]["parent_id"].GetString() + 3);
     unsigned long int submission_id;
     
     if (cmnt["data"]["parent_id"].GetString()[1] == '3'){
@@ -464,7 +220,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
         submission_id = parent_id;
         parent_id = 0;
     } else {
-        submission_id = id2n_lower(cmnt["data"]["link_id"].GetString() + 3);
+        submission_id = myru::id2n_lower(cmnt["data"]["link_id"].GetString() + 3);
     }
     
     const char* cmnt_content = cmnt["data"]["body"].GetString();
@@ -484,7 +240,7 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
     SQL__INSERT_INTO_SUBREDDIT_INDX = strlen(SQL__INSERT_INTO_SUBREDDIT_STR);
     
     for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr){
-        cmnt_id = id2n_lower((*itr)["data"]["id"].GetString()); // No "t1_" prefix
+        cmnt_id = myru::id2n_lower((*itr)["data"]["id"].GetString()); // No "t1_" prefix
         if (cmnt_id <= last_processed_cmnt_id)
             // Not '==' since it is possible for comments to have been deleted between calls
             break;
@@ -496,7 +252,7 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
         SQL__INSERT_SUBMISSION_FROM_CMNT[SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = 0;
         SQL__INSERT_SUBMISSION_FROM_CMNT[--SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = ';'; // Overwrite trailing comma
         PRINTF("stmt: %s\n", SQL__INSERT_SUBMISSION_FROM_CMNT);
-        SQL_STMT->execute(SQL__INSERT_SUBMISSION_FROM_CMNT);
+        mysu::SQL_STMT->execute(SQL__INSERT_SUBMISSION_FROM_CMNT);
     }
     
     if (SQL__INSERT_INTO_USER2SUBCNT_INDX != strlen(SQL__INSERT_INTO_USER2SUBCNT_STR)){
@@ -504,25 +260,25 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
         constexpr const char* b = " ON DUPLICATE KEY UPDATE count = count + 1;";
         memcpy(SQL__INSERT_INTO_USER2SUBCNT + SQL__INSERT_INTO_USER2SUBCNT_INDX,  b,  strlen(b) + 1);
         PRINTF("stmt: %s\n", SQL__INSERT_INTO_USER2SUBCNT);
-        SQL_STMT->execute(SQL__INSERT_INTO_USER2SUBCNT);
+        mysu::SQL_STMT->execute(SQL__INSERT_INTO_USER2SUBCNT);
     }
     
     if (SQL__INSERT_INTO_SUBREDDIT_INDX != strlen(SQL__INSERT_INTO_SUBREDDIT_STR)){
         SQL__INSERT_INTO_SUBREDDIT[SQL__INSERT_INTO_SUBREDDIT_INDX] = 0;
         SQL__INSERT_INTO_SUBREDDIT[--SQL__INSERT_INTO_SUBREDDIT_INDX] = ';';
         PRINTF("stmt: %s\n", SQL__INSERT_INTO_SUBREDDIT);
-        SQL_STMT->execute(SQL__INSERT_INTO_SUBREDDIT);
+        mysu::SQL_STMT->execute(SQL__INSERT_INTO_SUBREDDIT);
     }
     
-    return id2n_lower(replies["data"]["children"][0]["data"]["id"].GetString());
+    return myru::id2n_lower(replies["data"]["children"][0]["data"]["id"].GetString());
 }
 
 
 constexpr const char* FORBIDDEN = ">403 Forbidden<";
 
 bool try_again(rapidjson::Document& d){
-    if (d.Parse(MEMORY.memory).HasParseError())
-        handler(ERR_PARSE);
+    if (d.Parse(mycu::MEMORY.memory).HasParseError())
+        myrcu::handler(myerr::JSON_PARSING);
     
     if (!d.HasMember("error"))
         return false;
@@ -531,11 +287,11 @@ bool try_again(rapidjson::Document& d){
             case 401:
                 // Unauthorised
                 PRINTF("Unauthorised. Logging in again.\n");
-                sleep(REDDIT_REQUEST_DELAY);
-                login();
+                sleep(myrcu::REDDIT_REQUEST_DELAY);
+                myrcu::login();
                 break;
             default:
-                handler(ERR);
+                myrcu::handler(myerr::UNKNOWN);
         }
         return true;
     }
@@ -545,10 +301,10 @@ void process_all_comments_live(){
     unsigned long int last_processed_cmnt_id = 0;
     
     while (true){
-        sleep(REDDIT_REQUEST_DELAY);
+        sleep(myrcu::REDDIT_REQUEST_DELAY);
         
         
-        request(API_ALLCOMMENTS_URL);
+        mycu::request(myrcu::API_ALLCOMMENTS_URL);
         
         rapidjson::Document d;
         
@@ -559,154 +315,9 @@ void process_all_comments_live(){
     }
 }
 
-void process_moderator(rapidjson::Value& user){
-    SET_STR(user_id,    user["id"]);
-    user_id += 3; // Skip prefix "t2_"
-    SET_STR(user_name,  user["name"]);
-    
-    const size_t RSET(added_on, user["date"], GetFloat);
-    
-    // TODO: process mod_permissions, converting array of strings like "all" to integer of bits
-}
-
-void process_moderators(const char* subreddit, const int subreddit_len){
-    constexpr const char* a = "/about/moderators/?raw_json=1";
-    char api_url[strlen(API_SUBREDDIT_URL_PREFIX) + subreddit_len + strlen(a) + 1];
-    int i = 0;
-    
-    
-    memcpy(api_url + i,  API_SUBREDDIT_URL_PREFIX,  strlen(API_SUBREDDIT_URL_PREFIX));
-    i += strlen(API_SUBREDDIT_URL_PREFIX);
-    
-    memcpy(api_url + i,  subreddit,  subreddit_len);
-    i += subreddit_len;
-    
-    memcpy(api_url + i,  a,  strlen(a));
-    i += strlen(a);
-    
-    api_url[i] = 0;
-    
-    
-    request(api_url);
-    
-    rapidjson::Document d;
-    if (d.Parse(MEMORY.memory).HasParseError())
-        handler(ERR_INVALID_PJ);
-    
-    
-    for (rapidjson::Value::ValueIterator itr = d["data"]["children"].Begin();  itr != d["data"]["children"].End();  ++itr)
-        process_moderator(*itr);
-    
-    
-}
-
-void process_submission_duplicates(const char* submission_id, const int submission_id_len){
-    int i = 0;
-    char api_url[strlen(API_DUPLICATES_URL_PREFIX) + submission_id_len + 1 + PARAMS_LEN + 1];
-    
-    memcpy(api_url + i,  API_DUPLICATES_URL_PREFIX,  strlen(API_DUPLICATES_URL_PREFIX));
-    i += strlen(API_DUPLICATES_URL_PREFIX);
-    
-    memcpy(api_url + i,  submission_id,  submission_id_len);
-    i += submission_id_len;
-    
-    api_url[i++] = '/';
-    
-    // We only need "?limit=1000&raw_json=1", but the additional parameter "&sort=best" has no effect
-    memcpy(api_url + i,  PARAMS,  PARAMS_LEN);
-    i += PARAMS_LEN;
-    
-    api_url[i] = 0;
-    
-    
-    request(api_url);
-    
-    PRINTF("%s\n", MEMORY.memory);
-}
-
-void process_submission(const char* url){
-    int i = strlen(SUBMISSION_URL_PREFIX);
-    
-    const int subreddit_len = slashindx(url + i);
-    char subreddit[subreddit_len + 1];
-    memcpy(subreddit,  url + strlen(SUBMISSION_URL_PREFIX),  subreddit_len);
-    subreddit[subreddit_len] = 0;
-    i += subreddit_len + 1;
-    i += slashindx(url + i) + 1; // Skip the /comments/ section
-    
-    const int submission_id_len = slashindx(url + i);
-    char submission_id[submission_id_len + 1];
-    memcpy(submission_id,  url + i,  submission_id_len);
-    submission_id[submission_id_len] = 0;
-    i += submission_id_len + 1;
-    
-    
-    char api_url[strlen(API_SUBMISSION_URL_PREFIX) + submission_id_len + 1 + PARAMS_LEN + 1];
-    int api_url_indx = 0;
-    memcpy(api_url + api_url_indx,  API_SUBMISSION_URL_PREFIX,  strlen(API_SUBMISSION_URL_PREFIX));
-    api_url_indx += strlen(API_SUBMISSION_URL_PREFIX);
-    memcpy(api_url + api_url_indx,  submission_id,  submission_id_len);
-    api_url_indx += submission_id_len;
-    api_url[api_url_indx++] = '/';
-    memcpy(api_url + api_url_indx,  PARAMS,  PARAMS_LEN);
-    api_url_indx += PARAMS_LEN;
-    api_url[api_url_indx] = 0;
-    
-    request(api_url);
-    
-    
-    rapidjson::Document d;
-    if (d.Parse(MEMORY.memory).HasParseError())
-        handler(ERR_INVALID_PJ);
-    
-    SET_STR(id,             d[0]["data"]["children"][0]["data"]["id"]);
-    // No prefix to ignore
-}
-
 int main(const int argc, const char* argv[]){
-    MEMORY.memory = (char*)malloc(0);
-    MEMORY.n_allocated = 0;
-    
-    
-    int i = 0;
-    
-    
-    init_mysql_from_file(argv[1]);
-    i += 1;
-    SQL_CON->setSchema("rscraper");
-    SQL_STMT = SQL_CON->createStatement();
-    
-    
-    USER_AGENT = argv[++i];
-    
-    USR = argv[++i];
-    PWD = argv[++i];
-    KEY_AND_SECRET = argv[++i];
-    
-    LOGIN_POSTDATA = (char*)malloc(strlen(LOGIN_POSTDATA_PREFIX) + strlen(PWD) + strlen(LOGIN_POSTDATA_KEYNAME) + strlen(USR) + 1);
-    
-    
-    curl_global_init(CURL_GLOBAL_ALL);
-    curl = curl_easy_init();
-    if (!curl)
-        handler(ERR_CANNOT_INIT_CURL);
-    
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 20);
-    
-    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-    
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_res_to_mem);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&MEMORY);
-    
-    
-    init_login();
-    login();
-    
-    while (++i < argc){
-        sleep(REDDIT_REQUEST_DELAY);
-        process_submission(argv[i]);
-    }
+    mysu::init(argv[1]); // Init SQL
+    myrcu::init(argv[3], argv[4], argv[5], argv[2]); // Init CURL
     
     process_all_comments_live();
 }
