@@ -364,7 +364,8 @@ uint64_t subreddit2id(const char* name){
 
 int main(const int argc, const char* argv[]){
     mysu::init(argv[1]);  // Init SQL
-    myrcu::init(argv[2]); // Init CURL
+    mycu::init();         // Init CURL
+    myrcu::init(argv[2]); // Init OAuth
     
     memcpy(SQL__INSERT_MOD,  SQL__INSERT_MOD_PRE,  strlen(SQL__INSERT_MOD_PRE));
     

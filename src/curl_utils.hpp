@@ -65,6 +65,13 @@ int request(const char* url){
         myrcu::handler(myerr::CURL_PERFORM);
 }
 
+void init(){
+    curl_global_init(CURL_GLOBAL_ALL);
+    curl = curl_easy_init();
+    if (!curl)
+        myrcu::handler(myerr::CANNOT_INIT_CURL);
+}
+
 
 } // END namespace
 #endif

@@ -294,7 +294,8 @@ void process_all_comments_live(){
 
 int main(const int argc, const char* argv[]){
     mysu::init(argv[1]);  // Init SQL
-    myrcu::init(argv[2]); // Init CURL
+    mycu::init();         // Init CURL
+    myrcu::init(argv[2]); // Init OAuth
     
     process_all_comments_live();
 }

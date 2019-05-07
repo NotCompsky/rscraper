@@ -34,10 +34,10 @@ constexpr const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
 constexpr const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
 constexpr const char* API_ALLCOMMENTS_URL = "https://oauth.reddit.com/r/all/comments/?limit=100&raw_json=1";
 
-const char* USR             = nullptr;
-const char* PWD             = nullptr;
-const char* KEY_AND_SECRET  = nullptr;
-const char* USER_AGENT      = nullptr;
+char* USR             = nullptr;
+char* PWD             = nullptr;
+char* KEY_AND_SECRET  = nullptr;
+char* USER_AGENT      = nullptr;
 
 
 constexpr const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
@@ -169,11 +169,6 @@ void init(const char* fp){
     
     LOGIN_POSTDATA = (char*)malloc(strlen(LOGIN_POSTDATA_PREFIX) + strlen(PWD) + strlen(LOGIN_POSTDATA_KEYNAME) + strlen(USR) + 1);
     
-    
-    curl_global_init(CURL_GLOBAL_ALL);
-    mycu::curl = curl_easy_init();
-    if (!mycu::curl)
-        handler(myerr::CANNOT_INIT_CURL);
     
     curl_easy_setopt(mycu::curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(mycu::curl, CURLOPT_TIMEOUT, 20);
