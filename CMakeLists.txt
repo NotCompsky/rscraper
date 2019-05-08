@@ -5,6 +5,12 @@ set(CMAKE_BUILD_TYPE "Release")
 include_directories(${CMAKE_ROOT}/inc)
 
 
+add_executable(id2str src/id2str.c)
+
+add_executable(str2id src/id2str.c)
+target_compile_definitions(str2id PRIVATE STR2ID)
+
+
 add_executable(rscrape-cmnts src/scrape.cpp)
 target_link_libraries(rscrape-cmnts curl)
 target_link_libraries(rscrape-cmnts b64)
