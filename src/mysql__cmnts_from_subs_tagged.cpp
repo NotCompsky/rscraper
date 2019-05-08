@@ -3,18 +3,7 @@
 #include <unistd.h> // for write
 
 #include "utils.h" // for count_digits
-
-/* MySQL */
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
-
-
-sql::Driver* SQL_DRIVER;
-sql::Connection* SQL_CON;
-sql::Statement* SQL_STMT;
-sql::ResultSet* SQL_RES;
+#include "sql_utils.hpp" // for mysu::*
 
 
 #ifdef SUB2TAG
@@ -88,13 +77,10 @@ int id2str(unsigned long int id_orig,  char* buf){
 }
 
 int main(const int argc, const char* argv[]){
-    SQL_DRIVER = get_driver_instance();
-    SQL_CON = SQL_DRIVER->connect(argv[1], argv[2], argv[3]);
-    SQL_CON->setSchema("rscraper");
-    SQL_STMT = SQL_CON->createStatement();
+    mysu::init(argv[1]);  // Init SQL
     
     int i = strlen(STMT);
-    for (auto j = 4;  j < argc;  ++j){
+    for (auto j = 2;  j < argc;  ++j){
         STMT[i++] = '\'';
         memcpy(STMT + i,  argv[j],  strlen(argv[j]));
         i += strlen(argv[j]);
@@ -110,14 +96,14 @@ int main(const int argc, const char* argv[]){
     
     write(1, STMT, strlen(STMT));
     
-    SQL_RES = SQL_STMT->executeQuery(STMT);
+    mysu::SQL_RES = mysu::SQL_STMT->executeQuery(STMT);
     
-    while (SQL_RES->next()){
-        const std::string ssubname = SQL_RES->getString(1);
+    while (mysu::SQL_RES->next()){
+        const std::string ssubname = mysu::SQL_RES->getString(1);
         const char* subname = ssubname.c_str();
-        const unsigned long int post_id = SQL_RES->getUInt64(2);
-        const unsigned long int cmnt_id = SQL_RES->getUInt64(3);
-        const std::string sbody = SQL_RES->getString(4);
+        const unsigned long int post_id = mysu::SQL_RES->getUInt64(2);
+        const unsigned long int cmnt_id = mysu::SQL_RES->getUInt64(3);
+        const std::string sbody = mysu::SQL_RES->getString(4);
         const char* body = sbody.c_str();
         
         i = URL_PREFIX_LEN;
