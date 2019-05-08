@@ -1,6 +1,6 @@
 default: all
 
-all: build/rscrape-cmnts build/srch-by-reason build/srch-tagged-subs build/rtagged.so man/main.1
+all: build/rscrape-cmnts build/srch-by-reason build/srch-tagged-subs build/rtagged.so man/rscrape-cmnts.1 man/rscrape-mods.1
 
 
 # Scrapers #
@@ -29,5 +29,8 @@ build/id2str:
 
 # Documentation #
 
-man/main.1:
-	pandoc -s -t man docs/main.md -o man/main.1
+man/rscrape-cmnts.1:
+	pandoc -s -t man docs/rscrape-cmnts.1.md -o man/rscrape-cmnts.1
+
+man/rscrape-mods.1:
+	pandoc -s -t man docs/rscrape-mods.1.md  -o man/rscrape-mods.1
