@@ -382,7 +382,7 @@ int main(const int argc, const char* argv[]){
     
     memcpy(SQL__INSERT_MOD,  SQL__INSERT_MOD_PRE,  strlen(SQL__INSERT_MOD_PRE));
     
-    for (auto i = 3;  i < argc;  ++i){
+    for (auto i = 4;  i < argc;  ++i){
         SUBS_TO_SCRAPE.push_back(subreddit2id(argv[i]));
         DEPTHS.push_back(0);
     }
