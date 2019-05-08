@@ -1072,13 +1072,13 @@ ORDER BY c
 
 # Subreddits with mods in common with 'SUBREDDIT'
 
-SELECT r.name, COUNT(r.id) as c, GROUP_CONCAT(A.name)
+SELECT r.name, COUNT(r.id) as c, GROUP_CONCAT(A.name, ":", A.rank)
 FROM subreddit r
 JOIN (
-    SELECT u.name, B.subreddit_id
+    SELECT u.name, B.subreddit_id, B.rank
     FROM user u
     JOIN (
-        SELECT user_id, subreddit_id
+        SELECT user_id, subreddit_id, rank
         FROM moderator
         WHERE user_id IN (
             SELECT user_id
@@ -1089,7 +1089,6 @@ JOIN (
     ) B ON B.user_id = u.id
 ) A ON A.subreddit_id = r.id
 GROUP BY r.id
-HAVING c > 1
 ORDER BY c ASC
 ;
 
