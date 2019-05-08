@@ -53,6 +53,14 @@ char* LOGIN_POSTDATA;
 
 
 
+constexpr const char* URL__USER_MOD_OF__PRE  = "https://www.reddit.com/user/";
+constexpr const char* URL__USER_MOD_OF__POST = "/moderated_subreddits.json";
+char URL__USER_MOD_OF[strlen(URL__USER_MOD_OF__PRE) + 128 + strlen(URL__USER_MOD_OF__POST) + 1] = "https://www.reddit.com/user/";
+
+CURL* BROWSER_CURL;
+
+
+
 void handler(int n){
     void* arr[10];
 
@@ -177,14 +185,19 @@ void init(const char* fp){
     curl_easy_setopt(mycu::curl, CURLOPT_WRITEFUNCTION, mycu::write_res_to_mem);
     curl_easy_setopt(mycu::curl, CURLOPT_WRITEDATA, (void *)&mycu::MEMORY);
     
+    
+    init_login();
+    
+    
     if (strlen(proxy_url) != 1){
         // Greater than 1
         proxy_url[strlen(proxy_url)-1] = 0;
-        curl_easy_setopt(mycu::curl, CURLOPT_PROXY, proxy_url);
+        curl_easy_setopt(LOGIN_CURL,   CURLOPT_PROXY, proxy_url);
+        curl_easy_setopt(BROWSER_CURL, CURLOPT_PROXY, proxy_url);
+        curl_easy_setopt(mycu::curl,   CURLOPT_PROXY, proxy_url);
     }
     
     
-    init_login();
     login();
 }
 
@@ -208,13 +221,6 @@ bool try_again(rapidjson::Document& d){
         return true;
     }
 }
-
-
-constexpr const char* URL__USER_MOD_OF__PRE  = "https://www.reddit.com/user/";
-constexpr const char* URL__USER_MOD_OF__POST = "/moderated_subreddits.json";
-char URL__USER_MOD_OF[strlen(URL__USER_MOD_OF__PRE) + 128 + strlen(URL__USER_MOD_OF__POST) + 1] = "https://www.reddit.com/user/";
-
-CURL* BROWSER_CURL;
 
 void init_browser_curl(){
     BROWSER_CURL = curl_easy_init();

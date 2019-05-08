@@ -1,17 +1,17 @@
-% RSCRAPE++(1) RSCRAPE++ User Manual
+% RSCRAPE-CMNTS(1) RSCRAPE User Manual
 % NotCompsky
-% 26 April 2019
+% 13 April 2019
 
 # NAME
 
-rscrape++ - Collect comments from Reddit, and write to local SQL database.
+rscrape-cmnts - Collect comments from Reddit, and write to local SQL database.
 
 # SYNOPSIS
-./build/rscrape++ *MYSQL_CONFIG_FILE* *REDDIT_CONFIG_FILE*
+rscrape-cmnts *MYSQL_CONFIG_FILE* *REDDIT_CONFIG_FILE*
 
 # ARGUMENTS
 
-# MYSQL CONFIG FILE
+## MYSQL CONFIG FILE
 
 The MySQL config file should contain, in this order, separated by a single newline character \\n (notably NOT the \\r\\n that used to be default in Windows Notepad)
 
@@ -28,7 +28,7 @@ The MySQL config file should contain, in this order, separated by a single newli
 *MYSQL_PWD*
 :   Corresponding password of the MySQL user.
 
-# REDDIT CONFIG FILE
+## REDDIT CONFIG FILE
 
 *REDDIT_USR*
 :   Reddit username
@@ -47,4 +47,8 @@ The MySQL config file should contain, in this order, separated by a single newli
 :   Url of proxy to use. Leave blank if no proxy.
 
 # EXAMPLES
-    ./build/rscrape++ ~/.config/rscraper++/mysql.cfg ~/.config/rscraper++/reddit.cfg
+    rscrape-cmnts ~/.config/rscraper++/mysql.cfg ~/.config/rscraper++/reddit.cfg
+
+# SEE ALSO
+
+*rscrape-mods(1)*

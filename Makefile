@@ -1,18 +1,15 @@
-default: build/rscrape++
+default: all
 
-all: build/rscrape++ build/srch-by-reason build/srch-tagged-subs build/rtagged.so man/main.1
+all: build/rscrape-cmnts build/srch-by-reason build/srch-tagged-subs build/rtagged.so man/main.1
 
 
 # Scrapers #
 
-build/rscrape++:
-	g++ src/scrape.cpp -o build/rscrape++ -O3 -lcurl -lb64 -lboost_regex -lmysqlcppconn
+build/rscrape-cmnts:
+	g++ src/scrape.cpp -o build/rscrape-cmnts -O3 -lcurl -lb64 -lboost_regex -lmysqlcppconn
 
-build/getmods:
-	g++ src/getmods.cpp -o build/getmods -O3 -lcurl -lb64 -lmysqlcppconn
-
-build/getmods-spider:
-	g++ src/getmods.cpp -o build/getmods-spider -O3 -lcurl -lb64 -lmysqlcppconn -DSPIDER
+build/rscrape-mods:
+	g++ src/getmods.cpp -o build/rscrape-mods -O3 -lcurl -lb64 -lmysqlcppconn -DSPIDER
 
 
 # MySQL Utils #

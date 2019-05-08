@@ -6,6 +6,7 @@
 
 #include <string.h> // for memcpy
 #include <unistd.h> // for sleep
+#include <cstdlib> // for atoi
 
 #include <stdio.h> // for printf // tmp
 
@@ -40,8 +41,11 @@ constexpr const char* SQL__INSERT_USER_MODDED_SUB_PRE = "INSERT INTO moderator (
 char SQL__INSERT_USER_MODDED_SUB[strlen(SQL__INSERT_USER_MODDED_SUB_PRE) + 20 + 1 + 20 + 1 + 1] = "INSERT INTO moderator (permissions, added_on, rank, user_id, subreddit_id) VALUES (0,0,0,";
 // NOTE: Do not need 'IGNORE' as this is only called if there were no previous results
 
-
 std::vector<uint64_t> SUBS_TO_SCRAPE;
+std::vector<unsigned int> DEPTHS;
+// Does not make sense to tie the two together into tuples of (SUBREDDIT, DEPTH), as we are often looking through the entirety of SUBS_TO_SCRAPE in order to avoid duplicate subs
+unsigned int DEPTH;
+unsigned int MAX_DEPTH;
 
 
 uint64_t calc_permission(const char* str){
@@ -132,8 +136,10 @@ bool previously_got_user_modded_subs(const uint64_t user_id){
         const uint64_t subreddit_id = mysu::SQL_RES->getUInt64(1);
         if (subreddit_id == 0);
             // TODO: Fix the reason some subreddits are 0 (probably 404'd)
-        else if (std::find(SUBS_TO_SCRAPE.begin(), SUBS_TO_SCRAPE.end(), subreddit_id) == SUBS_TO_SCRAPE.end())
+        else if (std::find(SUBS_TO_SCRAPE.begin(), SUBS_TO_SCRAPE.end(), subreddit_id) == SUBS_TO_SCRAPE.end()){
             SUBS_TO_SCRAPE.push_back(subreddit_id);
+            DEPTHS.push_back(DEPTH + 1);
+        }
         if (!mysu::SQL_RES->next())
             return true;
     }
@@ -168,6 +174,7 @@ void record_user_modded_subreddit(const uint64_t user_id,  const uint64_t subred
     
     
     SUBS_TO_SCRAPE.push_back(subreddit_id);
+    DEPTHS.push_back(DEPTH + 1);
 }
 
 void add_user_modded_subs(const char* user_name,  const uint64_t user_id){
@@ -371,10 +378,13 @@ int main(const int argc, const char* argv[]){
     mycu::init();         // Init CURL
     myrcu::init(argv[2]); // Init OAuth
     
+    MAX_DEPTH = atoi(argv[3]);
+    
     memcpy(SQL__INSERT_MOD,  SQL__INSERT_MOD_PRE,  strlen(SQL__INSERT_MOD_PRE));
     
     for (auto i = 3;  i < argc;  ++i){
         SUBS_TO_SCRAPE.push_back(subreddit2id(argv[i]));
+        DEPTHS.push_back(0);
     }
     
 #ifdef SPIDER
@@ -382,6 +392,7 @@ int main(const int argc, const char* argv[]){
 #endif
     
     for (auto i = 0;  i < SUBS_TO_SCRAPE.size();  ++i){
+        DEPTH = DEPTHS[i];
         get_mods_of(SUBS_TO_SCRAPE[i]);
     }
     
