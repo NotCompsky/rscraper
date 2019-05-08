@@ -1,9 +1,10 @@
 #ifndef __MYSU__
 #define __MYSU__
-namespace mysu {
 
 #include "rscraper_utils.hpp" // for SQL_*, init_mysql_from_file
 
+
+namespace mysu {
 
 constexpr const char* SELECT_SUB_NAME_PRE = "SELECT id FROM subreddit WHERE name = \"";
 char SELECT_SUB_NAME[strlen(SELECT_SUB_NAME_PRE) + 128+1 + 1] = "SELECT id FROM subreddit WHERE name = \"";

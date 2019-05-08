@@ -96,14 +96,14 @@ int main(const int argc, const char* argv[]){
     
     write(1, STMT, strlen(STMT));
     
-    mysu::SQL_RES = mysu::SQL_STMT->executeQuery(STMT);
+    SQL_RES = SQL_STMT->executeQuery(STMT);
     
-    while (mysu::SQL_RES->next()){
-        const std::string ssubname = mysu::SQL_RES->getString(1);
+    while (SQL_RES->next()){
+        const std::string ssubname = SQL_RES->getString(1);
         const char* subname = ssubname.c_str();
-        const unsigned long int post_id = mysu::SQL_RES->getUInt64(2);
-        const unsigned long int cmnt_id = mysu::SQL_RES->getUInt64(3);
-        const std::string sbody = mysu::SQL_RES->getString(4);
+        const unsigned long int post_id = SQL_RES->getUInt64(2);
+        const unsigned long int cmnt_id = SQL_RES->getUInt64(3);
+        const std::string sbody = SQL_RES->getString(4);
         const char* body = sbody.c_str();
         
         i = URL_PREFIX_LEN;

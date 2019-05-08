@@ -127,20 +127,20 @@ bool previously_got_user_modded_subs(const uint64_t user_id){
     
     PRINTF("SQL__GET_USER_MODDED_SUBS: %s\n", SQL__GET_USER_MODDED_SUBS);
     
-    mysu::SQL_RES = mysu::SQL_STMT->executeQuery(SQL__GET_USER_MODDED_SUBS);
+    SQL_RES = SQL_STMT->executeQuery(SQL__GET_USER_MODDED_SUBS);
     
-    if (!mysu::SQL_RES->next())
+    if (!SQL_RES->next())
         return false;
     
     while (true){
-        const uint64_t subreddit_id = mysu::SQL_RES->getUInt64(1);
+        const uint64_t subreddit_id = SQL_RES->getUInt64(1);
         if (subreddit_id == 0);
             // TODO: Fix the reason some subreddits are 0 (probably 404'd)
         else if (std::find(SUBS_TO_SCRAPE.begin(), SUBS_TO_SCRAPE.end(), subreddit_id) == SUBS_TO_SCRAPE.end()){
             SUBS_TO_SCRAPE.push_back(subreddit_id);
             DEPTHS.push_back(DEPTH + 1);
         }
-        if (!mysu::SQL_RES->next())
+        if (!SQL_RES->next())
             return true;
     }
 }
@@ -156,7 +156,7 @@ void insert_subreddit_nameid(const char* name,  const uint64_t id){
     SQL__INSERT_SUBREDDIT_NAME[i++] = ')';
     SQL__INSERT_SUBREDDIT_NAME[i] = 0;
     
-    mysu::SQL_STMT->execute(SQL__INSERT_SUBREDDIT_NAME);
+    SQL_STMT->execute(SQL__INSERT_SUBREDDIT_NAME);
 }
 
 void record_user_modded_subreddit(const uint64_t user_id,  const uint64_t subreddit_id,  const char* subreddit_name){
@@ -167,7 +167,7 @@ void record_user_modded_subreddit(const uint64_t user_id,  const uint64_t subred
     SQL__INSERT_USER_MODDED_SUB[i++] = ')';
     SQL__INSERT_USER_MODDED_SUB[i] = 0;
     
-    mysu::SQL_STMT->execute(SQL__INSERT_USER_MODDED_SUB);
+    SQL_STMT->execute(SQL__INSERT_USER_MODDED_SUB);
     
     
     insert_subreddit_nameid(subreddit_name, subreddit_id);
@@ -264,7 +264,7 @@ void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user,  unsigned
     SQL__INSERT_USER[i] = 0;
     
     PRINTF("SQL__INSERT_USER: %s\n", SQL__INSERT_USER);
-    mysu::SQL_STMT->execute(SQL__INSERT_USER);
+    SQL_STMT->execute(SQL__INSERT_USER);
     
     
     process_mod(subreddit_id, user_id, user_name);
@@ -277,10 +277,10 @@ void subreddit_id2name(const uint64_t id){
     
     PRINTF("SQL__SELECT_SUBREDDIT_NAME: %s\n", SQL__SELECT_SUBREDDIT_NAME); // tmp
     
-    mysu::SQL_RES = mysu::SQL_STMT->executeQuery(SQL__SELECT_SUBREDDIT_NAME);
+    SQL_RES = SQL_STMT->executeQuery(SQL__SELECT_SUBREDDIT_NAME);
     
-    if (mysu::SQL_RES->next()){
-        const std::string ss = mysu::SQL_RES->getString(1);
+    if (SQL_RES->next()){
+        const std::string ss = SQL_RES->getString(1);
         const char* s        = ss.c_str();
         SUBREDDIT_NAME_LEN = strlen(s);
         memcpy(SUBREDDIT_NAME,  s,  SUBREDDIT_NAME_LEN);
@@ -298,17 +298,17 @@ void get_mods_of(const uint64_t subreddit_id){
     i += strlen(SQL__GET_MODS_OF__POST);
     SQL__GET_MODS_OF[i] = 0;
     
-    mysu::SQL_RES = mysu::SQL_STMT->executeQuery(SQL__GET_MODS_OF);
+    SQL_RES = SQL_STMT->executeQuery(SQL__GET_MODS_OF);
     
-    if (!mysu::SQL_RES->next())
+    if (!SQL_RES->next())
         goto goto__getmodsofnotcached;
     
     while (true){
-        const uint64_t user_id = mysu::SQL_RES->getUInt64(1);
-        const std::string ss  = mysu::SQL_RES->getString(2);
+        const uint64_t user_id = SQL_RES->getUInt64(1);
+        const std::string ss  = SQL_RES->getString(2);
         const char* user_name = ss.c_str();
         process_mod(subreddit_id, user_id, user_name);
-        if (!mysu::SQL_RES->next())
+        if (!SQL_RES->next())
             return;
     }
     
@@ -354,7 +354,7 @@ void get_mods_of(const uint64_t subreddit_id){
     SQL__INSERT_MOD[--SQL__INSERT_MOD_INDX] = 0; // Overwrite trailing comma
     
     
-    mysu::SQL_STMT->execute(SQL__INSERT_MOD);
+    SQL_STMT->execute(SQL__INSERT_MOD);
 }
 
 uint64_t subreddit2id(const char* name){
@@ -365,10 +365,10 @@ uint64_t subreddit2id(const char* name){
     SQL__GET_SUBREDDIT_ID[i] = 0;
     
     PRINTF("SQL__GET_SUBREDDIT_ID: %s\n", SQL__GET_SUBREDDIT_ID); // tmp
-    mysu::SQL_RES = mysu::SQL_STMT->executeQuery(SQL__GET_SUBREDDIT_ID);
+    SQL_RES = SQL_STMT->executeQuery(SQL__GET_SUBREDDIT_ID);
     
-    if (mysu::SQL_RES->next())
-        return mysu::SQL_RES->getUInt64(1);
+    if (SQL_RES->next())
+        return SQL_RES->getUInt64(1);
     fprintf(stderr, "Cannot translate subreddit name to ID - subreddit not in subreddit table");
     myrcu::handler(myerr::SUBREDDIT_NOT_IN_DB);
 }

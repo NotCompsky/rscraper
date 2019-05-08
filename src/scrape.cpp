@@ -101,7 +101,7 @@ void sql__add_cmnt(const unsigned long int cmnt_id, const unsigned long int pare
     statement[i] = 0;
     
     PRINTF("stmt: %s\n", statement);
-    mysu::SQL_STMT->execute(statement);
+    SQL_STMT->execute(statement);
 }
 
 constexpr const char* SQL__INSERT_INTO_USER2SUBCNT_STR = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
@@ -210,8 +210,8 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     const time_t RSET_FLT(created_at,     cmnt["data"]["created_utc"]);
     
     
-    sql__insert_into_table_at(mysu::SQL_STMT, mysu::SQL_RES, "user", author_name, author_id);
-    sql__insert_into_table_at(mysu::SQL_STMT, mysu::SQL_RES, "subreddit", subreddit_name, subreddit_id);
+    sql__insert_into_table_at(SQL_STMT, SQL_RES, "user", author_name, author_id);
+    sql__insert_into_table_at(SQL_STMT, SQL_RES, "subreddit", subreddit_name, subreddit_id);
     
     unsigned long int parent_id = myru::id2n_lower(cmnt["data"]["parent_id"].GetString() + 3);
     unsigned long int submission_id;
@@ -253,7 +253,7 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
         SQL__INSERT_SUBMISSION_FROM_CMNT[SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = 0;
         SQL__INSERT_SUBMISSION_FROM_CMNT[--SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = ';'; // Overwrite trailing comma
         PRINTF("stmt: %s\n", SQL__INSERT_SUBMISSION_FROM_CMNT);
-        mysu::SQL_STMT->execute(SQL__INSERT_SUBMISSION_FROM_CMNT);
+        SQL_STMT->execute(SQL__INSERT_SUBMISSION_FROM_CMNT);
     }
     
     if (SQL__INSERT_INTO_USER2SUBCNT_INDX != strlen(SQL__INSERT_INTO_USER2SUBCNT_STR)){
@@ -261,14 +261,14 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
         constexpr const char* b = " ON DUPLICATE KEY UPDATE count = count + 1;";
         memcpy(SQL__INSERT_INTO_USER2SUBCNT + SQL__INSERT_INTO_USER2SUBCNT_INDX,  b,  strlen(b) + 1);
         PRINTF("stmt: %s\n", SQL__INSERT_INTO_USER2SUBCNT);
-        mysu::SQL_STMT->execute(SQL__INSERT_INTO_USER2SUBCNT);
+        SQL_STMT->execute(SQL__INSERT_INTO_USER2SUBCNT);
     }
     
     if (SQL__INSERT_INTO_SUBREDDIT_INDX != strlen(SQL__INSERT_INTO_SUBREDDIT_STR)){
         SQL__INSERT_INTO_SUBREDDIT[SQL__INSERT_INTO_SUBREDDIT_INDX] = 0;
         SQL__INSERT_INTO_SUBREDDIT[--SQL__INSERT_INTO_SUBREDDIT_INDX] = ';';
         PRINTF("stmt: %s\n", SQL__INSERT_INTO_SUBREDDIT);
-        mysu::SQL_STMT->execute(SQL__INSERT_INTO_SUBREDDIT);
+        SQL_STMT->execute(SQL__INSERT_INTO_SUBREDDIT);
     }
     
     return myru::id2n_lower(replies["data"]["children"][0]["data"]["id"].GetString());
