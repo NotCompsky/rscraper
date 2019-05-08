@@ -151,10 +151,12 @@ void login(){
 void init(const char* fp){
     FILE* f = fopen(fp, "r");
     size_t size;
+    char* proxy_url = nullptr;
     getline(&USR,               &size, f);
     getline(&PWD,               &size, f);
     getline(&KEY_AND_SECRET,    &size, f);
     getline(&USER_AGENT,        &size, f);
+    getline(&proxy_url,         &size, f);
     /* Remove trailing newlines */
     USR[strlen(USR)-1] = 0;
     PWD[strlen(PWD)-1] = 0;
@@ -174,6 +176,12 @@ void init(const char* fp){
     
     curl_easy_setopt(mycu::curl, CURLOPT_WRITEFUNCTION, mycu::write_res_to_mem);
     curl_easy_setopt(mycu::curl, CURLOPT_WRITEDATA, (void *)&mycu::MEMORY);
+    
+    if (strlen(proxy_url) != 1){
+        // Greater than 1
+        proxy_url[strlen(proxy_url)-1] = 0;
+        curl_easy_setopt(mycu::curl, CURLOPT_PROXY, proxy_url);
+    }
     
     
     init_login();
