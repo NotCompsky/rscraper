@@ -7,7 +7,7 @@
 
 
 #ifdef SUB2TAG
-char STMT[2048] = 
+constexpr const char STMT[2048] = 
     "SELECT S.name, S.id, c.id, c.content "
     "FROM comment c "
     "JOIN ("
@@ -30,7 +30,7 @@ const char* STMT_POST =
         ") R on R.id = s.subreddit_id "
     ") S on S.id = c.submission_id;";
 #else
-char STMT[2048] = 
+constexpr const char STMT[2048] = 
     "SELECT r.name, D.submission_id, D.comment_id, D.content, D.reason "
     "FROM subreddit r "
     "JOIN ( "
@@ -44,20 +44,20 @@ char STMT[2048] =
                 "FROM reason_matched rm "
                 "WHERE rm.name IN (";
 
-const char* STMT_POST = 
+constexpr const char* STMT_POST = 
             ")) B on B.id = c.reason_matched "
         ") C on C.submission_id = s.id "
     ") D on D.subreddit_id = r.id;";
 #endif
 
-char URL[1024] = "https://www.reddit.com/r/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const int URL_PREFIX_LEN = strlen("https://www.reddit.com/r/");
+constexpr const char URL[1024] = "https://www.reddit.com/r/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+constexpr const int URL_PREFIX_LEN = strlen("https://www.reddit.com/r/");
 //const char* URL = "https://www.reddit.com/r/";
 
-const char* COMMENTS = "/comments/";
+constexpr const char* COMMENTS = "/comments/";
 
-const char NEWLINE = '\n';
-const char SLASH = '/';
+constexpr const char NEWLINE = '\n';
+constexpr const char SLASH = '/';
 
 
 int id2str(unsigned long int id_orig,  char* buf){
