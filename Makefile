@@ -20,5 +20,14 @@ build/srch-by-reason:
 build/srch-tagged-subs:
 	g++ src/mysql__cmnts_from_subs_tagged.cpp -o build/srch-tagged-subs -lmysqlcppconn -O3 -DSUB2TAG
 
+
+
+# Misc #
+build/id2str:
+	g++ src/id2str.c -o build/id2str -O3
+	g++ src/id2str.c -o build/str2id -O3 -DSTR2ID
+
+# Documentation #
+
 man/main.1:
 	pandoc -s -t man docs/main.md -o man/main.1
