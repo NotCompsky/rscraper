@@ -27,7 +27,7 @@ class SelectColourButton : public QPushButton{
   public:
     uint64_t tag_id; // Should be const
     QColor colour;
-    explicit SelectColourButton(const uint64_t id, const double r, const double g, const double b, const double a, const char* name, QWidget* parent);
+    explicit SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  const char* name,  QWidget* parent);
   public Q_SLOTS:
     void set_colour();
 };
@@ -41,6 +41,7 @@ class ClTagsTab : public QWidget{
 class ClTagsDialog : public QDialog{
     Q_OBJECT
   public:
-    explicit ClTagsDialog(QWidget* parent = 0);
+    ~ClTagsDialog();
+    explicit ClTagsDialog(const char* mysql_cfg,  QWidget* parent = 0);
 };
 #endif

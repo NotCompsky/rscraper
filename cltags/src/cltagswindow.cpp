@@ -1,81 +1,37 @@
 #include "cltagswindow.h"
-#include "utils.h" // for itoa_nonstandard
+
 #include <QColorDialog>
 #include <QVBoxLayout>
 #include <QMessageBox>
 
-/* MySQL */
-#include <cppconn/driver.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
+#include "mymysql.hpp" // for mymysql::*
 
-sql::Driver* SQL_DRIVER = get_driver_instance();
-sql::Connection* SQL_CON;
-sql::Statement* SQL_STMT;
-sql::ResultSet* SQL_RES;
+namespace res1 {
+    #include "mymysql_results.hpp"
+}
 
+namespace res2 {
+    #include "mymysql_results.hpp"
+}
 
 #define DIGITS_IN_UINT64 19
-constexpr const char* STMT_GETCATTAGS_STR = "SELECT id, name, r, g, b, a FROM tag WHERE id IN (SELECT tag_id FROM tag2category WHERE category_id = ";
-char STMT_GETCATTAGS[strlen(STMT_GETCATTAGS_STR) + DIGITS_IN_UINT64 + strlen(" ORDER BY name") + 1] = "SELECT id, name, r, g, b, a FROM tag WHERE id IN (SELECT tag_id FROM tag2category WHERE category_id = ";
-
-constexpr const char* STMT_SETCL_STR = "UPDATE tag SET ";
-char STMT_SETCL[strlen("UPDATE tag SET r=0.123,g=0.123,b=0.123,a=0.123 WHERE id=01234567890123456789") + 1] = "UPDATE tag SET r=";
 
 
-#define SUBREDDIT_NAME_MAX 128
-constexpr const char* SQL__SELECT_SUBS_W_TAG_PRE = "SELECT r.name FROM subreddit r JOIN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id = ";
-constexpr const char* SQL__SELECT_SUBS_W_TAG_POST = ") A ON A.subreddit_id = r.id";
-char SQL__SELECT_SUBS_W_TAG[strlen(SQL__SELECT_SUBS_W_TAG_PRE) + 20 + strlen(SQL__SELECT_SUBS_W_TAG_POST) + 1] = "SELECT r.name FROM subreddit r JOIN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id = ";
+constexpr const int BUF_SZ_INIT = 4096;
+char* BUF = (char*)malloc(BUF_SZ_INIT);
+int BUF_INDX = 0;
+int BUF_SZ = BUF_SZ_INIT;
 
-/*char* DISPLAY_TAGS_RES = (char*)malloc(4096);
-size_t DISPLAY_TAGS_RES_SIZE = 4096;*/
+
 QString DISPLAY_TAGS_RES = "";
 
 
-void format_stmt_setcl(uint64_t id, int ir, int ig, int ib, int ia){
-    int i = strlen(STMT_SETCL_STR);
-    
-    char labels[4] = {'r', 'g', 'b', 'a'};
-    double rgba[4] = {(double)ir/255.0, (double)ig/255.0, (double)ib/255.0, (double)ia/255.0};
-    
-    for (auto k = 0;  k < 4;  ++k){
-        STMT_SETCL[i++] = labels[k];
-        STMT_SETCL[i++] = '=';
-        if (rgba[k] == 1){
-            STMT_SETCL[i++] = '1';
-            // All remaining decimals are zero
-            STMT_SETCL[i++] = '.';
-            STMT_SETCL[i++] = '0';
-            STMT_SETCL[i++] = ',';
-            continue;
-        }
-        STMT_SETCL[i++] = '0';
-        STMT_SETCL[i++] = '.';
-        for (auto j = 0;  j < 4;  ++j){
-            rgba[k] *= 10;
-            STMT_SETCL[i++] = '0' + (char)rgba[k];
-            rgba[k] -= (char)rgba[k];
-        }
-        STMT_SETCL[i++] = ',';
-    }
-    STMT_SETCL[i - 1] = ' '; // Overwrite trailing comma
-    
-    memcpy(STMT_SETCL + i,  "WHERE id = ",  strlen("WHERE id = "));
-    i += strlen("WHERE id = ");
-    
-    i += itoa_nonstandard(id,  STMT_SETCL + i);
-    
-    STMT_SETCL[i] = 0;
-}
-
-
-SelectColourButton::SelectColourButton(const uint64_t id, const double r, const double g, const double b, const double a, const char* name, QWidget* parent){
+SelectColourButton::SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  const char* name,  QWidget* parent){
     this->tag_id = id;
     this->setText(name);
     this->setAutoFillBackground(true);
     this->setFlat(true);
-    this->colour = QColor(255*r, 255*g, 255*b, 255*a);
+    this->colour = QColor(r, g, b, a);
     
     QPalette pal = this->palette();
     pal.setColor(QPalette::Button, this->colour);
@@ -90,10 +46,16 @@ void SelectColourButton::set_colour(){
     this->setPalette(pal);
     this->update();
     
-    int r, g, b, a;
-    this->colour.getRgb(&r, &g, &b, &a);
-    format_stmt_setcl(this->tag_id, r, g, b, a);
-    SQL_STMT->execute(STMT_SETCL);
+    int ir, ig, ib, ia;
+    this->colour.getRgb(&ir, &ig, &ib, &ia);
+    
+    const double r = ir/255.0;
+    const double g = ig/255.0;
+    const double b = ib/255.0;
+    const double a = ia/255.0;
+    
+    mymysql::exec("UPDATE tag SET r=", r, 3, ",g=", g, 3, ",b=", b, 3, ",a=", a, 3, " WHERE id=", this->tag_id);
+    BUF_INDX = 0;
 }
 
 void SelectColourButton::mousePressEvent(QMouseEvent* e){
@@ -115,30 +77,16 @@ void resize_display_tags_res(size_t n){
 */
 
 void SelectColourButton::display_subs_w_tag(){
-    int i = strlen(SQL__SELECT_SUBS_W_TAG_PRE);
-    i += itoa_nonstandard(this->tag_id,  SQL__SELECT_SUBS_W_TAG + i);
-    memcpy(SQL__SELECT_SUBS_W_TAG + i,  SQL__SELECT_SUBS_W_TAG_POST,  strlen(SQL__SELECT_SUBS_W_TAG_POST));
-    i += strlen(SQL__SELECT_SUBS_W_TAG_POST);
-    SQL__SELECT_SUBS_W_TAG[i] = 0;
+    res1::query("SELECT r.name FROM subreddit r JOIN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id=",  this->tag_id,  ") A ON A.subreddit_id = r.id");
+    BUF_INDX = 0;
     
-    SQL_RES = SQL_STMT->executeQuery(SQL__SELECT_SUBS_W_TAG);
-    
-    //size_t j = 0;
-    
-    while (SQL_RES->next()){
-        const std::string ss = SQL_RES->getString(1);
-        DISPLAY_TAGS_RES += QString::fromStdString(ss);
+    char* name;
+    while (res1::assign_next_result(&name)){
+        DISPLAY_TAGS_RES += name;
         DISPLAY_TAGS_RES += '\n';
-        /*const char* s        = ss.c_str();
-        memcpy(DISPLAY_TAGS_RES + j,  s,  strlen(s));
-        j += strlen(s);
-        DISPLAY_TAGS_RES[j++] = '\n';
-        if (j > DISPLAY_TAGS_RES_SIZE + SUBREDDIT_NAME_MAX)
-            resize_display_tags_res(j);*/
     }
     
-    /*DISPLAY_TAGS_RES[i] = 0;
-    QString qstr(DISPLAY_TAGS_RES);*/
+    res1::free_result();
     
     QMessageBox::information(this, tr("Tagged Subreddits"), DISPLAY_TAGS_RES, QMessageBox::Cancel);
     
@@ -146,21 +94,21 @@ void SelectColourButton::display_subs_w_tag(){
 }
 
 
-ClTagsDialog::ClTagsDialog(QWidget* parent){
+ClTagsDialog::ClTagsDialog(const char* mysql_cfg,  QWidget* parent){
+    mymysql::init(mysql_cfg);
+    
     QTabWidget* tabWidget = new QTabWidget;
     
+    res1::query("SELECT id, name FROM category");
+    BUF_INDX = 0;
     
-    SQL_CON = SQL_DRIVER->connect("unix:///var/run/mysqld/mysqld.sock", "rscraper++", "***REMOVED***");
-    SQL_CON->setSchema("rscraper");
-    SQL_STMT = SQL_CON->createStatement();
-    
-    sql::ResultSet* sql_res = SQL_STMT->executeQuery("SELECT id, name FROM category");
-    while (sql_res->next()){
-        const uint64_t id = sql_res->getUInt64(1);
-        const std::string sname = sql_res->getString(2);
-        const char*        name = sname.c_str();
-        
+    {
+    uint64_t id;
+    char* name;
+    while (res1::assign_next_result(&id, &name)){
         tabWidget->addTab(new ClTagsTab(id), tr(name));
+    }
+    res1::free_result();
     }
     
     QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -175,29 +123,25 @@ ClTagsDialog::ClTagsDialog(QWidget* parent){
     setWindowTitle(tr("rscraper++ tag colour picker"));
 }
 
+ClTagsDialog::~ClTagsDialog(){
+    mymysql::exit();
+}
+
 ClTagsTab::ClTagsTab(const uint64_t id, QWidget* parent) : QWidget(parent){
     QVBoxLayout* mainLayout = new QVBoxLayout;
     
-    int i = strlen(STMT_GETCATTAGS_STR);
-    i += itoa_nonstandard(id,  STMT_GETCATTAGS + i);
-    STMT_GETCATTAGS[i++] = ')';
+    res2::query("SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM tag WHERE id IN (SELECT tag_id FROM tag2category WHERE category_id=",  id,  ") ORDER BY name");
+    BUF_INDX = 0;
     
-    memcpy(STMT_GETCATTAGS + i,  " ORDER BY NAME",  strlen(" ORDER BY NAME"));
-    i += strlen(" ORDER BY NAME");
+    {
+    uint64_t id;
+    char* name;
+    unsigned char r, g, b, a;
     
-    STMT_GETCATTAGS[i] = 0;
-    
-    SQL_RES = SQL_STMT->executeQuery(STMT_GETCATTAGS);
-    while (SQL_RES->next()){
-        const uint64_t id = SQL_RES->getUInt64(1);
-        const std::string sname = SQL_RES->getString(2);
-        const char*        name = sname.c_str();
-        const double r = SQL_RES->getDouble(3); // Should be getFloat, but no such function
-        const double g = SQL_RES->getDouble(4);
-        const double b = SQL_RES->getDouble(5);
-        const double a = SQL_RES->getDouble(6);
-        
+    while (res2::assign_next_result(&id, &name, &r, &g, &b, &a)){
         mainLayout->addWidget(new SelectColourButton(id, r, g, b, a, name, this));
+    }
+    res2::free_result();
     }
     
     setLayout(mainLayout);
