@@ -1,13 +1,14 @@
-#include <string.h> // for memcpy, strlen
-#include <string> // for std::string
 #include <unistd.h> // for write
 
-#include "utils.h" // for count_digits
-#include "sql_utils.hpp" // for mysu::*
+#include "mymysql.hpp" // for mymysql::*
+
+namespace res1 {
+    #include "mymysql_results.hpp" // for ROW, RES, COL, ERR
+}
 
 
 #ifdef SUB2TAG
-constexpr const char STMT[2048] = 
+constexpr const char* a = 
     "SELECT S.name, S.id, c.id, c.content "
     "FROM comment c "
     "JOIN ("
@@ -24,13 +25,13 @@ constexpr const char STMT[2048] =
                     "FROM tag t "
                     "WHERE t.name IN (";
 
-const char* STMT_POST = 
+constexpr const char* b = 
                 ")) T on T.id = s2t.tag_id "
             ") S2T on S2T.subreddit_id = r.id "
         ") R on R.id = s.subreddit_id "
-    ") S on S.id = c.submission_id;";
+    ") S on S.id = c.submission_id";
 #else
-constexpr const char STMT[2048] = 
+constexpr const char* a = 
     "SELECT r.name, D.submission_id, D.comment_id, D.content, D.reason "
     "FROM subreddit r "
     "JOIN ( "
@@ -44,90 +45,72 @@ constexpr const char STMT[2048] =
                 "FROM reason_matched rm "
                 "WHERE rm.name IN (";
 
-constexpr const char* STMT_POST = 
+constexpr const char* b = 
             ")) B on B.id = c.reason_matched "
         ") C on C.submission_id = s.id "
-    ") D on D.subreddit_id = r.id;";
+    ") D on D.subreddit_id = r.id";
 #endif
 
-constexpr const char URL[1024] = "https://www.reddit.com/r/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-constexpr const int URL_PREFIX_LEN = strlen("https://www.reddit.com/r/");
-//const char* URL = "https://www.reddit.com/r/";
-
-constexpr const char* COMMENTS = "/comments/";
-
-constexpr const char NEWLINE = '\n';
-constexpr const char SLASH = '/';
+constexpr const int BUF_SZ_INIT = 4096;
+int BUF_SZ = BUF_SZ_INIT;
+char* BUF = (char*)malloc(BUF_SZ_INIT);
+int BUF_INDX = 0;
 
 
-int id2str(unsigned long int id_orig,  char* buf){
+void id2str(unsigned long int id_orig,  char* buf){
     int n_digits = 0;
     unsigned long int id = id_orig;
     while (id != 0){
         ++n_digits;
         id /= 36;
     }
-    const int to_return = n_digits;
+    const int n = n_digits;
     while (id_orig != 0){ // Note that a subreddit id should never be 0
         char digit = id_orig % 36;
         buf[--n_digits] = digit + ((digit<10) ? '0' : 'a' - 10);
         id_orig /= 36;
     }
-    return to_return;
+    buf[n] = 0;
 }
 
 int main(const int argc, const char* argv[]){
-    mysu::init(argv[1]);  // Init SQL
+    mymysql::init(argv[1]);  // Init SQL
     
-    int i = strlen(STMT);
-    for (auto j = 2;  j < argc;  ++j){
-        STMT[i++] = '\'';
-        memcpy(STMT + i,  argv[j],  strlen(argv[j]));
-        i += strlen(argv[j]);
-        STMT[i++] = '\'';
-        STMT[i++] = ',';
+    StartConcatWithApostrapheAndCommaFlag c;
+    EndConcatWithApostrapheAndCommaFlag d;
+    
+    res1::query(
+        a,
+            c,
+                argv+2, argc-2,
+            d,
+        b
+    );
+    
+    char* subname;
+    SizeOfAssigned body_sz;
+    char* body;
+    uint64_t post_id;
+    uint64_t cmnt_id;
+    while (res1::assign_next_result(&subname, &post_id, &cmnt_id, &body_sz, &body)){
+        char post_id_str[10];
+        char cmnt_id_str[10];
+        id2str(post_id, post_id_str);
+        id2str(cmnt_id, cmnt_id_str);
+        
+        asciify("https://www.reddit.com/r/",  subname,  "/comments/",  post_id_str,  "/_/",  cmnt_id_str,  '\n');
+        
+        if (BUF_INDX + body_sz.size > BUF_SZ){
+            write(1, BUF, BUF_INDX);
+            BUF_INDX = 0;
+            if (body_sz.size + 3 + 256 > BUF_SZ){
+                write(1, body, body_sz.size);
+                continue;
+            }
+        }
+        asciify(body, "\n\n\n");
     }
-    --i; // Strip last comma
-    
-    memcpy(STMT + i,  STMT_POST,  strlen(STMT_POST));
-    i += strlen(STMT_POST);
-    
-    STMT[i] = 0;
-    
-    write(1, STMT, strlen(STMT));
-    
-    SQL_RES = SQL_STMT->executeQuery(STMT);
-    
-    while (SQL_RES->next()){
-        const std::string ssubname = SQL_RES->getString(1);
-        const char* subname = ssubname.c_str();
-        const unsigned long int post_id = SQL_RES->getUInt64(2);
-        const unsigned long int cmnt_id = SQL_RES->getUInt64(3);
-        const std::string sbody = SQL_RES->getString(4);
-        const char* body = sbody.c_str();
-        
-        i = URL_PREFIX_LEN;
-        
-        memcpy(URL + i,  subname,  strlen(subname));
-        i += strlen(subname);
-        
-        memcpy(URL + i,  COMMENTS,  strlen(COMMENTS));
-        i += strlen(COMMENTS);
-        
-        i += id2str(post_id,  URL + i);
-        
-        URL[i++] = '/';
-        URL[i++] = '/';
-        
-        i += id2str(cmnt_id,  URL + i);
-        
-        write(1, URL, i);
-        
-        write(1, &NEWLINE, 1);
-        write(1, &NEWLINE, 1);
-        write(1, body, strlen(body));
-        write(1, &NEWLINE, 1);
-        write(1, &NEWLINE, 1);
-        write(1, &NEWLINE, 1);
-    }
+    write(1, BUF, BUF_INDX);
+    res1::free_result();
+    mymysql::exit();
 }
