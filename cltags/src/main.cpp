@@ -1,9 +1,9 @@
 #include <QApplication>
 #include "cltagswindow.h"
 
-int main(int argc, char *argv[]){
-    QApplication a(argc, argv);
-    ClTagsDialog player(argv[1]);
-    player.show();
-    return a.exec();
+int main(int argc,  char** argv){
+    QApplication app(argc, argv);
+    ClTagsDialog win(argv[1]);
+    win.show();
+    return app.exec();
 }
