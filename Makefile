@@ -3,22 +3,14 @@ default: all
 all: build/rscrape-cmnts build/srch-by-reason build/srch-tagged-subs build/rtagged.so man/rscrape-cmnts.1 man/rscrape-mods.1
 
 
-# Scrapers #
-
-build/rscrape-cmnts:
-	g++ src/scrape.cpp -o build/rscrape-cmnts -O3 -lcurl -lb64 -lboost_regex -lmysqlcppconn
-
-build/rscrape-mods:
-	g++ src/getmods.cpp -o build/rscrape-mods -O3 -lcurl -lb64 -lmysqlcppconn -DSPIDER
-
 
 # MySQL Utils #
 
 build/srch-by-reason:
-	g++ src/mysql__cmnts_from_subs_tagged.cpp -o build/srch-by-reason -lmysqlcppconn -O3
+	g++ src/mysql__cmnts_from_subs_tagged.cpp -o build/srch-by-reason -lmysqlclient -O3
 
 build/srch-tagged-subs:
-	g++ src/mysql__cmnts_from_subs_tagged.cpp -o build/srch-tagged-subs -lmysqlcppconn -O3 -DSUB2TAG
+	g++ src/mysql__cmnts_from_subs_tagged.cpp -o build/srch-tagged-subs -lmysqlclient -O3 -DSUB2TAG
 
 
 

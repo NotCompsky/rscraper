@@ -1,10 +1,23 @@
 #ifndef __MYCU__
 #define __MYCU__
+
 #include <curl/curl.h>
-#include "error_codes.hpp" // for myerr:*
 #ifdef DEBUG
-#include <stdio.h> // for printf
+  #include <stdio.h> // for printf
 #endif
+#include <stdlib.h> // for malloc, realloc
+
+#include "error_codes.hpp" // for myerr:*
+
+
+
+#ifdef DEBUG
+  #define PRINTF(...) printf(__VA_ARGS__);
+#else
+  #define PRINTF(...) ;
+#endif
+
+
 
 /* Defined in redditcurl_utils.hpp */
 namespace myrcu {
@@ -51,7 +64,7 @@ size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
 }
 
 
-int request(const char* url){
+void request(const char* url){
     // Writes response contents to MEMORY
   #ifdef DEBUG
     printf("GET %s\n", url);

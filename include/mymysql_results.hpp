@@ -104,7 +104,7 @@ void assign_next_column(){
 };
 
 void assign_next_column(DoubleBetweenZeroAndOne*& dd){
-    (*dd).value = 0;
+    dd->value = 0;
     
     char* s = ROW[COL++];
     ++s; // Skip the "0"
@@ -116,8 +116,8 @@ void assign_next_column(DoubleBetweenZeroAndOne*& dd){
     int n_digits = strlen(s);
     
     for (auto i = n_digits - 1;  i >= 0;  --i){
-        (*dd).value += s[i] - '0';
-        (*dd).value /= 10;
+        dd->value += s[i] - '0';
+        dd->value /= 10;
     }
 }
 /*
@@ -129,6 +129,23 @@ void assign_next_column(char*& s){
     printf("char* %s\n", ROW[COL++]);
 };
 */
+
+
+template<typename... Args>
+void assign_next_column_size(SizeOfAssigned*& f,  Args... args){
+    f->size = ROW[COL+1] - ROW[COL];
+    assign_next_column(args...);
+};
+
+void assign_next_column(SizeOfAssigned*& f,  char**& s){
+    assign_next_column_size(f, s);
+};
+
+template<typename... Args>
+void assign_next_column(SizeOfAssigned*& f,  char**& s,  Args... args){
+    assign_next_column_size(f, s, args...);
+};
+
 
 template<typename... Args>
 void assign_next_column(uint64_t*& n,  Args... args){

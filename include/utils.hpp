@@ -102,7 +102,11 @@ void asciify_concatwithapostrapheandcomma(std::vector<const char*> ptrs,  const 
 template<typename... Args>
 void asciify_concatwithapostrapheandcomma(StartPrefixFlag f,  const char* s,  Args... args);
 
+template<typename... Args>
+void asciify_concatwithcomma(const char* s,  Args... args);
 
+template<typename... Args>
+void asciify_concatwithcomma(const char** s,  const int n,  Args... args);
 
 
 void asciify(const char* s){
@@ -480,7 +484,7 @@ void asciify_concatwithcomma(uint64_t n,  Args... args){
 };
 
 template<typename... Args>
-void asciify_concatwithcomma(const int n,  const char** ptrs,  Args... args){
+void asciify_concatwithcomma(const char** ptrs,  const int n,  Args... args){
     for (auto i = 0;  i < n;  ++i){
         asciify(ptrs[i]);
         BUF[BUF_INDX++] = ',';

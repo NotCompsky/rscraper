@@ -31,6 +31,18 @@ PORT: 12345 (or 0 if not using port)
 SOME_EXTRA_LINE_HERE_THAT_ISNT_PARSED_BUT_JUST_TO_KEEP_NEWLINE
 */
 
+
+
+
+/* Definitions used only in mymysql_results.hpp */
+struct SizeOfAssigned{
+    size_t size;
+};
+
+
+
+
+
 namespace mymysql {
 
 char* MYSQL_AUTH[6] ; // Declared as volatile to forbid compiler from optimising overwrites away
