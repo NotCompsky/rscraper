@@ -1,3 +1,6 @@
+*.swp
+include/*.swp
+
 _runs
 build/*
 experiments/*
