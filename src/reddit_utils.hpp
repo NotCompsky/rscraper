@@ -6,7 +6,7 @@
 
 namespace myru {
 
-constexpr int SUBREDDIT_NAME_MAX = 128; // Guess
+constexpr const int SUBREDDIT_NAME_MAX = 128; // Guess
 
 unsigned long int id2n_lower(const char* str){
     unsigned long int n = 0;
