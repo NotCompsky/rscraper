@@ -10,6 +10,7 @@ Function library, largely for string manipulation
 
 #include <stdio.h> // for fopen, fread
 #include <mysql/mysql.h>
+#include <sys/mman.h> // for mmap, munmap
 
 #include "utils.hpp" // for asciify, memzero_secure
 
@@ -45,6 +46,8 @@ struct SizeOfAssigned{
 
 namespace mymysql {
 
+constexpr const size_t AUTH_SZ = 512; // Sane max size for MySQL authorisation/config file
+char* AUTH = (char*)mmap(NULL,  AUTH_SZ,  PROT_READ | PROT_WRITE,  MAP_LOCKED | MAP_PRIVATE | MAP_ANONYMOUS,  -1,  0);
 char* MYSQL_AUTH[6] ; // Declared as volatile to forbid compiler from optimising overwrites away
 
 MYSQL OBJ;
@@ -60,6 +63,9 @@ void exec(const char* s){
 template<typename... Args>
 void exec_noclearbuf(Args... args){
     asciify(args...);
+  #ifdef DEBUG
+    printf("%s\n", BUF);
+  #endif
     BUF[BUF_INDX] = 0;
     if (mysql_real_query(&mymysql::OBJ, BUF, BUF_INDX) == 0)
         return;
@@ -117,8 +123,8 @@ void exit(){
     mysql_close(&OBJ);
     
     memzero_secure(MYSQL_AUTH[0],  MYSQL_AUTH[5] - MYSQL_AUTH[0]); // Overwrite MySQL authorisation data 
-    // memset may be optimised away by compilers. This optimisation is prohibited for memset_s
-    // Might only be available in C11 standard - GCC (C++) is happy with it though
+    
+    munmap(AUTH, AUTH_SZ);
 }
 
 } // END namespace mymysql
