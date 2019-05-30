@@ -34,10 +34,14 @@ constexpr const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
 constexpr const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
 constexpr const char* API_ALLCOMMENTS_URL = "https://oauth.reddit.com/r/all/comments/?limit=100&raw_json=1";
 
-char* USR             = nullptr;
-char* PWD             = nullptr;
-char* KEY_AND_SECRET  = nullptr;
-char* USER_AGENT      = nullptr;
+constexpr const int BUF_SZ = 1024;
+char BUF[BUF_SZ];
+char* REDDIT_AUTH[6];
+char* USR;
+char* PWD;
+char* KEY_AND_SECRET;
+char* USER_AGENT;
+char* PROXY_URL;
 
 
 constexpr const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
@@ -158,18 +162,32 @@ void login(){
 
 void init(const char* fp){
     FILE* f = fopen(fp, "r");
-    size_t size;
-    char* proxy_url = nullptr;
-    getline(&USR,               &size, f);
-    getline(&PWD,               &size, f);
-    getline(&KEY_AND_SECRET,    &size, f);
-    getline(&USER_AGENT,        &size, f);
-    getline(&proxy_url,         &size, f);
-    /* Remove trailing newlines */
-    USR[strlen(USR)-1] = 0;
-    PWD[strlen(PWD)-1] = 0;
-    KEY_AND_SECRET[strlen(KEY_AND_SECRET)-1] = 0;
-    USER_AGENT[strlen(USER_AGENT)-1] = 0;
+    fread(BUF, 1, BUF_SZ, f);
+    
+    /*
+    reddit config file must have format:
+    USERNAME: my_k00l_username
+    PASSWORD: my_5up3r_53cur3_p455w0rd
+    KEY_SCRT: something:somethingelse
+    USERAGNT: my_program_name (by /u/my_k00l_username)
+    PROXYURL: either the url of the proxy to use, or a single dash to indicate no proxy is used
+    */
+    
+    int n_lines = 0;
+    char* itr;
+    REDDIT_AUTH[0] = BUF + 10;
+    for (itr = REDDIT_AUTH[0];  n_lines < 5;  ++itr)
+        if (*itr == '\n'){
+            *itr = 0;
+            itr += 11; // To skip "ABCD: "
+            REDDIT_AUTH[++n_lines] = itr;
+        }
+
+    USR = REDDIT_AUTH[0];
+    PWD = REDDIT_AUTH[1];
+    KEY_AND_SECRET = REDDIT_AUTH[2];
+    USER_AGENT = REDDIT_AUTH[3];
+    PROXY_URL = REDDIT_AUTH[4];
     
     mycu::MEMORY.memory = (char*)malloc(0);
     mycu::MEMORY.n_allocated = 0;
@@ -189,12 +207,12 @@ void init(const char* fp){
     init_login();
     
     
-    if (strlen(proxy_url) != 1){
+    if (PROXY_URL[0] != '-'){
         // Greater than 1
-        proxy_url[strlen(proxy_url)-1] = 0;
-        curl_easy_setopt(LOGIN_CURL,   CURLOPT_PROXY, proxy_url);
-        curl_easy_setopt(BROWSER_CURL, CURLOPT_PROXY, proxy_url);
-        curl_easy_setopt(mycu::curl,   CURLOPT_PROXY, proxy_url);
+        PROXY_URL[strlen(PROXY_URL)-1] = 0;
+        curl_easy_setopt(LOGIN_CURL,   CURLOPT_PROXY, PROXY_URL);
+        curl_easy_setopt(BROWSER_CURL, CURLOPT_PROXY, PROXY_URL);
+        curl_easy_setopt(mycu::curl,   CURLOPT_PROXY, PROXY_URL);
     }
     
     
@@ -211,7 +229,7 @@ bool try_again(rapidjson::Document& d){
         switch (d["error"].GetInt()){
             case 401:
                 // Unauthorised
-                PRINTF("Unauthorised. Logging in again.\n");
+                PRINTF("Unauthorised. Logging in again with user:pass: %s:%s\n", USR, PWD);
                 sleep(REDDIT_REQUEST_DELAY);
                 login();
                 break;
