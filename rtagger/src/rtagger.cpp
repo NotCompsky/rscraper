@@ -7,30 +7,7 @@
 #include "rscraper_utils.hpp" // for sql::*
 
 
-constexpr const char* STMT_PRE = 
-    "SELECT A.user_id, SUM(A.c), SUM(A.r), SUM(A.g), SUM(A.b), SUM(A.a), GROUP_CONCAT(A.string) "
-    "FROM tag2category t2c "
-    "JOIN ( "
-        "SELECT S2T.user_id, S2T.tag_id, S2T.c, S2T.c*t.r as r, S2T.c*t.g as g, S2T.c*t.b as b, S2T.c*t.a as a, string "
-        "FROM tag t "
-        "RIGHT JOIN ( "
-            "SELECT U2SCC.user_id, s2t.tag_id, SUM(U2SCC.count) as c, GROUP_CONCAT(U2SCC.name, \" \", U2SCC.count) as string "
-            "FROM subreddit2tag s2t "
-            "JOIN ( "
-                "SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count, S.name "
-                "FROM user2subreddit_cmnt_count u2scc "
-                "JOIN ( "
-                    "SELECT id, name "
-                    "FROM subreddit "
-                ") S ON S.id = u2scc.subreddit_id "
-                "WHERE u2scc.user_id IN (";
 
-constexpr const char* STMT_POST = 
-            ")) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id "
-            "GROUP BY U2SCC.user_id, s2t.tag_id "
-        ") S2T ON S2T.tag_id = t.id "
-    ") A ON t2c.tag_id = A.tag_id "
-    "GROUP BY A.user_id, t2c.category_id;";
 
 constexpr const char* id_t2_ = "id-t2_";
 
@@ -139,16 +116,37 @@ void csv2cls(const char* csv){
     int n_users = 1;
     size_t n_allocated_bytes = estimated_n_bytes(csv, n_users) + 1000;
     
+    BUF_INDX = 0;
+    
+    asciify(
+        "SELECT A.user_id, SUM(A.c), SUM(A.r), SUM(A.g), SUM(A.b), SUM(A.a), GROUP_CONCAT(A.string) "
+        "FROM tag2category t2c "
+        "JOIN ( "
+            "SELECT S2T.user_id, S2T.tag_id, S2T.c, S2T.c*t.r as r, S2T.c*t.g as g, S2T.c*t.b as b, S2T.c*t.a as a, string "
+            "FROM tag t "
+            "RIGHT JOIN ( "
+                "SELECT U2SCC.user_id, s2t.tag_id, SUM(U2SCC.count) as c, GROUP_CONCAT(U2SCC.name, \" \", U2SCC.count) as string "
+                "FROM subreddit2tag s2t "
+                "JOIN ( "
+                    "SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count, S.name "
+                    "FROM user2subreddit_cmnt_count u2scc "
+                    "JOIN ( "
+                        "SELECT id, name "
+                        "FROM subreddit "
+                    ") S ON S.id = u2scc.subreddit_id "
+                    "WHERE u2scc.user_id IN ("
+    );
+    
     while (true){
         switch(csv[i]){
             case 0:
             case ',':
                 const uint64_t id = str2id(csv, j, i);
                 
-                stmt_i += itoa_nonstandard(id,  stmt + stmt_i);
+                asciify(id);
                 if (csv[i] == 0)
                     goto goto_break;
-                stmt[stmt_i++] = ',';
+                asciify(',');
                 
                 i += 6; // Skip "id-t2_"
                 j = i + 1; // Start at character after comma
@@ -158,94 +156,59 @@ void csv2cls(const char* csv){
     }
     goto_break:
     
-    memcpy(stmt + stmt_i,  STMT_POST,  strlen(STMT_POST));
-    stmt_i += strlen(STMT_POST);
-    
-    stmt[stmt_i] = 0;
+    res1::query( /* Contents of BUF concatenated with */
+                        ")) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id "
+                "GROUP BY U2SCC.user_id, s2t.tag_id "
+            ") S2T ON S2T.tag_id = t.id "
+        ") A ON t2c.tag_id = A.tag_id "
+        "GROUP BY A.user_id, t2c.category_id"
+    );
+    BUF_INDX = 0;
     
     printf("%s\n", stmt);
     
-    SQL_RES = SQL_STMT->executeQuery(stmt);
     
     int k = 0;
     
-    DST = (char*)malloc(n_allocated_bytes);
-    //DST[k++] = '{'; We obtain an (erroneous) prefix of "]," in the following loop
+    BUF = (char*)malloc(n_allocated_bytes);
+    //BUF[k++] = '{'; We obtain an (erroneous) prefix of "]," in the following loop
     // To avoid adding another branch, we simply skip the first character, and overwrite the second with "{" later
     uint64_t last_id = 0;
-    while (SQL_RES->next()){
-        const uint64_t id = SQL_RES->getUInt64(1);
-        const int n_cmnts = SQL_RES->getInt(2);
-        
+    uint64_t id;
+    uint64_t n_cmnts;
+    double r, g, b, a;
+    char* s;
+    while (res1::assign_next_result(&id, &n_cmnts, &r, &g, &b, &a, &s)){
         if (id != last_id){
-            DST[k] = ']'; // Overwrite trailing comma left by RGBs
-            DST[++k] = ',';
-            DST[++k] = '"';
-            memcpy(DST + k + 1,  id_t2_,  strlen(id_t2_));
-            k += strlen(id_t2_);
-            k += id2str(id,  DST + k + 1); // Write ID as alphanumeric string
-            DST[++k] = '"';
-            DST[++k] = ':';
-            DST[++k] = '[';
+            --BUF_INDX;  // Overwrite trailing comma left by RGBs
+            asciify("],\"id_t2_",  id,  "\":[");
             last_id = id;
         }
-        DST[++k] = '[';
-        DST[++k] = '"';
-        DST[++k] = 'r';
-        DST[++k] = 'g';
-        DST[++k] = 'b';
-        DST[++k] = 'a';
-        DST[++k] = '(';
-        for (auto c = 3;  c < 6;  ++c){
-            k += itoa_nonstandard((uint64_t)(255.0d * SQL_RES->getDouble(c) / n_cmnts),  DST + k + 1);
-            DST[++k] = ',';
-        }
-        const double a = SQL_RES->getDouble(6) / n_cmnts;
-        char a1;
-        char a2;
-        if (a == 1.0d){
-            a1 = '1';
-            a2 = '0';
-        } else {
-            a1 = '0';
-            a2 = '0' + (unsigned char)(10*a);
-        }
-        DST[++k] = a1;
-        DST[++k] = '.';
-        DST[++k] = a2;
         
-        DST[++k] = ')';
-        DST[++k] = '"';
-        DST[++k] = ',';
+        DoubleBetweenZeroAndOne zao_a(a / n_cmnts);
         
+        if (BUF_INDX + strlen(s) + 1000  >=  n_allocated_bytes)
+            n_allocated_bytes = enlarge_dst(BUF_INDX,  n_allocated_bytes + strlen(s));
         
-        DST[++k] = '"';
-        
-        const std::string ss = SQL_RES->getString(7);
-        const char*        s = ss.c_str();
-        
-        if (k + strlen(s) + 1000  >=  n_allocated_bytes)
-            n_allocated_bytes = enlarge_dst(k,  n_allocated_bytes + strlen(s));
-        
-        memcpy(DST + k + 1,  s,  strlen(s));
-        k += strlen(s);
-        
-        DST[++k] = '"';
-        DST[++k] = ']';
-        
-        
-        DST[++k] = ',';
-        
-        DST[k+1] = 0;
+        asciify(
+            "[\"rgba(",
+            (uint64_t)(255.0d * zno_r.value / n_cmnts),  ',',
+            (uint64_t)(255.0d * zno_g.value / n_cmnts),  ',',
+            (uint64_t)(255.0d * zno_b.value / n_cmnts),  ',',
+            zao_a,
+            ")\",\"",
+            s,
+            "\"],"
+        );
     }
     SKIPPED_FIRST_CHAR = 0;
     if (k != 0){
-        DST[k] = ']';
+        BUF[k] = ']';
         --k; // Clear trailing comma
-        ++DST; // Skip first character
+        ++BUF; // Skip first character
         SKIPPED_FIRST_CHAR = 1;
     }
-    DST[0] = '{';
-    DST[++k] = '}';
-    DST[++k] = 0;
+    BUF[0] = '{';
+    BUF[++k] = '}';
+    BUF[++k] = 0;
 }
