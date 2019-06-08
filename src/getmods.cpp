@@ -23,10 +23,10 @@
 
 #include "filter_user.cpp" // for filter_user::*
 
-#include "mymysql.hpp" // for mymysql::*, BUF, BUF_INDX
+#include <compsky/mysql/mysql.hpp> // for mymysql::*, BUF, BUF_INDX
 
 namespace res1 {
-    #include "mymysql_results.hpp" // for ROW, RES, COL, ERR
+    results.hpp"_results.hpp" // for ROW, RES, COL, ERR
 }
 
 #ifdef SPIDER

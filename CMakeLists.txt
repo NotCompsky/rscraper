@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.14.1 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
+FIND_PACKAGE(Compsky COMPONENTS asciify mysql REQUIRED)
 FIND_PACKAGE(Boost COMPONENTS regex REQUIRED)
 
 
@@ -20,6 +21,8 @@ if (MY_TARGETS STREQUAL "")
     set(MY_TARGETS "id2str" "str2id" "rscrape-cmnts" "rscrape-mods" "srch-by-reason" "srch-tagged-subs")
 endif()
 
+set(asciify_srcs include/asciify_base.cpp include/asciify_core.cpp include/asciify_types.cpp)
+set(mymysql_srcs include/mymysql.cpp)
 
 include_directories("./include")
 
@@ -38,6 +41,8 @@ if ("rscrape-cmnts" IN_LIST MY_TARGETS)
     target_link_libraries(rscrape-cmnts b64)
     target_link_libraries(rscrape-cmnts ${Boost_REGEX_LIBRARY})
     target_link_libraries(rscrape-cmnts mysqlclient)
+    target_link_libraries(rscrape-cmnts compsky_asciify)
+    target_link_libraries(rscrape-cmnts compsky_mysql)
 endif()
 if ("rscrape-mods" IN_LIST MY_TARGETS)
     add_executable(rscrape-mods src/scrape.cpp)
@@ -46,14 +51,16 @@ if ("rscrape-mods" IN_LIST MY_TARGETS)
     target_link_libraries(rscrape-mods ${Boost_REGEX_LIBRARY})
     target_link_libraries(rscrape-mods mysqlclient)
     target_compile_definitions(rscrape-mods PRIVATE SPIDER)
+    target_link_libraries(rscrape-cmnts compsky_asciify)
+    target_link_libraries(rscrape-cmnts compsky_mysql)
 endif()
 
 if ("srch-by-reason" IN_LIST MY_TARGETS)
-    add_executable(srch-by-reason src/mysql__cmnts_from_subs_tagged.cpp)
+    add_executable(srch-by-reason   src/mysql__cmnts_from_subs_tagged.cpp ${asciify_srcs} ${mymysql_srcs} include/utils.cpp)
     target_link_libraries(srch-by-reason mysqlclient)
 endif()
 if ("srch-tagged-subs" IN_LIST MY_TARGETS)
-    add_executable(srch-tagged-subs src/mysql__cmnts_from_subs_tagged.cpp)
+    add_executable(srch-tagged-subs src/mysql__cmnts_from_subs_tagged.cpp ${asciify_srcs} ${mymysql_srcs} include/utils.cpp)
     target_link_libraries(srch-tagged-subs mysqlclient)
     target_compile_definitions(srch-tagged-subs PRIVATE SUB2TAG)
 endif()

@@ -1,9 +1,22 @@
 #include <unistd.h> // for write
 
-#include "mymysql.hpp" // for mymysql::*
+#include <compsky/mysql/mysql.hpp>
+#include <compsky/mysql/query.hpp>
 
-namespace res1 {
-    #include "mymysql_results.hpp" // for ROW, RES, COL, ERR
+
+MYSQL_RES* RES;
+MYSQL_ROW ROW;
+
+namespace compsky::asciify {
+    char* BUF = (char*)malloc(4096);
+    int BUF_SZ = 4096;
+        
+    void ensure_buf_can_fit(size_t n){
+        if (BUF_INDX + n  >  BUF_SZ){
+            fwrite(BUF, 1, BUF_INDX, stderr);
+            BUF_INDX = 0;
+        }
+    }
 }
 
 
@@ -23,10 +36,10 @@ constexpr const char* a =
                 "JOIN ("
                     "SELECT t.id "
                     "FROM tag t "
-                    "WHERE t.name IN (";
+                    "WHERE t.name IN ('";
 
 constexpr const char* b = 
-                ")) T on T.id = s2t.tag_id "
+                "')) T on T.id = s2t.tag_id "
             ") S2T on S2T.subreddit_id = r.id "
         ") R on R.id = s.subreddit_id "
     ") S on S.id = c.submission_id";
@@ -43,18 +56,13 @@ constexpr const char* a =
             "JOIN ( "
                 "SELECT rm.id, rm.name "
                 "FROM reason_matched rm "
-                "WHERE rm.name IN (";
+                "WHERE rm.name IN ('";
 
 constexpr const char* b = 
-            ")) B on B.id = c.reason_matched "
+            "')) B on B.id = c.reason_matched "
         ") C on C.submission_id = s.id "
     ") D on D.subreddit_id = r.id";
 #endif
-
-constexpr const int BUF_SZ_INIT = 4096;
-int BUF_SZ = BUF_SZ_INIT;
-char* BUF = (char*)malloc(BUF_SZ_INIT);
-int BUF_INDX = 0;
 
 
 void id2str(unsigned long int id_orig,  char* buf){
@@ -74,43 +82,43 @@ void id2str(unsigned long int id_orig,  char* buf){
 }
 
 int main(const int argc, const char* argv[]){
-    mymysql::init(argv[1]);  // Init SQL
+    compsky::mysql::init(argv[1]);  // Init SQL
     
-    StartConcatWithApostrapheAndCommaFlag c;
-    EndConcatWithApostrapheAndCommaFlag d;
+    auto c = compsky::asciify::flag::concat::start;
+    auto d = compsky::asciify::flag::concat::end;
     
-    res1::query(
+    compsky::mysql::query(&RES,
         a,
-            c,
+            c, "','", 3,
                 argv+2, argc-2,
             d,
         b
     );
     
     char* subname;
-    SizeOfAssigned body_sz;
+    auto f = compsky::asciify::flag::strlen;
     char* body;
     uint64_t post_id;
     uint64_t cmnt_id;
-    while (res1::assign_next_result(&subname, &post_id, &cmnt_id, &body_sz, &body)){
+    size_t body_sz;
+    while (compsky::mysql::assign_next_result(RES, &ROW, &subname, &post_id, &cmnt_id, f, &body_sz, &body)){
         char post_id_str[10];
         char cmnt_id_str[10];
         id2str(post_id, post_id_str);
         id2str(cmnt_id, cmnt_id_str);
         
-        asciify("https://www.reddit.com/r/",  subname,  "/comments/",  post_id_str,  "/_/",  cmnt_id_str,  '\n');
+        compsky::asciify::asciify("https://www.reddit.com/r/",  subname,  "/comments/",  post_id_str,  "/_/",  cmnt_id_str,  '\n');
         
-        if (BUF_INDX + body_sz.size > BUF_SZ){
-            write(1, BUF, BUF_INDX);
-            BUF_INDX = 0;
-            if (body_sz.size + 3 + 256 > BUF_SZ){
-                write(1, body, body_sz.size);
+        if (compsky::asciify::BUF_INDX + body_sz > compsky::asciify::BUF_SZ){
+            write(1, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
+            compsky::asciify::BUF_INDX = 0;
+            if (body_sz + 3 + 256 > compsky::asciify::BUF_SZ){
+                write(1, body, body_sz);
                 continue;
             }
         }
-        asciify(body, "\n\n\n");
+        compsky::asciify::asciify(body, "\n\n\n");
     }
-    write(1, BUF, BUF_INDX);
-    res1::free_result();
-    mymysql::exit();
+    write(1, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
+    compsky::mysql::exit();
 }

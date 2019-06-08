@@ -19,11 +19,7 @@
 #include "filter_user.cpp" // for filter_user::*
 #include "filter_subreddit.cpp" // for filter_subreddit::*
 
-#include "mymysql.hpp" // for mymysql::*, BUF, BUF_INDX
-
-namespace res1 {
-    #include "mymysql_results.hpp" // for ROW, RES, COL, ERR
-}
+#include <compsky/mysql/query.hpp>
 
 
 #ifdef DEBUG
@@ -33,45 +29,47 @@ namespace res1 {
 #endif
 
 
-char* BUF = (char*)malloc(4096);
-int BUF_SZ = 4096;
-int BUF_INDX = 0;
+MYSQL_ROW ROW;
+
+namespace compsky::asciify {
+    char* BUF = (char*)malloc(4096);
+}
 
 
 constexpr const char* SQL__INSERT_SUBMISSION_FROM_CMNT_STR = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
 char SQL__INSERT_SUBMISSION_FROM_CMNT[strlen(SQL__INSERT_SUBMISSION_FROM_CMNT_STR) + 100*strlen("(01234567890123456789,01234567890123456789,2),") + 1] = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
-int SQL__INSERT_SUBMISSION_FROM_CMNT_INDX;
+size_t SQL__INSERT_SUBMISSION_FROM_CMNT_INDX;
 
 
 
 
 constexpr const char* SQL__INSERT_INTO_USER2SUBCNT_STR = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
 char SQL__INSERT_INTO_USER2SUBCNT[strlen(SQL__INSERT_INTO_USER2SUBCNT_STR) + 100*(1 + 1+1+20+1+20 + 1 + 1) + 1] = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
-int SQL__INSERT_INTO_USER2SUBCNT_INDX;
+size_t SQL__INSERT_INTO_USER2SUBCNT_INDX;
 
 
 constexpr const char* SQL__INSERT_INTO_SUBREDDIT_STR = "INSERT IGNORE INTO subreddit (id, name) VALUES ";
 char SQL__INSERT_INTO_SUBREDDIT[strlen(SQL__INSERT_INTO_SUBREDDIT_STR) + 100*(1 + 20+1+128 + 1 + 1) + 1] = "INSERT IGNORE INTO subreddit (id, name) VALUES ";
-int SQL__INSERT_INTO_SUBREDDIT_INDX;
+size_t SQL__INSERT_INTO_SUBREDDIT_INDX;
 
 
 void count_user_subreddit_cmnt(const unsigned long int user_id,  const unsigned long int subreddit_id, const char* subreddit_name){
-    char* dummy = BUF;
-    auto dummy_indx = BUF_INDX;
+    char* dummy = compsky::asciify::BUF;
+    auto dummy_indx = compsky::asciify::BUF_INDX;
     
-    BUF = SQL__INSERT_INTO_USER2SUBCNT;
-    BUF_INDX = SQL__INSERT_INTO_USER2SUBCNT_INDX;
-    asciify("(1,",  user_id,  ',',  subreddit_id,  "),");
-    SQL__INSERT_INTO_USER2SUBCNT_INDX = BUF_INDX;
+    compsky::asciify::BUF = SQL__INSERT_INTO_USER2SUBCNT;
+    compsky::asciify::BUF_INDX = SQL__INSERT_INTO_USER2SUBCNT_INDX;
+    compsky::asciify::asciify("(1,",  user_id,  ',',  subreddit_id,  "),");
+    SQL__INSERT_INTO_USER2SUBCNT_INDX = compsky::asciify::BUF_INDX;
     
     
-    BUF = SQL__INSERT_INTO_SUBREDDIT;
-    BUF_INDX = SQL__INSERT_INTO_SUBREDDIT_INDX;
-    asciify("(",  subreddit_id,  ",\"",  subreddit_name,  "\"),");
-    SQL__INSERT_INTO_SUBREDDIT_INDX = BUF_INDX;
+    compsky::asciify::BUF = SQL__INSERT_INTO_SUBREDDIT;
+    compsky::asciify::BUF_INDX = SQL__INSERT_INTO_SUBREDDIT_INDX;
+    compsky::asciify::asciify("(",  subreddit_id,  ",\"",  subreddit_name,  "\"),");
+    SQL__INSERT_INTO_SUBREDDIT_INDX = compsky::asciify::BUF_INDX;
     
-    BUF = dummy;
-    BUF_INDX = dummy_indx;
+    compsky::asciify::BUF = dummy;
+    compsky::asciify::BUF_INDX = dummy_indx;
 }
 
 void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
@@ -133,7 +131,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     
     const time_t RSET_FLT(created_at,     cmnt["data"]["created_utc"]);
     
-    mymysql::exec("INSERT IGNORE INTO user (id, name) VALUES (",  author_id,  ",'",  author_name,  "')");
+    compsky::mysql::exec("INSERT IGNORE INTO user (id, name) VALUES (",  author_id,  ",'",  author_name,  "')");
     
     unsigned long int parent_id = myru::id2n_lower(cmnt["data"]["parent_id"].GetString() + 3);
     unsigned long int submission_id;
@@ -149,28 +147,26 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     const char* cmnt_content = cmnt["data"]["body"].GetString();
     
     
-    StartConcatWithCommaFlag a;
-    EndConcatWithCommaFlag b;
+    auto a = compsky::asciify::flag::concat::start;
+    auto b = compsky::asciify::flag::concat::end;
+    auto esc = compsky::asciify::flag::escape;
     
-    StartConcatWithApostrapheAndCommaFlag c;
-    EndConcatWithApostrapheAndCommaFlag d;
-    
-    mymysql::exec("INSERT IGNORE INTO comment (id, parent_id, author_id, submission_id, created_at, reason_matched, content) values(",  a,  cmnt_id,  parent_id,  author_id,  submission_id,  created_at,  reason_matched,  b,  ',',  c,  cmnt_content,  d,  ")");
+    compsky::mysql::exec("INSERT IGNORE INTO comment (id, parent_id, author_id, submission_id, created_at, reason_matched, content) values(",  a, ',',  cmnt_id,  parent_id,  author_id,  submission_id,  created_at,  reason_matched,  b,  ",\"",  esc,  '"',  cmnt_content,  "\")");
     
     
     /*
     Checks if a submission entry exists, and if not, creates one (but is based only on the information visible from a comment entry)
     */
-    char* dummy = BUF;
-    auto dummy_indx = BUF_INDX;
+    char* dummy = compsky::asciify::BUF;
+    auto dummy_indx = compsky::asciify::BUF_INDX;
     
-    BUF = SQL__INSERT_SUBMISSION_FROM_CMNT;
-    BUF_INDX = SQL__INSERT_SUBMISSION_FROM_CMNT_INDX;
-    asciify("(",  submission_id,  ',',  subreddit_id,  ',',  '0' + is_submission_nsfw,  "),");
-    SQL__INSERT_SUBMISSION_FROM_CMNT_INDX = BUF_INDX;
+    compsky::asciify::BUF = SQL__INSERT_SUBMISSION_FROM_CMNT;
+    compsky::asciify::BUF_INDX = SQL__INSERT_SUBMISSION_FROM_CMNT_INDX;
+    compsky::asciify::asciify("(",  submission_id,  ',',  subreddit_id,  ',',  '0' + is_submission_nsfw,  "),");
+    SQL__INSERT_SUBMISSION_FROM_CMNT_INDX = compsky::asciify::BUF_INDX;
     
-    BUF = dummy;
-    BUF_INDX = dummy_indx;
+    compsky::asciify::BUF = dummy;
+    compsky::asciify::BUF_INDX = dummy_indx;
 }
 
 unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned long int last_processed_cmnt_id){
@@ -178,7 +174,6 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
     'replies' object is the 'replies' JSON object which has property 'kind' of value 'Listing'
     */
     unsigned long int cmnt_id;
-    int i = 0;
     
     SQL__INSERT_SUBMISSION_FROM_CMNT_INDX = strlen(SQL__INSERT_SUBMISSION_FROM_CMNT_STR);
     SQL__INSERT_INTO_USER2SUBCNT_INDX = strlen(SQL__INSERT_INTO_USER2SUBCNT_STR);
@@ -190,27 +185,27 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
             // Not '==' since it is possible for comments to have been deleted between calls
             break;
         process_live_cmnt(*itr, cmnt_id);
-        ++i;
     }
     
     if (SQL__INSERT_SUBMISSION_FROM_CMNT_INDX != strlen(SQL__INSERT_SUBMISSION_FROM_CMNT_STR)){
         SQL__INSERT_SUBMISSION_FROM_CMNT[--SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = 0; // Overwrite trailing comma
         PRINTF("stmt: %s\n", SQL__INSERT_SUBMISSION_FROM_CMNT);
-        mymysql::exec(SQL__INSERT_SUBMISSION_FROM_CMNT);
+        compsky::mysql::exec_buffer(SQL__INSERT_SUBMISSION_FROM_CMNT, SQL__INSERT_SUBMISSION_FROM_CMNT_INDX);
     }
     
     if (SQL__INSERT_INTO_USER2SUBCNT_INDX != strlen(SQL__INSERT_INTO_USER2SUBCNT_STR)){
         --SQL__INSERT_INTO_USER2SUBCNT_INDX; // Overwrite trailing comma
         constexpr const char* b = " ON DUPLICATE KEY UPDATE count = count + 1";
-        memcpy(SQL__INSERT_INTO_USER2SUBCNT + SQL__INSERT_INTO_USER2SUBCNT_INDX,  b,  strlen(b) + 1);
+        memcpy(SQL__INSERT_INTO_USER2SUBCNT + SQL__INSERT_INTO_USER2SUBCNT_INDX,  b,  strlen(b));
+        SQL__INSERT_INTO_USER2SUBCNT_INDX += strlen(b);
         PRINTF("stmt: %s\n", SQL__INSERT_INTO_USER2SUBCNT);
-        mymysql::exec(SQL__INSERT_INTO_USER2SUBCNT);
+        compsky::mysql::exec_buffer(SQL__INSERT_INTO_USER2SUBCNT, SQL__INSERT_INTO_USER2SUBCNT_INDX);
     }
     
     if (SQL__INSERT_INTO_SUBREDDIT_INDX != strlen(SQL__INSERT_INTO_SUBREDDIT_STR)){
         SQL__INSERT_INTO_SUBREDDIT[--SQL__INSERT_INTO_SUBREDDIT_INDX] = 0;
         PRINTF("stmt: %s\n", SQL__INSERT_INTO_SUBREDDIT);
-        mymysql::exec(SQL__INSERT_INTO_SUBREDDIT);
+        compsky::mysql::exec_buffer(SQL__INSERT_INTO_SUBREDDIT, SQL__INSERT_INTO_SUBREDDIT_INDX);
     }
     
     return myru::id2n_lower(replies["data"]["children"][0]["data"]["id"].GetString());
@@ -235,9 +230,11 @@ void process_all_comments_live(){
 }
 
 int main(const int argc, const char* argv[]){
-    mymysql::init(argv[1]);  // Init SQL
+    compsky::mysql::init(argv[1]);  // Init SQL
     mycu::init();         // Init CURL
     myrcu::init(argv[2]); // Init OAuth
     
     process_all_comments_live();
+    
+    compsky::mysql::exit();
 }
