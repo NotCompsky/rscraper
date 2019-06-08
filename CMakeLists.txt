@@ -16,23 +16,20 @@ endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 
-if (MY_TARGETS STREQUAL "")
+if ("${MY_TARGETS} " STREQUAL " ") # Extra character necessary - empty string comparison doesn't work
     # e.g. cmake .. -DMY_TARGETS=txt;img
     set(MY_TARGETS "id2str" "str2id" "rscrape-cmnts" "rscrape-mods" "srch-by-reason" "srch-tagged-subs")
 endif()
-
-set(asciify_srcs include/asciify_base.cpp include/asciify_core.cpp include/asciify_types.cpp)
-set(mymysql_srcs include/mymysql.cpp)
 
 include_directories("./include")
 
 
 if ("id2str" IN_LIST MY_TARGETS)
     add_executable(id2str src/id2str.c)
+    target_compile_definitions(id2str PRIVATE TOSTR)
 endif()
 if ("str2id" IN_LIST MY_TARGETS)
     add_executable(str2id src/id2str.c)
-    target_compile_definitions(str2id PRIVATE STR2ID)
 endif()
 
 if ("rscrape-cmnts" IN_LIST MY_TARGETS)
@@ -51,17 +48,17 @@ if ("rscrape-mods" IN_LIST MY_TARGETS)
     target_link_libraries(rscrape-mods ${Boost_REGEX_LIBRARY})
     target_link_libraries(rscrape-mods mysqlclient)
     target_compile_definitions(rscrape-mods PRIVATE SPIDER)
-    target_link_libraries(rscrape-cmnts compsky_asciify)
-    target_link_libraries(rscrape-cmnts compsky_mysql)
+    target_link_libraries(rscrape-mods compsky_asciify)
+    target_link_libraries(rscrape-mods compsky_mysql)
 endif()
 
 if ("srch-by-reason" IN_LIST MY_TARGETS)
-    add_executable(srch-by-reason   src/mysql__cmnts_from_subs_tagged.cpp ${asciify_srcs} ${mymysql_srcs} include/utils.cpp)
-    target_link_libraries(srch-by-reason mysqlclient)
+    add_executable(srch-by-reason   src/mysql__cmnts_from_subs_tagged.cpp)
+    target_link_libraries(srch-by-reason mysqlclient compsky_asciify compsky_mysql)
 endif()
 if ("srch-tagged-subs" IN_LIST MY_TARGETS)
-    add_executable(srch-tagged-subs src/mysql__cmnts_from_subs_tagged.cpp ${asciify_srcs} ${mymysql_srcs} include/utils.cpp)
-    target_link_libraries(srch-tagged-subs mysqlclient)
+    add_executable(srch-tagged-subs src/mysql__cmnts_from_subs_tagged.cpp)
+    target_link_libraries(srch-tagged-subs mysqlclient compsky_asciify compsky_mysql)
     target_compile_definitions(srch-tagged-subs PRIVATE SUB2TAG)
 endif()
 
