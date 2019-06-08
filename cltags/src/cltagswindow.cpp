@@ -4,23 +4,20 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 
-#include "mymysql.hpp" // for mymysql::*
-
-namespace res1 {
-    #include "mymysql_results.hpp"
-}
-
-namespace res2 {
-    #include "mymysql_results.hpp"
-}
+#include <compsky/mysql/query.hpp>
 
 #define DIGITS_IN_UINT64 19
 
 
-constexpr const int BUF_SZ_INIT = 4096;
-char* BUF = (char*)malloc(BUF_SZ_INIT);
-int BUF_INDX = 0;
-int BUF_SZ = BUF_SZ_INIT;
+namespace compsky::asciify {
+    char* BUF = (char*)malloc(4096);
+}
+
+MYSQL_RES* RES1;
+MYSQL_ROW ROW1;
+
+MYSQL_RES* RES2;
+MYSQL_ROW ROW2;
 
 
 QString DISPLAY_TAGS_RES = "";
@@ -54,8 +51,9 @@ void SelectColourButton::set_colour(){
     const double b = ib/255.0;
     const double a = ia/255.0;
     
-    mymysql::exec("UPDATE tag SET r=", r, 3, ",g=", g, 3, ",b=", b, 3, ",a=", a, 3, " WHERE id=", this->tag_id);
-    BUF_INDX = 0;
+    auto f = compsky::asciify::flag::guarantee::between_zero_and_one_inclusive;
+    
+    compsky::mysql::exec("UPDATE tag SET r=", f, r, 3, ",g=", f, g, 3, ",b=", f, b, 3, ",a=", f, a, 3, " WHERE id=", this->tag_id);
 }
 
 void SelectColourButton::mousePressEvent(QMouseEvent* e){
@@ -77,16 +75,13 @@ void resize_display_tags_res(size_t n){
 */
 
 void SelectColourButton::display_subs_w_tag(){
-    res1::query("SELECT r.name FROM subreddit r JOIN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id=",  this->tag_id,  ") A ON A.subreddit_id = r.id");
-    BUF_INDX = 0;
+    compsky::mysql::query(&RES1,  "SELECT r.name FROM subreddit r JOIN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id=",  this->tag_id,  ") A ON A.subreddit_id = r.id");
     
     char* name;
-    while (res1::assign_next_result(&name)){
+    while (compsky::mysql::assign_next_result(RES1, &ROW1, &name)){
         DISPLAY_TAGS_RES += name;
         DISPLAY_TAGS_RES += '\n';
     }
-    
-    res1::free_result();
     
     QMessageBox::information(this, tr("Tagged Subreddits"), DISPLAY_TAGS_RES, QMessageBox::Cancel);
     
@@ -95,20 +90,18 @@ void SelectColourButton::display_subs_w_tag(){
 
 
 ClTagsDialog::ClTagsDialog(const char* mysql_cfg,  QWidget* parent){
-    mymysql::init(mysql_cfg);
+    compsky::mysql::init(mysql_cfg);
     
     QTabWidget* tabWidget = new QTabWidget;
     
-    res1::query("SELECT id, name FROM category");
-    BUF_INDX = 0;
+    compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM category");
     
     {
     uint64_t id;
     char* name;
-    while (res1::assign_next_result(&id, &name)){
+    while (compsky::mysql::assign_next_result(RES1, &ROW1, &id, &name)){
         tabWidget->addTab(new ClTagsTab(id), tr(name));
     }
-    res1::free_result();
     }
     
     QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -124,24 +117,22 @@ ClTagsDialog::ClTagsDialog(const char* mysql_cfg,  QWidget* parent){
 }
 
 ClTagsDialog::~ClTagsDialog(){
-    mymysql::exit();
+    compsky::mysql::exit();
 }
 
 ClTagsTab::ClTagsTab(const uint64_t id, QWidget* parent) : QWidget(parent){
     QVBoxLayout* mainLayout = new QVBoxLayout;
     
-    res2::query("SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM tag WHERE id IN (SELECT tag_id FROM tag2category WHERE category_id=",  id,  ") ORDER BY name");
-    BUF_INDX = 0;
+    compsky::mysql::query(&RES2,  "SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM tag WHERE id IN (SELECT tag_id FROM tag2category WHERE category_id=",  id,  ") ORDER BY name");
     
     {
     uint64_t id;
     char* name;
     unsigned char r, g, b, a;
     
-    while (res2::assign_next_result(&id, &name, &r, &g, &b, &a)){
+    while (compsky::mysql::assign_next_result(RES2, &ROW2, &id, &name, &r, &g, &b, &a)){
         mainLayout->addWidget(new SelectColourButton(id, r, g, b, a, name, this));
     }
-    res2::free_result();
     }
     
     setLayout(mainLayout);

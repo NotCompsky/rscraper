@@ -6,10 +6,7 @@
 #include <QPushButton>
 #include <QDialog>
 #include <QMouseEvent>
-
-
-typedef __uint32_t uint32_t;
-typedef __uint64_t uint64_t;
+#include <inttypes.h> // for uintN_t
 
 
 struct tag2cl{
