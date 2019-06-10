@@ -194,8 +194,8 @@ void csv2cls(const char* csv){
     char* s;
     char id_str[20];
     size_t id_str_len;
-    constexpr static auto f = compsky::asciify::flag::guarantee::between_zero_and_one_inclusive;
-    constexpr static auto ff = compsky::asciify::flag::strlen;
+    constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f;
+    constexpr static const compsky::asciify::flag::StrLen ff;
     while (compsky::mysql::assign_next_result(RES, &ROW, &id, &n_cmnts, &r, &g, &b, &a, &s)){
         if (id != last_id){
             --compsky::asciify::BUF_INDX;  // Overwrite trailing comma left by RGBs

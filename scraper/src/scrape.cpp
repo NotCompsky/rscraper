@@ -147,9 +147,9 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     const char* cmnt_content = cmnt["data"]["body"].GetString();
     
     
-    auto a = compsky::asciify::flag::concat::start;
-    auto b = compsky::asciify::flag::concat::end;
-    auto esc = compsky::asciify::flag::escape;
+    constexpr static const compsky::asciify::flag::concat::Start a;
+    constexpr static const compsky::asciify::flag::concat::End b;
+    constexpr static const compsky::asciify::flag::Escape esc;
     
     compsky::mysql::exec("INSERT IGNORE INTO comment (id, parent_id, author_id, submission_id, created_at, reason_matched, content) values(",  a, ',',  cmnt_id,  parent_id,  author_id,  submission_id,  created_at,  reason_matched,  b,  ",\"",  esc,  '"',  cmnt_content,  "\")");
     
