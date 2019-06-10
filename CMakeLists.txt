@@ -35,6 +35,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 add_subdirectory(scraper)
 add_subdirectory(tags)
 add_subdirectory(rtagger)
+add_subdirectory(utils)
 
 # Add all targets to the build-tree export set
 export(TARGETS rscraper-tagger FILE "${PROJECT_BINARY_DIR}/RScraperTargets.cmake")
@@ -72,7 +73,7 @@ install(EXPORT RScraperTargets DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
 if(IS_DIRECTORY "${CMAKE_INSTALL_PREFIX}/man/man1")
     # Manpage creation strongly based on example by Michael Wild in CMake mailing list in September 2010
     # https://cmake.org/pipermail/cmake/2010-September/039781.html
-    set(MAN_PAGES_BASENAMES "rscraper.1" "rscraper-tags.1" "rscraper-str2id.1" "rscraper-id2str.1" "rscraped-tagged-subs.1" "rscraped-reason.1" "rscrape-mods.1" "rscrape-cmnts.1")
+    set(MAN_PAGES_BASENAMES "rscraper.1" "rscraper-tags.1" "rscraper-str2id.1" "rscraper-id2str.1" "rscraped-tagged-subs.1" "rscraped-reason.1" "rscrape-mods.1" "rscrape-cmnts.1" "rscraper-init.1")
     set(DOC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/docs")
     set(MAN_FILES)
     find_program(PANDOC NAMES pandoc)

@@ -1,4 +1,4 @@
-% RSCRAPER(1) RSCRAPE User Manual
+% RSCRAPER(1) RSCRAPER User Manual
 % NotCompsky
 % June 2019
 
@@ -20,4 +20,4 @@ Prior to using the programs, the relevant environmental variables must be set.
 
 # SEE ALSO
 
-*rscraper-tags(1)*, *rscrape-cmnts(1)*, *rscrape-mods(1)*, *rscraped-reason(1)*, *rscraped-tagged-subs(1)*, *rscrape-id2str(1)*, *rscrape-str2id(1)*
+*rscraper-init(1)*, *rscraper-tags(1)*, *rscrape-cmnts(1)*, *rscrape-mods(1)*, *rscraped-reason(1)*, *rscraped-tagged-subs(1)*, *rscrape-id2str(1)*, *rscrape-str2id(1)*
