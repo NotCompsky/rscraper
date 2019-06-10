@@ -5,7 +5,10 @@
 #include <QDialogButtonBox>
 #include <QPushButton>
 #include <QDialog>
+#include <QLineEdit>
 #include <QMouseEvent>
+#include <QString>
+#include <QVBoxLayout>
 #include <inttypes.h> // for uintN_t
 
 
@@ -33,6 +36,12 @@ class ClTagsTab : public QWidget{
     Q_OBJECT
   public:
     explicit ClTagsTab(const uint64_t id, QWidget* parent = 0);
+    const uint64_t cat_id;
+  public Q_SLOTS:
+    void add_tag();
+    uint64_t create_tag(QString& qs,  const char* s);
+  private:
+    QVBoxLayout* l;
 };
 
 class ClTagsDialog : public QDialog{
@@ -40,5 +49,15 @@ class ClTagsDialog : public QDialog{
   public:
     ~ClTagsDialog();
     explicit ClTagsDialog(QWidget* parent = 0);
+};
+
+class TagDialog : public QDialog {
+  public:
+    explicit TagDialog(QString title,  QString str,  QWidget* parent = 0);
+    ~TagDialog();
+    QLineEdit* name_edit;
+  private:
+    QDialogButtonBox* btn_box;
+    QVBoxLayout* l;
 };
 #endif
