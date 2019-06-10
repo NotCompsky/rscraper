@@ -1,25 +1,33 @@
+#include "rtagger.hpp"
+
 #include <string.h> // for memcpy, strlen
-#include <string> // for std::string
-#include <unistd.h> // for write
+#include <stdio.h> // for printf // TMP
 
-#include "utils.h" // for count_digits, itoa_nonstandard
-
-#include "rscraper_utils.hpp" // for sql::*
+#include <compsky/mysql/query.hpp>
 
 
+MYSQL_RES* RES;
+MYSQL_ROW ROW;
+
+extern "C" char* DST = NULL; // alias for BUF
+
+namespace compsky::asciify {
+    char* BUF = (char*)malloc(4096 * 1024);
+    size_t BUF_SZ = 4096 * 1024;
+}
 
 
-constexpr const char* id_t2_ = "id-t2_";
+constexpr static const char* id_t2_ = "id-t2_";
 
 
-int id2str(unsigned long int id_orig,  char* buf){
-    int n_digits = 0;
-    unsigned long int id = id_orig;
+size_t id2str(uint64_t id_orig,  char* buf){
+    size_t n_digits = 0;
+    uint64_t id = id_orig;
     while (id != 0){
         ++n_digits;
         id /= 36;
     }
-    const int to_return = n_digits;
+    const size_t to_return = n_digits;
     while (id_orig != 0){ // Note that a subreddit id should never be 0
         char digit = id_orig % 36;
         buf[--n_digits] = digit + ((digit<10) ? '0' : 'a' - 10);
@@ -28,7 +36,7 @@ int id2str(unsigned long int id_orig,  char* buf){
     return to_return;
 }
 
-constexpr uint64_t str2id(const char* str,  const int start_index,  const int end_index_plus_one){
+constexpr uint64_t str2id(const char* str,  const size_t start_index,  const size_t end_index_plus_one){
     uint64_t n = 0;
     for (auto i = start_index;  i < end_index_plus_one;  ++i){
         n *= (10 + 26);
@@ -43,20 +51,12 @@ constexpr uint64_t str2id(const char* str,  const int start_index,  const int en
 static_assert(str2id("6l4z3", 0, 5) == 11063919); // /u/AutoModerator
 
 
-unsigned long int SKIPPED_FIRST_CHAR = 0;
-char* DST;
 
-extern "C"
-void free_dst(){
-    free(DST - SKIPPED_FIRST_CHAR); // Since we added 1 to it before
-}
-
-int estimated_n_bytes(const char* csv, int& n_commas){
-    int n = 0;
-    int i = 0;
+size_t estimated_n_bytes(const char* csv){
+    size_t n = 0;
+    size_t i = 0;
     while (true){
         if (csv[i] == ','){
-            ++n_commas;
             n += 2 + strlen("[\"SUBREDDITNAME\",\"rgba(255,255,255,1.0)\"],")*2; // 2 for "": minus ,  2 spaces for ["SUBREDDITNAME","rgba(255,255,255,1.0)"],
         } else if (csv[i] == 0)
             return 1 + (n+5+11) + 1 + 1; // { ... }\0
@@ -68,24 +68,21 @@ int estimated_n_bytes(const char* csv, int& n_commas){
 //static_assert(n_required_bytes("id-t2_foo,id-t2_bar") == strlen("{\"foo\":\"#123456\",\"bar\":\"#123456\"}") + 1);
 
 extern "C"
-void init_mysql(const char* mysql_url,  const char* mysql_usr,  const char* mysql_pwd){
-    SQL_CON = SQL_DRIVER->connect(mysql_url, mysql_usr, mysql_pwd);
-    SQL_CON->setSchema("rscraper");
-    SQL_STMT = SQL_CON->createStatement();
+void init(){
+    compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
 }
 
-size_t enlarge_dst(int i,  size_t n_allocated_bytes){
+void enlarge_dst(size_t extra_sz){
     // -1 for terminating null byte
-    DST[i + 1] = 0; // Necessary to null-terminate for memcpy?
-    n_allocated_bytes *= 2;
-    n_allocated_bytes += 1000;
-    printf("Requesting realloc of %luB\n", n_allocated_bytes);
-    char* dst = (char*)realloc(DST, n_allocated_bytes);
+    compsky::asciify::BUF[compsky::asciify::BUF_INDX + 1] = 0; // Necessary to null-terminate for memcpy?
+    compsky::asciify::BUF_SZ *= 2;
+    compsky::asciify::BUF_SZ += 1000 + extra_sz;
+    char* dst = (char*)realloc(compsky::asciify::BUF, compsky::asciify::BUF_SZ);
     if (dst != NULL){
-        DST = dst;
-        return n_allocated_bytes;
+        compsky::asciify::BUF = dst;
+        return;
     }
-    // TODO: else out of memory
+    abort();
 }
 
 extern "C"
@@ -105,20 +102,21 @@ void csv2cls(const char* csv){
     // Convert id-t2_ABCDEF,id-t2_abcdefg,id-t2_12345  to  colour hex codes
     // The former is longer than the latter, so can reuse the same string as the final output
     // SQL statement might still be longer though, so have to create new string for it
-    int i = 6; // Skip first prefix
-    int j = 6;
-    char stmt[strlen(STMT_PRE) + 2*strlen(csv) + strlen(STMT_POST)]; // 2*strlen(csv) because each id string is at least 7 characters long, and largest integer in base 10 would be 13 digits long, and one comma
-    int stmt_i = 0;
     
-    memcpy(stmt + stmt_i,  STMT_PRE,  strlen(STMT_PRE));
-    stmt_i += strlen(STMT_PRE);
+    if (csv[0] == 0){
+        compsky::asciify::BUF_INDX = 1;
+        goto goto_results;
+    }
     
-    int n_users = 1;
-    size_t n_allocated_bytes = estimated_n_bytes(csv, n_users) + 1000;
+    {
+    size_t estimated_requirement = estimated_n_bytes(csv) + 1000;
+    if (compsky::asciify::BUF_SZ < estimated_requirement)
+        enlarge_dst(estimated_requirement);
+    }
     
-    BUF_INDX = 0;
+    compsky::asciify::BUF_INDX = 0;
     
-    asciify(
+    compsky::asciify::asciify(
         "SELECT A.user_id, SUM(A.c), SUM(A.r), SUM(A.g), SUM(A.b), SUM(A.a), GROUP_CONCAT(A.string) "
         "FROM tag2category t2c "
         "JOIN ( "
@@ -137,78 +135,93 @@ void csv2cls(const char* csv){
                     "WHERE u2scc.user_id IN ("
     );
     
+    {
+    size_t i = 6; // Skip first prefix
+    size_t j = 6;
+    bool last_id_invalid = (csv[i] == 'a');
     while (true){
         switch(csv[i]){
             case 0:
             case ',':
-                const uint64_t id = str2id(csv, j, i);
-                
-                asciify(id);
+                if (!last_id_invalid){
+                    const uint64_t id = str2id(csv, j, i);
+                    
+                    compsky::asciify::asciify(id);
+                    compsky::asciify::asciify(',');
+                }
                 if (csv[i] == 0)
                     goto goto_break;
-                asciify(',');
-                
                 i += 6; // Skip "id-t2_"
+                if (csv[i+1] == 'a') // 7th character of "may-invalid"
+                    last_id_invalid = true;
                 j = i + 1; // Start at character after comma
                 break;
         }
         ++i;
     }
+    }
     goto_break:
+    --compsky::asciify::BUF_INDX; // Remove trailing comma
     
-    res1::query( /* Contents of BUF concatenated with */
-                        ")) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id "
+    {
+    constexpr static const char* stmt_post =
+                ")) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id "
                 "GROUP BY U2SCC.user_id, s2t.tag_id "
             ") S2T ON S2T.tag_id = t.id "
         ") A ON t2c.tag_id = A.tag_id "
-        "GROUP BY A.user_id, t2c.category_id"
-    );
-    BUF_INDX = 0;
+        "GROUP BY A.user_id, t2c.category_id";
+    memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_post,  strlen(stmt_post));
+    compsky::asciify::BUF_INDX += strlen(stmt_post);
+    }
     
-    printf("%s\n", stmt);
+    compsky::mysql::query_buffer(&RES, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
     
     
-    int k = 0;
+    compsky::asciify::BUF_INDX = 1;
     
-    BUF = (char*)malloc(n_allocated_bytes);
-    //BUF[k++] = '{'; We obtain an (erroneous) prefix of "]," in the following loop
+    //compsky::asciify::BUF[compsky::asciify::BUF_INDX++] = '{'; We obtain an (erroneous) prefix of "]," in the following loop
     // To avoid adding another branch, we simply skip the first character, and overwrite the second with "{" later
+    {
     uint64_t last_id = 0;
     uint64_t id;
     uint64_t n_cmnts;
     double r, g, b, a;
     char* s;
-    while (res1::assign_next_result(&id, &n_cmnts, &r, &g, &b, &a, &s)){
+    char id_str[20];
+    size_t id_str_len;
+    constexpr static auto f = compsky::asciify::flag::guarantee::between_zero_and_one_inclusive;
+    constexpr static auto ff = compsky::asciify::flag::strlen;
+    while (compsky::mysql::assign_next_result(RES, &ROW, &id, &n_cmnts, &r, &g, &b, &a, &s)){
         if (id != last_id){
-            --BUF_INDX;  // Overwrite trailing comma left by RGBs
-            asciify("],\"id_t2_",  id,  "\":[");
+            --compsky::asciify::BUF_INDX;  // Overwrite trailing comma left by RGBs
+            id_str_len = id2str(id, id_str);
+            compsky::asciify::asciify("],\"id-t2_",  ff, id_str, id_str_len,  "\":[");
             last_id = id;
         }
         
-        DoubleBetweenZeroAndOne zao_a(a / n_cmnts);
+        if (compsky::asciify::BUF_INDX + strlen(s) + 1000  >=  compsky::asciify::BUF_SZ)
+            enlarge_dst(strlen(s) + 1000);
         
-        if (BUF_INDX + strlen(s) + 1000  >=  n_allocated_bytes)
-            n_allocated_bytes = enlarge_dst(BUF_INDX,  n_allocated_bytes + strlen(s));
-        
-        asciify(
+        compsky::asciify::asciify(
             "[\"rgba(",
-            (uint64_t)(255.0d * zno_r.value / n_cmnts),  ',',
-            (uint64_t)(255.0d * zno_g.value / n_cmnts),  ',',
-            (uint64_t)(255.0d * zno_b.value / n_cmnts),  ',',
-            zao_a,
+            (uint64_t)(255.0 * r / (double)n_cmnts),  ',',
+            (uint64_t)(255.0 * g / (double)n_cmnts),  ',',
+            (uint64_t)(255.0 * b / (double)n_cmnts),  ',',
+            f, (double)(a / (double)n_cmnts), 3,
             ")\",\"",
             s,
             "\"],"
         );
     }
-    SKIPPED_FIRST_CHAR = 0;
-    if (k != 0){
-        BUF[k] = ']';
-        --k; // Clear trailing comma
-        ++BUF; // Skip first character
-        SKIPPED_FIRST_CHAR = 1;
     }
-    BUF[0] = '{';
-    BUF[++k] = '}';
-    BUF[++k] = 0;
+    goto_results:
+    DST = compsky::asciify::BUF;
+    if (compsky::asciify::BUF_INDX != 1){
+        compsky::asciify::BUF[--compsky::asciify::BUF_INDX] = ']'; // Overwrite trailing comma
+        ++DST; // Skip preceding comma
+    } else compsky::asciify::BUF_INDX = 0;
+    DST[0] = '{';
+    compsky::asciify::BUF[++compsky::asciify::BUF_INDX] = '}';
+    compsky::asciify::BUF[++compsky::asciify::BUF_INDX] = 0;
+    printf("%s\n", DST);
 }

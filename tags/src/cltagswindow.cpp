@@ -89,8 +89,8 @@ void SelectColourButton::display_subs_w_tag(){
 }
 
 
-ClTagsDialog::ClTagsDialog(const char* mysql_cfg,  QWidget* parent){
-    compsky::mysql::init(mysql_cfg);
+ClTagsDialog::ClTagsDialog(QWidget* parent){
+    compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
     
     QTabWidget* tabWidget = new QTabWidget;
     

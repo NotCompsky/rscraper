@@ -230,9 +230,9 @@ void process_all_comments_live(){
 }
 
 int main(const int argc, const char* argv[]){
-    compsky::mysql::init(argv[1]);  // Init SQL
+    compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
     mycu::init();         // Init CURL
-    myrcu::init(argv[2]); // Init OAuth
+    myrcu::init(getenv("RSCRAPER_REDDIT_CFG")); // Init OAuth
     
     process_all_comments_live();
     

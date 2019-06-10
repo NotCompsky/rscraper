@@ -16,7 +16,14 @@ else()
 endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
+set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-add_executable(cltags src/main.cpp src/cltagswindow.cpp)
-target_include_directories(cltags PRIVATE ${COMPSKY_INCLUDE_DIRS})
-target_link_libraries(cltags mysqlclient Qt5::Widgets compsky_asciify compsky_mysql)
+add_executable(rscraper-tags "${SRC_DIR}/main.cpp" "${SRC_DIR}/cltagswindow.cpp")
+target_include_directories(rscraper-tags PRIVATE ${COMPSKY_INCLUDE_DIRS})
+target_link_libraries(rscraper-tags mysqlclient Qt5::Widgets compsky_asciify compsky_mysql)
+
+install(
+    TARGETS rscraper-tags
+    RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+        COMPONENT bin
+)

@@ -81,8 +81,8 @@ void id2str(unsigned long int id_orig,  char* buf){
     buf[n] = 0;
 }
 
-int main(const int argc, const char* argv[]){
-    compsky::mysql::init(argv[1]);  // Init SQL
+int main(const int argc,  const char** argv){
+    compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
     
     auto c = compsky::asciify::flag::concat::start;
     auto d = compsky::asciify::flag::concat::end;
@@ -90,7 +90,7 @@ int main(const int argc, const char* argv[]){
     compsky::mysql::query(&RES,
         a,
             c, "','", 3,
-                argv+2, argc-2,
+                argv+1, argc-1,
             d,
         b
     );

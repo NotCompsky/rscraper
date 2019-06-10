@@ -39,6 +39,6 @@ class ClTagsDialog : public QDialog{
     Q_OBJECT
   public:
     ~ClTagsDialog();
-    explicit ClTagsDialog(const char* mysql_cfg,  QWidget* parent = 0);
+    explicit ClTagsDialog(QWidget* parent = 0);
 };
 #endif

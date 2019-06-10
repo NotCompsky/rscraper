@@ -380,16 +380,16 @@ uint64_t subreddit2id(const char* name){
     myrcu::handler(myerr::SUBREDDIT_NOT_IN_DB);
 }
 
-int main(const int argc, const char* argv[]){
-    mymysql::init(argv[1]);  // Init SQL
+int main(const int argc,  const char** argv){
+    mymysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
     mycu::init();         // Init CURL
-    myrcu::init(argv[2]); // Init OAuth
+    myrcu::init(getenv("RSCRAPER_REDDIT_CFG")); // Init OAuth
     
-    ascii2n(argv[3], &MAX_DEPTH);
+    ascii2n(argv[1], &MAX_DEPTH);
     
     memcpy(SQL__INSERT_MOD,  SQL__INSERT_MOD_PRE,  strlen(SQL__INSERT_MOD_PRE));
     
-    for (auto i = 4;  i < argc;  ++i){
+    for (auto i = 2;  i < argc;  ++i){
         SUBS_TO_SCRAPE.push_back(subreddit2id(argv[i]));
         DEPTHS.push_back(0);
     }

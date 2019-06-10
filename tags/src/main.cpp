@@ -3,7 +3,9 @@
 
 int main(int argc,  char** argv){
     QApplication app(argc, argv);
-    ClTagsDialog win(argv[1]);
-    win.show();
+    
+    ClTagsDialog* win = new ClTagsDialog();
+    win->show();
+    
     return app.exec();
 }

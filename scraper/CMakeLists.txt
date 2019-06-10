@@ -16,52 +16,39 @@ endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 
-if ("${MY_TARGETS} " STREQUAL " ") # Extra character necessary - empty string comparison doesn't work
-    # e.g. cmake .. -DMY_TARGETS=txt;img
-    set(MY_TARGETS "id2str" "str2id" "rscrape-cmnts" "rscrape-mods" "srch-by-reason" "srch-tagged-subs")
-endif()
+set(MY_TARGETS "rscraper-id2str" "rscraper-str2id" "rscrape-cmnts" "rscrape-mods" "rscraped-reason" "rscraped-tagged-subs")
 
-include_directories("./include")
+set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 
-if ("id2str" IN_LIST MY_TARGETS)
-    add_executable(id2str src/id2str.c)
-    target_compile_definitions(id2str PRIVATE TOSTR)
-endif()
-if ("str2id" IN_LIST MY_TARGETS)
-    add_executable(str2id src/id2str.c)
-endif()
+add_executable(rscraper-id2str "${SRC_DIR}/id2str.c")
+target_compile_definitions(rscraper-id2str PRIVATE TOSTR)
 
-if ("rscrape-cmnts" IN_LIST MY_TARGETS)
-    add_executable(rscrape-cmnts src/scrape.cpp)
-    target_link_libraries(rscrape-cmnts curl)
-    target_link_libraries(rscrape-cmnts b64)
-    target_link_libraries(rscrape-cmnts ${Boost_REGEX_LIBRARY})
-    target_link_libraries(rscrape-cmnts mysqlclient)
-    target_link_libraries(rscrape-cmnts compsky_asciify)
-    target_link_libraries(rscrape-cmnts compsky_mysql)
-endif()
-if ("rscrape-mods" IN_LIST MY_TARGETS)
-    add_executable(rscrape-mods src/scrape.cpp)
-    target_link_libraries(rscrape-mods curl)
-    target_link_libraries(rscrape-mods b64)
-    target_link_libraries(rscrape-mods ${Boost_REGEX_LIBRARY})
-    target_link_libraries(rscrape-mods mysqlclient)
-    target_compile_definitions(rscrape-mods PRIVATE SPIDER)
-    target_link_libraries(rscrape-mods compsky_asciify)
-    target_link_libraries(rscrape-mods compsky_mysql)
-endif()
+add_executable(rscraper-str2id "${SRC_DIR}/id2str.c")
 
-if ("srch-by-reason" IN_LIST MY_TARGETS)
-    add_executable(srch-by-reason   src/mysql__cmnts_from_subs_tagged.cpp)
-    target_link_libraries(srch-by-reason mysqlclient compsky_asciify compsky_mysql)
-endif()
-if ("srch-tagged-subs" IN_LIST MY_TARGETS)
-    add_executable(srch-tagged-subs src/mysql__cmnts_from_subs_tagged.cpp)
-    target_link_libraries(srch-tagged-subs mysqlclient compsky_asciify compsky_mysql)
-    target_compile_definitions(srch-tagged-subs PRIVATE SUB2TAG)
-endif()
+add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp")
+target_link_libraries(rscrape-cmnts curl)
+target_link_libraries(rscrape-cmnts b64)
+target_link_libraries(rscrape-cmnts ${Boost_REGEX_LIBRARY})
+target_link_libraries(rscrape-cmnts mysqlclient)
+target_link_libraries(rscrape-cmnts compsky_asciify)
+target_link_libraries(rscrape-cmnts compsky_mysql)
 
+add_executable(rscrape-mods "${SRC_DIR}/scrape.cpp")
+target_link_libraries(rscrape-mods curl)
+target_link_libraries(rscrape-mods b64)
+target_link_libraries(rscrape-mods ${Boost_REGEX_LIBRARY})
+target_link_libraries(rscrape-mods mysqlclient)
+target_compile_definitions(rscrape-mods PRIVATE SPIDER)
+target_link_libraries(rscrape-mods compsky_asciify)
+target_link_libraries(rscrape-mods compsky_mysql)
+
+add_executable(rscraped-reason   "${SRC_DIR}/mysql__cmnts_from_subs_tagged.cpp")
+target_link_libraries(rscraped-reason mysqlclient compsky_asciify compsky_mysql)
+
+add_executable(rscraped-tagged-subs "${SRC_DIR}/mysql__cmnts_from_subs_tagged.cpp")
+target_link_libraries(rscraped-tagged-subs mysqlclient compsky_asciify compsky_mysql)
+target_compile_definitions(rscraped-tagged-subs PRIVATE SUB2TAG)
 
 
 foreach(tgt ${MY_TARGETS})
@@ -69,3 +56,10 @@ foreach(tgt ${MY_TARGETS})
         target_compile_definitions("${tgt}" PRIVATE "${dfn}")
     endforeach(dfn)
 endforeach(tgt)
+
+
+install(
+    TARGETS rscraper-id2str rscraper-str2id rscrape-cmnts rscrape-mods rscraped-reason rscraped-tagged-subs
+    RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+        COMPONENT bin
+)
