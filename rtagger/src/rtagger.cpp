@@ -72,6 +72,11 @@ void init(){
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
 }
 
+extern "C"
+void exit_mysql(){
+    compsky::mysql::exit();
+}
+
 void enlarge_dst(size_t extra_sz){
     // -1 for terminating null byte
     compsky::asciify::BUF[compsky::asciify::BUF_INDX + 1] = 0; // Necessary to null-terminate for memcpy?

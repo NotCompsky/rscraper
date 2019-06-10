@@ -31,3 +31,5 @@ if __name__ == '__main__':
     rtagger.init()
     
     app.run(host='localhost', port=args.port)
+    
+    rtagger.exit_mysql()
