@@ -113,7 +113,7 @@ ClTagsDialog::ClTagsDialog(const char* mysql_cfg,  QWidget* parent){
     mainLayout->addWidget(buttonBox);
     setLayout(mainLayout);
     
-    setWindowTitle(tr("rscraper++ tag colour picker"));
+    setWindowTitle(tr("rscraper tag colour picker"));
 }
 
 ClTagsDialog::~ClTagsDialog(){
