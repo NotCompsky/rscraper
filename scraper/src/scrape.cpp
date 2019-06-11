@@ -32,7 +32,7 @@
 MYSQL_ROW ROW;
 
 namespace compsky::asciify {
-    char* BUF = (char*)malloc(4096);
+    BUF = (char*)malloc(4096);
 }
 
 

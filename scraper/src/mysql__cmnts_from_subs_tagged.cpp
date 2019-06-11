@@ -8,7 +8,7 @@ MYSQL_RES* RES;
 MYSQL_ROW ROW;
 
 namespace compsky::asciify {
-    char* BUF = (char*)malloc(4096);
+    BUF = (char*)malloc(4096);
     int BUF_SZ = 4096;
         
     void ensure_buf_can_fit(size_t n){

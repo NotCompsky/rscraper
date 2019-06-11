@@ -13,7 +13,7 @@
 
 
 namespace compsky::asciify {
-    char* BUF = (char*)malloc(4096);
+    BUF = (char*)malloc(4096);
 }
 
 MYSQL_RES* RES1;

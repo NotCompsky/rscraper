@@ -12,7 +12,7 @@ MYSQL_ROW ROW;
 extern "C" char* DST = NULL; // alias for BUF
 
 namespace compsky::asciify {
-    char* BUF = (char*)malloc(4096 * 1024);
+    BUF = (char*)malloc(4096 * 1024);
     size_t BUF_SZ = 4096 * 1024;
 }
 
@@ -209,9 +209,9 @@ void csv2cls(const char* csv){
         
         compsky::asciify::asciify(
             "[\"rgba(",
-            (uint64_t)(255.0 * r / (double)n_cmnts),  ',',
-            (uint64_t)(255.0 * g / (double)n_cmnts),  ',',
-            (uint64_t)(255.0 * b / (double)n_cmnts),  ',',
+            +(uint8_t)(255.0 * r / (double)n_cmnts),  ',',
+            +(uint8_t)(255.0 * g / (double)n_cmnts),  ',',
+            +(uint8_t)(255.0 * b / (double)n_cmnts),  ',',
             f, (double)(a / (double)n_cmnts), 3,
             ")\",\"",
             s,
