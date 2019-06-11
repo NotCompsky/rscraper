@@ -1,5 +1,6 @@
 #include <stdlib.h> // for getenv
 #include <stdio.h> // for fprintf
+#include <iostream> // for std::cout
 
 #include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
@@ -15,36 +16,123 @@ namespace compsky::asciify {
 }
 
 
-int diy(const char* a,  const char* b){
-    fprintf(stderr, "%s%s\nFor other setups, you will have to set up the database manually\nCreate the database, create user and grant permissions if necessary, and copy-paste the commands from 'init.sql' into your MySQL client\n",  a,  b);
-    return 1;
+constexpr static const char* stmts =
+    #include "init.sql"
+;
+
+char* auth_ptr;
+
+void ef_reed(){
+    char c;
+    while((c=fgetc(stdin))){
+        if (c != '\n'){
+            *auth_ptr = c;
+            ++auth_ptr;
+        } else return;
+    }
 }
 
 
-int main(const int argc,  char** argv){
-    const char* cfg_pth = argv[1]; // Cannot use getenv("RSCRAPER_MYSQL_CFG") because we expect to run this as root, a different environment
-    if (cfg_pth == nullptr){
-        fprintf(stderr, "Environmental variable 'RSCRAPER_MYSQL_CFG' not set\n");
-        exit(1);
+int main(const char* stmts){
+    size_t len;
+    FILE* cfg;
+    
+    std::cout << "* MySQL Configuration *" << std::endl;
+    
+    std::cout << "Absolute path to save the config file to: ";
+    char* cfg_pth;
+    getline(&cfg_pth, &len, stdin);
+    
+    char auth[4096];
+    memcpy(auth, "HOST: ", 6);
+    char* auth_ptr_ends[6];
+    auth_ptr = auth + 6;
+    compsky::mysql::MYSQL_AUTH[0] = auth_ptr;
+    auto i = 0;
+    
+    std::cout << "Host (localhost if it is on this machine): ";
+    ef_reed();
+    auth_ptr_ends[i] = auth_ptr;
+    memcpy(auth_ptr, "\nPATH: ", 7);
+    auth_ptr += 7;
+    compsky::mysql::MYSQL_AUTH[++i] = auth_ptr;
+    
+    bool is_localhost = (strncmp(compsky::mysql::MYSQL_AUTH[i-1], "localhost", strlen("localhost")) == 0);
+    if (is_localhost){
+        FILE* proc = popen("mysql_config --socket", "r");
+        auth_ptr += fread(auth_ptr, 1, 1024, proc) - 1; // Overwrite trailing newline
+        pclose(proc);
+    } else {
+        std::cout << "Path: ";
+        ef_reed();
     }
-    compsky::mysql::init_auth(cfg_pth);
+    auth_ptr_ends[i] = auth_ptr;
+    memcpy(auth_ptr, "\nUSER: ", 7);
+    auth_ptr += 7;
+    compsky::mysql::MYSQL_AUTH[++i] = auth_ptr;
     
-    const char* hostname = compsky::mysql::MYSQL_AUTH[0];
+    std::cout << "Username: ";
+    ef_reed();
+    auth_ptr_ends[i] = auth_ptr;
+    memcpy(auth_ptr, "\nPWRD: ", 7);
+    auth_ptr += 7;
+    compsky::mysql::MYSQL_AUTH[++i] = auth_ptr;
     
-    if (strncmp(hostname, "localhost", strlen("localhost")) != 0)
-        return diy("rscraper-init assumes the MySQL server is local, not ",  hostname);
+    std::cout << "Corresponding password: ";
+    ef_reed();
+    auth_ptr_ends[i] = auth_ptr;
+    memcpy(auth_ptr, "\nDBNM: ", 7);
+    auth_ptr += 7;
+    compsky::mysql::MYSQL_AUTH[++i] = auth_ptr;
+    
+    std::cout << "Database name: ";
+    ef_reed();
+    auth_ptr_ends[i] = auth_ptr;
+    memcpy(auth_ptr, "\nPORT: ", 7);
+    auth_ptr += 7;
+    compsky::mysql::MYSQL_AUTH[++i] = auth_ptr;
+    
+    if (is_localhost){
+        *auth_ptr = '0';
+        ++auth_ptr;
+    } else {
+        std::cout << "Port number: ";
+        ef_reed();
+    }
+    auth_ptr_ends[i] = auth_ptr;
+    *auth_ptr = '\n'; // Important that there is a trailing newline
+    
+    cfg = fopen(cfg_pth, "wb");
+    fwrite(auth,  1,  (uintptr_t)auth_ptr + 1 - (uintptr_t)auth,  cfg);
+    fclose(cfg);
+    
+    for (auto j = 0;  j < 6;  ++j)
+        auth_ptr_ends[j][0] = 0;
+    for (auto j = 0;  j < 6;  ++j)
+        printf("MYSQL_AUTH[%d] = %s\n", j, compsky::mysql::MYSQL_AUTH[j]);
+    
+    /* Now to login to the MySQL database with the root user */
     
     const char* username = compsky::mysql::MYSQL_AUTH[2]; // User to grant permissions to
     const char* password = compsky::mysql::MYSQL_AUTH[3]; // His password
-    if (argc == 2){
-        compsky::mysql::MYSQL_AUTH[2] = "root";
+    
+    std::cout << "MySQL admin username: ";
+    ef_reed();
+    compsky::mysql::MYSQL_AUTH[2] = auth_ptr;
+    
+    const uintptr_t auth_ptr_before = (uintptr_t)auth_ptr;
+    *auth_ptr = 0; // So we can write it out here:
+    std::cout << "MySQL admin password (leave blank to use system socket authentication - i.e. if you can login to MySQL as `" << compsky::mysql::MYSQL_AUTH[2] << "` without a password): ";
+    ef_reed();
+    if (auth_ptr_before == (uintptr_t)auth_ptr)
         compsky::mysql::MYSQL_AUTH[3] = nullptr;
-    } else {
-        compsky::mysql::MYSQL_AUTH[2] = argv[1];  // username
-        compsky::mysql::MYSQL_AUTH[3] = argv[2]; // password
-    }
+    else
+        compsky::mysql::MYSQL_AUTH[3] = auth_ptr;
+    
     const char* db_name = compsky::mysql::MYSQL_AUTH[4];
     compsky::mysql::MYSQL_AUTH[4] = nullptr; // Haven't created the database yet
+    
+    
     compsky::mysql::login_from_auth();
     
     compsky::mysql::exec("CREATE DATABASE IF NOT EXISTS `", db_name, "`");
@@ -68,17 +156,14 @@ int main(const int argc,  char** argv){
     
     constexpr static const compsky::asciify::flag::Escape esc;
     
-    compsky::mysql::exec("CREATE USER IF NOT EXISTS `", esc, '`', username, "`@`localhost` IDENTIFIED BY \"", esc, '"', password, "\"");
-    
-    compsky::mysql::exec("GRANT SELECT, INSERT, UPDATE ON ", db_name, ".* TO `", esc, '`', username, "`@`localhost`");
+    if (is_localhost){
+        compsky::mysql::exec("CREATE USER IF NOT EXISTS `", esc, '`', username, "`@`localhost` IDENTIFIED BY \"", esc, '"', password, "\"");
+        compsky::mysql::exec("GRANT SELECT, INSERT, UPDATE ON ", db_name, ".* TO `", esc, '`', username, "`@`localhost`");
+    } else {
+        std::cout << "You must manually create the user `" << username << "` and grant him permissions: SELECT, INSERT, UPDATE on `" << db_name << "`" << std::endl;
+    }
     
     compsky::mysql::exit();
     
     return 0;
-    
-    
-    goto__diy:
-    
-    
-    return 1;
 }
