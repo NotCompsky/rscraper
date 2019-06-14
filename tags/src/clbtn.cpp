@@ -61,7 +61,7 @@ void SelectColourButton::display_subs_w_tag(){
     
     char* name;
     QString DISPLAY_TAGS_RES = "";
-    while (compsky::mysql::assign_next_result(RES1, &ROW1, &name)){
+    while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
         DISPLAY_TAGS_RES += name;
         DISPLAY_TAGS_RES += '\n';
     }

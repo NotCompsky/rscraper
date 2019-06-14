@@ -12,8 +12,10 @@
 #define DIGITS_IN_UINT64 19
 
 
-namespace compsky::asciify {
-    BUF = (char*)malloc(4096);
+namespace compsky {
+    namespace asciify {
+        char* BUF = (char*)malloc(4096);
+    }
 }
 
 MYSQL_RES* RES1;
@@ -38,7 +40,7 @@ ClTagsDialog::ClTagsDialog(QWidget* parent){
     {
     uint64_t id;
     char* name;
-    while (compsky::mysql::assign_next_result(RES1, &ROW1, &id, &name)){
+    while (compsky::mysql::assign_next_row(RES1, &ROW1, &id, &name)){
         tag_name2id[name] = id;
         tagslist << name;
     }
@@ -49,7 +51,7 @@ ClTagsDialog::ClTagsDialog(QWidget* parent){
     {
     uint64_t id;
     char* name;
-    while (compsky::mysql::assign_next_result(RES1, &ROW1, &id, &name)){
+    while (compsky::mysql::assign_next_row(RES1, &ROW1, &id, &name)){
         tabWidget->addTab(new ClTagsTab(id), tr(name));
     }
     }

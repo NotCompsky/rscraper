@@ -33,7 +33,7 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id, QWidget* parent) : cat_id(cat_id), Q
     char* name;
     unsigned char r, g, b, a;
     
-    while (compsky::mysql::assign_next_result(RES2, &ROW2, &id, &name, &r, &g, &b, &a)){
+    while (compsky::mysql::assign_next_row(RES2, &ROW2, &id, &name, &r, &g, &b, &a)){
         l->addWidget(new SelectColourButton(id, r, g, b, a, name, this));
     }
     }
@@ -46,7 +46,7 @@ uint64_t ClTagsTab::create_tag(QString& qs,  const char* s){
     compsky::mysql::exec("INSERT INTO tag (name, r,g,b,a) VALUES (\"",  f,  '"',  s,  "\",0,0,0,0)");
     compsky::mysql::query_buffer(&RES1,  "SELECT LAST_INSERT_ID() as ''");
     uint64_t id = 0;
-    while(compsky::mysql::assign_next_result(RES1, &ROW1, &id));
+    while(compsky::mysql::assign_next_row(RES1, &ROW1, &id));
     tag_name2id[qs] = id;
     return id;
 }

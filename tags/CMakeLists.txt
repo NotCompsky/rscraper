@@ -1,5 +1,11 @@
-cmake_minimum_required(VERSION 3.14.1 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
-find_package(Qt5Widgets REQUIRED)
+cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
+find_package(Qt5Widgets)
+
+if(NOT Qt5Widgets_FOUND)
+    message(WARNING "Qt5::Widgets not found, so skipping compilation of rscraper-tags")
+    return()
+endif()
+
 find_package(Compsky REQUIRED asciify mysql)
 set(CMAKE_AUTOMOC ON)
 
@@ -28,6 +34,7 @@ add_executable(
     "${SRC_DIR}/cltagswindow.cpp"
     "${SRC_DIR}/tagdialog.cpp"
 )
+set_property(TARGET rscraper-tags PROPERTY CXX_STANDARD 17)
 target_include_directories(rscraper-tags PRIVATE ${COMPSKY_INCLUDE_DIRS})
 target_link_libraries(rscraper-tags mysqlclient Qt5::Widgets compsky_asciify compsky_mysql)
 
@@ -36,3 +43,7 @@ install(
     RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
         COMPONENT bin
 )
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(rscraper-tags secur32)
+endif()
