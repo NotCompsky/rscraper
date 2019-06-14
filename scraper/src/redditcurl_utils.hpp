@@ -1,6 +1,12 @@
 #ifndef __MYRCU__
 #define __MYRCU__
-#include <b64/encode.h> // for base64::encode
+
+#ifdef _WIN32
+  #include <b64/cencode.h> // for base64_encode*
+#else
+  #include <b64/encode.h> // for base64::*
+#endif
+
 #include <stdlib.h> // for free, malloc, realloc
 
 #include "rapidjson/document.h" // for rapidjson::Document
@@ -18,15 +24,22 @@ namespace myrcu {
     #include <execinfo.h> // for printing stack trace
 #endif
 
+constexpr size_t strlen_constexpr(const char* s){
+    // GCC strlen is constexpr; this is apparently a bug
+    size_t n = 0;
+    while (*s != 0  &&  n < 1024) // We need a limit on the number of iterations or else it throws an error
+        ++n;
+    return n;
+}
 
 constexpr int REDDIT_REQUEST_DELAY = 1;
 
 constexpr const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
-constexpr const int PARAMS_LEN = strlen(PARAMS);
+constexpr const size_t PARAMS_LEN = strlen_constexpr(PARAMS);
 
 constexpr const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
 constexpr const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
-char AUTH_HEADER[strlen("Authorization: bearer ") + strlen("XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX") + 1] = "Authorization: bearer ";
+char AUTH_HEADER[strlen_constexpr(AUTH_HEADER_PREFIX) + strlen_constexpr(TOKEN_FMT) + 1] = "Authorization: bearer ";
 
 constexpr const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
 constexpr const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
@@ -46,7 +59,7 @@ char* PROXY_URL;
 
 constexpr const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
 constexpr const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
-char BASIC_AUTH_HEADER[strlen("Authorization: Basic ") + strlen("base-64-encoded-client_key:client_secret----------------") + 1] = "Authorization: Basic ";
+char BASIC_AUTH_HEADER[strlen_constexpr("Authorization: Basic ") + strlen_constexpr("base-64-encoded-client_key:client_secret----------------") + 1] = "Authorization: Basic ";
 
 
 CURL* LOGIN_CURL;
@@ -59,7 +72,7 @@ char* LOGIN_POSTDATA;
 
 constexpr const char* URL__USER_MOD_OF__PRE  = "https://www.reddit.com/user/";
 constexpr const char* URL__USER_MOD_OF__POST = "/moderated_subreddits.json";
-char URL__USER_MOD_OF[strlen(URL__USER_MOD_OF__PRE) + 128 + strlen(URL__USER_MOD_OF__POST) + 1] = "https://www.reddit.com/user/";
+char URL__USER_MOD_OF[strlen_constexpr(URL__USER_MOD_OF__PRE) + 128 + strlen_constexpr(URL__USER_MOD_OF__POST) + 1] = "https://www.reddit.com/user/";
 
 CURL* BROWSER_CURL;
 
@@ -87,13 +100,22 @@ void handler(int n){
 void init_login(){
     int i;
     
+    i = strlen_constexpr(BASIC_AUTH_PREFIX);
     
+    {
+  #ifdef _WIN32
+    // Use C ABI rather than C++ to simplify Windows compatibility
+    base64_encodestate state;
+    base64_init_encodestate(&state);
+    base64_encode_block(KEY_AND_SECRET,  strlen(KEY_AND_SECRET),  BASIC_AUTH_HEADER + i,  &state);
+  #else
+    // Using the C functions gives me linker errors on Ubuntu
     base64::encoder base64_encoder;
-    
-    i = strlen(BASIC_AUTH_PREFIX);
-    
     base64_encoder.encode(KEY_AND_SECRET,  strlen(KEY_AND_SECRET),  BASIC_AUTH_HEADER + i);
-    i += strlen(BASIC_AUTH_FMT);
+  #endif
+    }
+    
+    i += strlen_constexpr(BASIC_AUTH_FMT);
     
     BASIC_AUTH_HEADER[i] = 0;
     
@@ -111,8 +133,8 @@ void init_login(){
     
     i = 0;
     
-    memcpy(LOGIN_POSTDATA + i,  LOGIN_POSTDATA_PREFIX,  strlen(LOGIN_POSTDATA_PREFIX));
-    i += strlen(LOGIN_POSTDATA_PREFIX);
+    memcpy(LOGIN_POSTDATA + i,  LOGIN_POSTDATA_PREFIX,  strlen_constexpr(LOGIN_POSTDATA_PREFIX));
+    i += strlen_constexpr(LOGIN_POSTDATA_PREFIX);
     
     memcpy(LOGIN_POSTDATA + i,  PWD,  strlen(PWD));
     i += strlen(PWD);
@@ -146,10 +168,10 @@ void login(){
     // Result is in format
     // {"access_token": "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX", "token_type": "bearer", "expires_in": 3600, "scope": "*"}
     
-    int i = strlen(AUTH_HEADER_PREFIX);
+    int i = strlen_constexpr(AUTH_HEADER_PREFIX);
     
-    memcpy(AUTH_HEADER + i,  mycu::MEMORY.memory + strlen("{\"access_token\": \""),  strlen(TOKEN_FMT));
-    i += strlen(TOKEN_FMT);
+    memcpy(AUTH_HEADER + i,  mycu::MEMORY.memory + strlen_constexpr("{\"access_token\": \""),  strlen_constexpr(TOKEN_FMT));
+    i += strlen_constexpr(TOKEN_FMT);
     
     AUTH_HEADER[i] = 0;
     
@@ -192,7 +214,7 @@ void init(const char* fp){
     mycu::MEMORY.memory = (char*)malloc(0);
     mycu::MEMORY.n_allocated = 0;
     
-    LOGIN_POSTDATA = (char*)malloc(strlen(LOGIN_POSTDATA_PREFIX) + strlen(PWD) + strlen(LOGIN_POSTDATA_KEYNAME) + strlen(USR) + 1);
+    LOGIN_POSTDATA = (char*)malloc(strlen_constexpr(LOGIN_POSTDATA_PREFIX) + strlen(PWD) + strlen(LOGIN_POSTDATA_KEYNAME) + strlen(USR) + 1);
     
     
     curl_easy_setopt(mycu::curl, CURLOPT_USERAGENT, USER_AGENT);
@@ -248,11 +270,11 @@ void init_browser_curl(){
 }
 
 void get_user_moderated_subs(const char* username){
-    auto i = strlen(URL__USER_MOD_OF__PRE);
+    auto i = strlen_constexpr(URL__USER_MOD_OF__PRE);
     memcpy(URL__USER_MOD_OF + i,  username,  strlen(username));
     i += strlen(username);
-    memcpy(URL__USER_MOD_OF + i,  URL__USER_MOD_OF__POST,  strlen(URL__USER_MOD_OF__POST));
-    i += strlen(URL__USER_MOD_OF__POST);
+    memcpy(URL__USER_MOD_OF + i,  URL__USER_MOD_OF__POST,  strlen_constexpr(URL__USER_MOD_OF__POST));
+    i += strlen_constexpr(URL__USER_MOD_OF__POST);
     URL__USER_MOD_OF[i] = 0;
     
     curl_easy_setopt(BROWSER_CURL, CURLOPT_WRITEFUNCTION, mycu::write_res_to_mem);

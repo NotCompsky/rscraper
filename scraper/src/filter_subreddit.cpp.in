@@ -1,0 +1,24 @@
+namespace filter_subreddit {
+
+int matches_id(const uint64_t id){
+    // Return 1 for blacklist (immediately ignore comment), 2 for whitelist (immediately record comment), 0 for no action (i.e. record comment only if it matches the subsequent filters)
+    switch(id){
+        case 4594795: // /r/java
+        case 4594803: // /r/csharp
+        case 5001246: // /r/swift
+            return 1;
+        default: return 0;
+    }
+}
+
+bool to_count(const uint64_t id){
+    // false to not count the comments of any users who post in the subreddit
+    switch(id){
+        case 4594354: // /r/Python
+        case 5001246: // /r/swift
+            return false;
+        default: return true;
+    }
+}
+
+}

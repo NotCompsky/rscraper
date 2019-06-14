@@ -1,0 +1,29 @@
+namespace filter_user {
+
+int matches_id(const uint64_t id){
+    // Return 1 for blacklist (immediately ignore comment), 2 for whitelist (immediately record comment), 0 for no action (i.e. record comment only if it matches the subsequent filters)
+    switch(id){
+        case 11063919: // AutoModerator
+        case 180053962953: // MarkdownShadowBot
+        case 6674527480: // WikiTextBot
+        case 24679559189: // ClickableLinkBot
+        case 27415753: // RemindMeBot
+        case 279116261620: // The-Worst-Bot
+            return 1;
+        default: return 0;
+    }
+}
+
+bool to_count(const uint64_t id){
+    // false to not count the comments of users with user ID (in any subreddit)
+    switch(id){
+        case 11063919: // AutoModerator
+        case 34494503: // SnapshillBot
+        case 180053962953: // MarkdownShadowBot
+        case 6674527480: // WikiTextBot
+            return false;
+        default: return true;
+    }
+}
+
+}

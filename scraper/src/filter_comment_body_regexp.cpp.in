@@ -1,0 +1,28 @@
+const char* regexpr_str = 
+    "(?:^|[^a-zA-Z0-9_])(?:"
+#define GROUP_UNCONDITIONAL 1
+        "("
+            "libcompsky"
+        ")|"
+        
+#define GROUP_PROGRAMMING (GROUP_UNCONDITIONAL + 1)
+        "("
+            "[cC]++|"
+            "[pP]rogramming|"
+            "(source|header) files?"
+        ")|"
+        
+#define GROUP_LINUX (GROUP_PROGRAMMING + 1)
+        "("
+            "[lL]inux|"
+            "[uU]buntu|"
+            "[oO]pen.?[sS]use"
+        ")"
+    ")s?[^a-zA-Z0-9]|"
+    
+#define GROUP_EGG (GROUP_LINUX + 1)
+    "("
+        "dQw4w9WgXcQ|"
+        "YxmdCxX9dMk"
+    ")"
+;

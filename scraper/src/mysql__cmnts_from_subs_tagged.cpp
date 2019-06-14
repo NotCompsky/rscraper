@@ -1,4 +1,4 @@
-#include <unistd.h> // for write
+#include <stdio.h> // for fwrite
 
 #include <compsky/mysql/mysql.hpp>
 #include <compsky/mysql/query.hpp>
@@ -7,14 +7,16 @@
 MYSQL_RES* RES;
 MYSQL_ROW ROW;
 
-namespace compsky::asciify {
-    BUF = (char*)malloc(4096);
-    int BUF_SZ = 4096;
-        
-    void ensure_buf_can_fit(size_t n){
-        if (BUF_INDX + n  >  BUF_SZ){
-            fwrite(BUF, 1, BUF_INDX, stderr);
-            BUF_INDX = 0;
+namespace compsky {
+        namespace asciify {
+        char* BUF = (char*)malloc(4096);
+        int BUF_SZ = 4096;
+            
+        void ensure_buf_can_fit(size_t n){
+            if (BUF_INDX + n  >  BUF_SZ){
+                fwrite(BUF, 1, BUF_INDX, stderr);
+                BUF_INDX = 0;
+            }
         }
     }
 }
@@ -101,7 +103,7 @@ int main(const int argc,  const char** argv){
     uint64_t post_id;
     uint64_t cmnt_id;
     size_t body_sz;
-    while (compsky::mysql::assign_next_result(RES, &ROW, &subname, &post_id, &cmnt_id, f, &body_sz, &body)){
+    while (compsky::mysql::assign_next_row(RES, &ROW, &subname, &post_id, &cmnt_id, f, &body_sz, &body)){
         char post_id_str[10];
         char cmnt_id_str[10];
         id2str(post_id, post_id_str);
@@ -110,15 +112,15 @@ int main(const int argc,  const char** argv){
         compsky::asciify::asciify("https://www.reddit.com/r/",  subname,  "/comments/",  post_id_str,  "/_/",  cmnt_id_str,  '\n');
         
         if (compsky::asciify::BUF_INDX + body_sz > compsky::asciify::BUF_SZ){
-            write(1, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
+            fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX, stdout);
             compsky::asciify::BUF_INDX = 0;
             if (body_sz + 3 + 256 > compsky::asciify::BUF_SZ){
-                write(1, body, body_sz);
+                fwrite(body, 1, body_sz, stdout);
                 continue;
             }
         }
         compsky::asciify::asciify(body, "\n\n\n");
     }
-    write(1, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
+    fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX, stdout);
     compsky::mysql::exit();
 }

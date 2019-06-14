@@ -4,7 +4,12 @@
 
 
 #include <string.h> // for memcpy
-#include <unistd.h> // for sleep
+#ifdef _WIN32
+  #include <windows.h> // for sleep
+  #define sleep(n) Sleep(1000 * n)
+#else
+  #include <unistd.h> // for sleep
+#endif
 #include <string.h> // for malloc, realloc
 
 #include "rapidjson_utils.h" // for SET_DBG_* macros
@@ -19,6 +24,7 @@
 #include "filter_user.cpp" // for filter_user::*
 #include "filter_subreddit.cpp" // for filter_subreddit::*
 
+#include <compsky/asciify/base.hpp>
 #include <compsky/mysql/query.hpp>
 
 
@@ -31,25 +37,36 @@
 
 MYSQL_ROW ROW;
 
-namespace compsky::asciify {
-    BUF = (char*)malloc(4096);
+namespace compsky {
+    namespace asciify {
+        char* BUF = (char*)malloc(4096);
+    }
+}
+
+
+constexpr size_t strlen_constexpr(const char* s){
+    // GCC strlen is constexpr; this is apparently a bug
+    size_t n = 0;
+    while (*s != 0  &&  n < 1024) // We need a limit on the number of iterations or else it throws an error
+        ++n;
+    return n;
 }
 
 
 constexpr const char* SQL__INSERT_SUBMISSION_FROM_CMNT_STR = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
-char SQL__INSERT_SUBMISSION_FROM_CMNT[strlen(SQL__INSERT_SUBMISSION_FROM_CMNT_STR) + 100*strlen("(01234567890123456789,01234567890123456789,2),") + 1] = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
+char SQL__INSERT_SUBMISSION_FROM_CMNT[strlen_constexpr(SQL__INSERT_SUBMISSION_FROM_CMNT_STR) + 100*strlen_constexpr("(01234567890123456789,01234567890123456789,2),") + 1] = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
 size_t SQL__INSERT_SUBMISSION_FROM_CMNT_INDX;
 
 
 
 
 constexpr const char* SQL__INSERT_INTO_USER2SUBCNT_STR = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
-char SQL__INSERT_INTO_USER2SUBCNT[strlen(SQL__INSERT_INTO_USER2SUBCNT_STR) + 100*(1 + 1+1+20+1+20 + 1 + 1) + 1] = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
+char SQL__INSERT_INTO_USER2SUBCNT[strlen_constexpr(SQL__INSERT_INTO_USER2SUBCNT_STR) + 100*(1 + 1+1+20+1+20 + 1 + 1) + 1] = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
 size_t SQL__INSERT_INTO_USER2SUBCNT_INDX;
 
 
 constexpr const char* SQL__INSERT_INTO_SUBREDDIT_STR = "INSERT IGNORE INTO subreddit (id, name) VALUES ";
-char SQL__INSERT_INTO_SUBREDDIT[strlen(SQL__INSERT_INTO_SUBREDDIT_STR) + 100*(1 + 20+1+128 + 1 + 1) + 1] = "INSERT IGNORE INTO subreddit (id, name) VALUES ";
+char SQL__INSERT_INTO_SUBREDDIT[strlen_constexpr(SQL__INSERT_INTO_SUBREDDIT_STR) + 100*(1 + 20+1+128 + 1 + 1) + 1] = "INSERT IGNORE INTO subreddit (id, name) VALUES ";
 size_t SQL__INSERT_INTO_SUBREDDIT_INDX;
 
 
@@ -175,9 +192,9 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
     */
     unsigned long int cmnt_id;
     
-    SQL__INSERT_SUBMISSION_FROM_CMNT_INDX = strlen(SQL__INSERT_SUBMISSION_FROM_CMNT_STR);
-    SQL__INSERT_INTO_USER2SUBCNT_INDX = strlen(SQL__INSERT_INTO_USER2SUBCNT_STR);
-    SQL__INSERT_INTO_SUBREDDIT_INDX = strlen(SQL__INSERT_INTO_SUBREDDIT_STR);
+    SQL__INSERT_SUBMISSION_FROM_CMNT_INDX = strlen_constexpr(SQL__INSERT_SUBMISSION_FROM_CMNT_STR);
+    SQL__INSERT_INTO_USER2SUBCNT_INDX = strlen_constexpr(SQL__INSERT_INTO_USER2SUBCNT_STR);
+    SQL__INSERT_INTO_SUBREDDIT_INDX = strlen_constexpr(SQL__INSERT_INTO_SUBREDDIT_STR);
     
     for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr){
         cmnt_id = myru::id2n_lower((*itr)["data"]["id"].GetString()); // No "t1_" prefix
@@ -187,22 +204,22 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
         process_live_cmnt(*itr, cmnt_id);
     }
     
-    if (SQL__INSERT_SUBMISSION_FROM_CMNT_INDX != strlen(SQL__INSERT_SUBMISSION_FROM_CMNT_STR)){
+    if (SQL__INSERT_SUBMISSION_FROM_CMNT_INDX != strlen_constexpr(SQL__INSERT_SUBMISSION_FROM_CMNT_STR)){
         SQL__INSERT_SUBMISSION_FROM_CMNT[--SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = 0; // Overwrite trailing comma
         PRINTF("stmt: %s\n", SQL__INSERT_SUBMISSION_FROM_CMNT);
         compsky::mysql::exec_buffer(SQL__INSERT_SUBMISSION_FROM_CMNT, SQL__INSERT_SUBMISSION_FROM_CMNT_INDX);
     }
     
-    if (SQL__INSERT_INTO_USER2SUBCNT_INDX != strlen(SQL__INSERT_INTO_USER2SUBCNT_STR)){
+    if (SQL__INSERT_INTO_USER2SUBCNT_INDX != strlen_constexpr(SQL__INSERT_INTO_USER2SUBCNT_STR)){
         --SQL__INSERT_INTO_USER2SUBCNT_INDX; // Overwrite trailing comma
         constexpr const char* b = " ON DUPLICATE KEY UPDATE count = count + 1";
-        memcpy(SQL__INSERT_INTO_USER2SUBCNT + SQL__INSERT_INTO_USER2SUBCNT_INDX,  b,  strlen(b));
-        SQL__INSERT_INTO_USER2SUBCNT_INDX += strlen(b);
+        memcpy(SQL__INSERT_INTO_USER2SUBCNT + SQL__INSERT_INTO_USER2SUBCNT_INDX,  b,  strlen_constexpr(b));
+        SQL__INSERT_INTO_USER2SUBCNT_INDX += strlen_constexpr(b);
         PRINTF("stmt: %s\n", SQL__INSERT_INTO_USER2SUBCNT);
         compsky::mysql::exec_buffer(SQL__INSERT_INTO_USER2SUBCNT, SQL__INSERT_INTO_USER2SUBCNT_INDX);
     }
     
-    if (SQL__INSERT_INTO_SUBREDDIT_INDX != strlen(SQL__INSERT_INTO_SUBREDDIT_STR)){
+    if (SQL__INSERT_INTO_SUBREDDIT_INDX != strlen_constexpr(SQL__INSERT_INTO_SUBREDDIT_STR)){
         SQL__INSERT_INTO_SUBREDDIT[--SQL__INSERT_INTO_SUBREDDIT_INDX] = 0;
         PRINTF("stmt: %s\n", SQL__INSERT_INTO_SUBREDDIT);
         compsky::mysql::exec_buffer(SQL__INSERT_INTO_SUBREDDIT, SQL__INSERT_INTO_SUBREDDIT_INDX);
