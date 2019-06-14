@@ -50,7 +50,7 @@ int main(int argc,  const char** argv){
         f = fopen("user.csv", "w");
         compsky::mysql::query_buffer(&RES, "SELECT id, name FROM user");
         while(compsky::mysql::assign_next_row(RES, &ROW, &id, &name))
-            compsky::asciify::write(f,  id, '\t', name, '\n');
+            compsky::asciify::write(f,  id, ',', name, '\n');
         fclose(f);
     }
     
@@ -58,7 +58,7 @@ int main(int argc,  const char** argv){
         f = fopen("subreddit.csv", "w");
         compsky::mysql::query_buffer(&RES, "SELECT id, name FROM subreddit");
         while(compsky::mysql::assign_next_row(RES, &ROW, &id, &name))
-            compsky::asciify::write(f,  id, '\t', name, '\n');
+            compsky::asciify::write(f,  id, ',', name, '\n');
         fclose(f);
     }
     
@@ -77,7 +77,7 @@ int main(int argc,  const char** argv){
         f = fopen("tag.csv", "w");
         compsky::mysql::query_buffer(&RES, "SELECT name r, g, b, a FROM tag");
         while(compsky::mysql::assign_next_row(RES, &ROW, &name, &r, &g, &b, &a))
-            compsky::asciify::write(f,  _f::start, '\t', name, r, g, b, a, _f::end,  '\n');
+            compsky::asciify::write(f,  _f::start, ',', name, r, g, b, a, _f::end,  '\n');
         fclose(f);
     }
     
@@ -85,7 +85,7 @@ int main(int argc,  const char** argv){
         f = fopen("user2subreddit_cmnt_count.csv", "w");
         compsky::mysql::query_buffer(&RES, "SELECT user_id, subreddit_id, count FROM user2subreddit_cmnt_count");
         while(compsky::mysql::assign_next_row(RES, &ROW, &user_id, &subreddit_id, &count))
-            compsky::asciify::write(f,  user_id, '\t', subreddit_id, '\t', count, '\n');
+            compsky::asciify::write(f,  user_id, ',', subreddit_id, ',', count, '\n');
         fclose(f);
     }
     
