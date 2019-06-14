@@ -1,0 +1,9 @@
+# BEGIN: https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/How-to-create-a-ProjectConfig.cmake-file
+
+get_filename_component(RSCRAPER_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(RSCRAPER_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+
+# These are IMPORTED targets created by FooBarTargets.cmake
+set(RSCRAPER_LIBRARIES rscraper-tagger)
+
+# END: https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/How-to-create-a-ProjectConfig.cmake-file
