@@ -67,8 +67,8 @@ int main(int argc,  const char** argv){
         compsky::mysql::query_buffer(&RES, "SELECT B.name, C.name FROM subreddit2tag A, subreddit B, tag C WHERE B.id=A.subreddit_id AND C.id=A.tag_id");
         // Use names rather than IDs to simplify importing between different databases
         while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2))
-            // \0 and \n are the two characters that are impossible to include in a tag name when creating the tag names through the Qt GUI.
-            compsky::asciify::write(f,  name, '\0', name2, '\n');
+            // \t and \n are the two non-null characters that are impossible to include in a tag name when creating the tag names through the Qt GUI.
+            compsky::asciify::write(f,  name, '\t', name2, '\n');
         fclose(f);
     }
     
@@ -93,7 +93,7 @@ int main(int argc,  const char** argv){
         f = fopen("tag2category.csv", "w");
         compsky::mysql::query_buffer(&RES, "SELECT B.name, C.name FROM tag2category A, tag B, category C WHERE B.id=A.tag_id AND C.id=A.category_id");
         while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2))
-            compsky::asciify::write(f,  name, '\0', name2, '\n');
+            compsky::asciify::write(f,  name, '\t', name2, '\n');
         fclose(f);
     }
     
