@@ -1,4 +1,5 @@
 #include <stdio.h> // for fwrite
+#include <iostream> // for std::cout
 
 #include <compsky/mysql/query.hpp>
 #include <compsky/asciify/print.hpp>
@@ -39,69 +40,62 @@ int main(int argc,  const char** argv){
     
     FILE* f;
     uint64_t count, id, subreddit_id, tag_id, user_id, category_id;
-    char* name;
-    char* name2;
+    char name1[1024];
+    char name2[1024];
+    
+    char buf[1024];
     
     ++argv;
     --argc;
     
     
-    if (argc == 0  ||  contains(argv, argc, "user")){
-        f = fopen("user.csv", "w");
-        compsky::mysql::query_buffer(&RES, "SELECT id, name FROM user");
-        while(compsky::mysql::assign_next_row(RES, &ROW, &id, &name))
-            compsky::asciify::write(f,  id, ',', name, '\n');
+    if (argc == 0  ||  contains(argv, argc, "user.csv")){
+        f = fopen("user.csv", "r");
+        while(fscanf(f, "%lu\t%s", &id, name1) != EOF)
+            std::cout << id << "[u]: " << name1 << std::endl;
         fclose(f);
     }
     
-    if (argc == 0  ||  contains(argv, argc, "subreddit")){
-        f = fopen("subreddit.csv", "w");
-        compsky::mysql::query_buffer(&RES, "SELECT id, name FROM subreddit");
-        while(compsky::mysql::assign_next_row(RES, &ROW, &id, &name))
-            compsky::asciify::write(f,  id, ',', name, '\n');
+    if (argc == 0  ||  contains(argv, argc, "subreddit.csv")){
+        f = fopen("subreddit.csv", "r");
+        while(fscanf(f, "%lu\t%s", &id, name1) != EOF)
+            std::cout << id << "[r]: " << name1 << std::endl;
         fclose(f);
     }
     
-    if (argc == 0  ||  contains(argv, argc, "subreddit2tag")){
-        f = fopen("subreddit2tag.csv", "w");
-        compsky::mysql::query_buffer(&RES, "SELECT B.name, C.name FROM subreddit2tag A, subreddit B, tag C WHERE B.id=A.subreddit_id AND C.id=A.tag_id");
-        // Use names rather than IDs to simplify importing between different databases
-        while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2))
-            // \t and \n are the two non-null characters that are impossible to include in a tag name when creating the tag names through the Qt GUI.
-            compsky::asciify::write(f,  name, '\t', name2, '\n');
+    if (argc == 0  ||  contains(argv, argc, "subreddit2tag.csv")){
+        f = fopen("subreddit2tag.csv", "r");
+        while(fscanf(f, "%s\t%s", name1, name2) != EOF)
+            std::cout << name1 << "[s2t]: " << name2 << std::endl;
         fclose(f);
     }
     
-    if (argc == 0  ||  contains(argv, argc, "tag")){
+    if (argc == 0  ||  contains(argv, argc, "tag.csv")){
         double r, g, b, a;
-        f = fopen("tag.csv", "w");
-        compsky::mysql::query_buffer(&RES, "SELECT name r, g, b, a FROM tag");
-        while(compsky::mysql::assign_next_row(RES, &ROW, &name, &r, &g, &b, &a))
-            compsky::asciify::write(f,  _f::start, ',', name, r, g, b, a, _f::end,  '\n');
+        f = fopen("tag.csv", "r");
+        while(fscanf(f, "%s\t%lf\t%lf\t%lf\t%lf", name1, &r, &g, &b, &a) != EOF)
+            std::cout << name1 << "[s2t]: " << r << "," << g << "," << b << "," << a << std::endl;
         fclose(f);
     }
     
-    if (argc == 0  ||  contains(argv, argc, "user2subreddit_cmnt_count")){
-        f = fopen("user2subreddit_cmnt_count.csv", "w");
-        compsky::mysql::query_buffer(&RES, "SELECT user_id, subreddit_id, count FROM user2subreddit_cmnt_count");
-        while(compsky::mysql::assign_next_row(RES, &ROW, &user_id, &subreddit_id, &count))
-            compsky::asciify::write(f,  user_id, ',', subreddit_id, ',', count, '\n');
+    if (argc == 0  ||  contains(argv, argc, "user2subreddit_cmnt_count.csv")){
+        f = fopen("user2subreddit_cmnt_count.csv", "r");
+        while(fscanf(f, "%lu\t%lu\t%lu", &user_id, &subreddit_id, &count) != EOF)
+            std::cout << user_id << "[u2scc]: " << subreddit_id << std::endl;
         fclose(f);
     }
     
-    if (argc == 0  ||  contains(argv, argc, "tag2category")){
-        f = fopen("tag2category.csv", "w");
-        compsky::mysql::query_buffer(&RES, "SELECT B.name, C.name FROM tag2category A, tag B, category C WHERE B.id=A.tag_id AND C.id=A.category_id");
-        while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2))
-            compsky::asciify::write(f,  name, '\t', name2, '\n');
+    if (argc == 0  ||  contains(argv, argc, "tag2category.csv")){
+        f = fopen("tag2category.csv", "r");
+        while(fscanf(f, "%s\t%s", name1, name2) != EOF)
+            std::cout << name1 << "[t2c]: " << name2 << std::endl;
         fclose(f);
     }
     
-    if (argc == 0  ||  contains(argv, argc, "category")){
-        f = fopen("category.csv", "w");
-        compsky::mysql::query_buffer(&RES, "SELECT name FROM category");
-        while(compsky::mysql::assign_next_row(RES, &ROW, &name))
-            compsky::asciify::write(f,  name, '\n');
+    if (argc == 0  ||  contains(argv, argc, "category.csv")){
+        f = fopen("category.csv", "r");
+        while(fscanf(f, "%s", name1) != EOF)
+            std::cout << name1 << "[c]" << std::endl;
         fclose(f);
     }
     

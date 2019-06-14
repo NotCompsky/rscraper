@@ -6,8 +6,13 @@ target_include_directories(rscraper-export PRIVATE ${COMPSKY_INCLUDE_DIRS})
 target_link_libraries(rscraper-export compsky_mysql compsky_asciify mysqlclient)
 set_property(TARGET rscraper-export PROPERTY CXX_STANDARD 17)
 
+add_executable(rscraper-import "${CMAKE_CURRENT_SOURCE_DIR}/src/import.cpp")
+target_include_directories(rscraper-import PRIVATE ${COMPSKY_INCLUDE_DIRS})
+target_link_libraries(rscraper-import compsky_mysql compsky_asciify mysqlclient)
+set_property(TARGET rscraper-import PROPERTY CXX_STANDARD 17)
+
 install(
-    TARGETS rscraper-export
+    TARGETS rscraper-export rscraper-import
     RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
         COMPONENT bin
 )
