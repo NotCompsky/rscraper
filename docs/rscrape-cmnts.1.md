@@ -1,4 +1,4 @@
-% RSCRAPE-CMNTS(1) RSCRAPE User Manual
+% RSCRAPE-CMNTS(1) RSCRAPER User Manual
 % NotCompsky
 % June 2019
 

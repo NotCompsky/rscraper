@@ -4,26 +4,11 @@
 
 # NAME
 
-rscraper-init - Initialise the MySQL database for use by rscraper utilities. **Not tested for all configurations** - see *ISSUES*.
+rscraper-init - Interactive tool for initialising the MySQL database for use by rscraper utilities.
 
 # SYNOPSIS
 
-rscraper-init *MYSQL_CONFIG_FILE*
-:   If running as root/admin, and root/admin can login to MySQL without a password
-
-rscraper-init *MYSQL_CONFIG_FILE* *USERNAME* *PASSWORD*
-:   Otherwise
-
-# ARGUMENTS
-
-*MYSQL_CONFIG_FILE*
-:   File path pointed to by the environmental variable RSCRAPER_MYSQL_CFG. See **rscraper(1)**.
-
-*USERNAME*
-:   The name of an existing MySQL user with privileges to create databases, create users, and grant privileges.
-
-*PASSWORD*
-:   Corresponding user's password
+rscraper-init
 
 # ABOUT TABLES
 

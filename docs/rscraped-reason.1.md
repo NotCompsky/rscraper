@@ -1,4 +1,4 @@
-% RSCRAPED-REASON(1) RSCRAPE User Manual
+% RSCRAPED-REASON(1) RSCRAPER User Manual
 % NotCompsky
 % June 2019
 

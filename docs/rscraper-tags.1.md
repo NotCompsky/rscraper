@@ -1,4 +1,4 @@
-% RSCRAPER-TAGS(1) RSCRAPE User Manual
+% RSCRAPER-TAGS(1) RSCRAPER User Manual
 % NotCompsky
 % June 2019
 

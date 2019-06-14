@@ -1,4 +1,4 @@
-% RSCRAPED-TAGGED-SUBS(1) RSCRAPE User Manual
+% RSCRAPED-TAGGED-SUBS(1) RSCRAPER User Manual
 % NotCompsky
 % June 2019
 

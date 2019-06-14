@@ -1,4 +1,4 @@
-% RSCRAPER-STR2ID(1) RSCRAPE User Manual
+% RSCRAPER-STR2ID(1) RSCRAPER User Manual
 % NotCompsky
 % June 2019
 
