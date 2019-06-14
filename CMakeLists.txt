@@ -1,11 +1,28 @@
-cmake_minimum_required(VERSION 3.14.1 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
+cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
 
-project(RScraper C CXX)
+project(RScraper C CXX) # WARNING: Sets some important variables about the plarform. Don't call find_package before setting a project name.
 
-set(COMPSKY_MAJOR_VERSION 0)
-set(COMPSKY_MINOR_VERSION 1)
-set(COMPSKY_PATCH_VERSION 0)
-set(COMPSKY_VERSION ${COMPSKY_MAJOR_VERSION}.${COMPSKY_MINOR_VERSION}.${COMPSKY_PATCH_VERSION})
+
+FIND_PACKAGE(Compsky COMPONENTS asciify mysql REQUIRED)
+# Gives that `*** No rule to make target 'compsky_asciify-NOTFOUND'` error if defined only in individual subdirectories' CMakeLists.
+
+
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS "TRUE") # For Windows Visual Studio # Doesn't seem to do anything though!
+
+set(RSCRAPER_MAJOR_VERSION 0)
+set(RSCRAPER_MINOR_VERSION 1)
+set(RSCRAPER_PATCH_VERSION 0)
+set(RSCRAPER_VERSION ${RSCRAPER_MAJOR_VERSION}.${RSCRAPER_MINOR_VERSION}.${RSCRAPER_PATCH_VERSION})
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/include")
+link_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/lib")
+
+include_directories("${COMPSKY_INCLUDE_DIRS}")
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    link_directories("${COMPSKY_BIN_DIRS}")
+else()
+    link_directories("${COMPSKY_LIB_DIRS}")
+endif()
 
 # BEGIN src: https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/How-to-create-a-ProjectConfig.cmake-file
 
@@ -36,6 +53,7 @@ add_subdirectory(scraper)
 add_subdirectory(tags)
 add_subdirectory(rtagger)
 add_subdirectory(utils)
+add_subdirectory(io)
 
 # Add all targets to the build-tree export set
 export(TARGETS rscraper-tagger FILE "${PROJECT_BINARY_DIR}/RScraperTargets.cmake")
@@ -51,7 +69,7 @@ file(RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR
 set(CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
 configure_file(RScraperConfig.cmake.in "${PROJECT_BINARY_DIR}/RScraperConfig.cmake" @ONLY)
 # ... for the install tree
-set(CONF_INCLUDE_DIRS "\${COMPSKY_CMAKE_DIR}/${REL_INCLUDE_DIR}")
+set(CONF_INCLUDE_DIRS "\${RSCRAPER_CMAKE_DIR}/${REL_INCLUDE_DIR}")
 configure_file(RScraperConfig.cmake.in "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/RScraperConfig.cmake" @ONLY)
 # ... for both
 configure_file(RScraperConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/RScraperConfigVersion.cmake" @ONLY)
