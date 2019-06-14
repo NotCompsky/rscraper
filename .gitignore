@@ -1,11 +1,11 @@
-*.swp
-include/*.swp
+3rdparty/include/*
+3rdparty/src/*
 
-_runs
 build/*
-experiments/*
-man/*
-*.kate-swp
-_info.txt
+build-mxe/*
+
 etc/*
+
+*.swp
+*.kate-swp
 
