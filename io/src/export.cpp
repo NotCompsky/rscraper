@@ -46,6 +46,8 @@ int main(int argc,  const char** argv){
     --argc;
     
     
+    /* No dependencies on other tables */
+    
     if (argc == 0  ||  contains(argv, argc, "user")){
         f = fopen("user.csv", "w");
         compsky::mysql::query_buffer(&RES, "SELECT id, name FROM user");
@@ -62,16 +64,6 @@ int main(int argc,  const char** argv){
         fclose(f);
     }
     
-    if (argc == 0  ||  contains(argv, argc, "subreddit2tag")){
-        f = fopen("subreddit2tag.csv", "w");
-        compsky::mysql::query_buffer(&RES, "SELECT B.name, C.name FROM subreddit2tag A, subreddit B, tag C WHERE B.id=A.subreddit_id AND C.id=A.tag_id");
-        // Use names rather than IDs to simplify importing between different databases
-        while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2))
-            // \t and \n are the two non-null characters that are impossible to include in a tag name when creating the tag names through the Qt GUI.
-            compsky::asciify::write(f,  name, '\t', name2, '\n');
-        fclose(f);
-    }
-    
     if (argc == 0  ||  contains(argv, argc, "tag")){
         double r, g, b, a;
         f = fopen("tag.csv", "w");
@@ -82,6 +74,16 @@ int main(int argc,  const char** argv){
         fclose(f);
     }
     
+    if (argc == 0  ||  contains(argv, argc, "category")){
+        f = fopen("category.csv", "w");
+        compsky::mysql::query_buffer(&RES, "SELECT name FROM category");
+        while(compsky::mysql::assign_next_row(RES, &ROW, &name))
+            compsky::asciify::write(f,  name, '\n');
+        fclose(f);
+    }
+    
+    /* No dependencies on previous import data (i.e. just using absolute IDs) */
+    
     if (argc == 0  ||  contains(argv, argc, "user2subreddit_cmnt_count")){
         f = fopen("user2subreddit_cmnt_count.csv", "w");
         compsky::mysql::query_buffer(&RES, "SELECT user_id, subreddit_id, count FROM user2subreddit_cmnt_count");
@@ -89,6 +91,8 @@ int main(int argc,  const char** argv){
             compsky::asciify::write(f,  user_id, '\t', subreddit_id, '\t', count, '\n');
         fclose(f);
     }
+    
+    /* Name-to-name tables */
     
     if (argc == 0  ||  contains(argv, argc, "tag2category")){
         f = fopen("tag2category.csv", "w");
@@ -98,13 +102,16 @@ int main(int argc,  const char** argv){
         fclose(f);
     }
     
-    if (argc == 0  ||  contains(argv, argc, "category")){
-        f = fopen("category.csv", "w");
-        compsky::mysql::query_buffer(&RES, "SELECT name FROM category");
-        while(compsky::mysql::assign_next_row(RES, &ROW, &name))
-            compsky::asciify::write(f,  name, '\n');
+    if (argc == 0  ||  contains(argv, argc, "subreddit2tag")){
+        f = fopen("subreddit2tag.csv", "w");
+        compsky::mysql::query_buffer(&RES, "SELECT B.name, C.name FROM subreddit2tag A, subreddit B, tag C WHERE B.id=A.subreddit_id AND C.id=A.tag_id");
+        // Use names rather than IDs to simplify importing between different databases
+        while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2))
+            // \t and \n are the two non-null characters that are impossible to include in a tag name when creating the tag names through the Qt GUI.
+            compsky::asciify::write(f,  name, '\t', name2, '\n');
         fclose(f);
     }
+    
     
     compsky::mysql::exit();
 }

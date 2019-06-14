@@ -10,8 +10,8 @@ MYSQL_ROW ROW;
 
 namespace compsky {
     namespace asciify {
-        constexpr static const size_t BUF_SZ = 100;
-        char* BUF = (char*)malloc(100); // 16 MiB
+        constexpr static const size_t BUF_SZ = 400;
+        char* BUF = (char*)malloc(400); // 16 MiB
             
         void ensure_buf_can_fit(const char* pre,  size_t n){
             if (unlikely(BUF_INDX + n  >  BUF_SZ)){
@@ -62,6 +62,8 @@ int main(int argc,  const char** argv){
     --argc;
     
     
+    /* No dependencies on other tables */
+    
     if (argc == 0  ||  contains(argv, argc, "user.csv")){
         f = fopen("user.csv", "r");
         compsky::asciify::BUF_INDX = 0;
@@ -91,14 +93,6 @@ int main(int argc,  const char** argv){
         fclose(f);
     }
     
-    if (argc == 0  ||  contains(argv, argc, "subreddit2tag.csv")){
-        f = fopen("subreddit2tag.csv", "r");
-        while(fscanf(f, "%s\t%s", name1, name2) != EOF){
-            //compsky::mysql::exec("INSERT IGNORE INTO subreddit2tag (subreddit_id,tag_id) SELECT s.id,t.id FROM subreddit s, tag t WHERE s.name=\"", _f::esc, '"', name1, "\" AND t.name=\"", _f::esc, '"', name2, "\"");
-        }
-        fclose(f);
-    }
-    
     if (argc == 0  ||  contains(argv, argc, "tag.csv")){
         double r, g, b, a;
         f = fopen("tag.csv", "r");
@@ -113,28 +107,6 @@ int main(int argc,  const char** argv){
         if (compsky::asciify::BUF_INDX != strlen(pre))
             fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX - 1, stdout); // TMP
         //compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
-        fclose(f);
-    }
-    
-    if (argc == 0  ||  contains(argv, argc, "user2subreddit_cmnt_count.csv")){
-        f = fopen("user2subreddit_cmnt_count.csv", "r");
-        compsky::asciify::BUF_INDX = 0;
-        constexpr static const char* pre = "INSERT INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ";
-        compsky::asciify::asciify(pre);
-        while(fscanf(f, "%lu\t%lu\t%lu", &user_id, &subreddit_id, &count) != EOF){
-            compsky::asciify::asciify("(\"", _f::esc, '"', name1, "\"),");
-            compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3,  " ON DUPLICATE KEY UPDATE count=count+VALUES(count)");
-        }
-        if (compsky::asciify::BUF_INDX != strlen(pre))
-            fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX - 1, stdout); // TMP
-        //compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
-        fclose(f);
-    }
-    
-    if (argc == 0  ||  contains(argv, argc, "tag2category.csv")){
-        f = fopen("tag2category.csv", "r");
-        while(fscanf(f, "%s\t%s", name1, name2) != EOF)
-            //compsky::mysql::exec("INSERT IGNORE INTO tag2category (tag_id,category_id) SELECT t.id,c.id FROM tag t, category c WHERE t.name=\"", _f::esc, '"', name1, "\" AND c.name=\"", _f::esc, '"', name2, "\"");
         fclose(f);
     }
     
@@ -153,6 +125,41 @@ int main(int argc,  const char** argv){
         //compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
         fclose(f);
     }
+    
+    /* No dependencies on previous import data (i.e. just using absolute IDs) */
+    
+    if (argc == 0  ||  contains(argv, argc, "user2subreddit_cmnt_count.csv")){
+        f = fopen("user2subreddit_cmnt_count.csv", "r");
+        compsky::asciify::BUF_INDX = 0;
+        constexpr static const char* pre = "INSERT INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ";
+        compsky::asciify::asciify(pre);
+        while(fscanf(f, "%lu\t%lu\t%lu", &user_id, &subreddit_id, &count) != EOF){
+            compsky::asciify::asciify("(\"", _f::esc, '"', name1, "\"),");
+            compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3,  " ON DUPLICATE KEY UPDATE count=count+VALUES(count)");
+        }
+        if (compsky::asciify::BUF_INDX != strlen(pre))
+            fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX - 1, stdout); // TMP
+        //compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
+        fclose(f);
+    }
+    
+    /* Name-to-name tables */
+    
+    if (argc == 0  ||  contains(argv, argc, "subreddit2tag.csv")){
+        f = fopen("subreddit2tag.csv", "r");
+        while(fscanf(f, "%s\t%s", name1, name2) != EOF){
+            //compsky::mysql::exec("INSERT IGNORE INTO subreddit2tag (subreddit_id,tag_id) SELECT s.id,t.id FROM subreddit s, tag t WHERE s.name=\"", _f::esc, '"', name1, "\" AND t.name=\"", _f::esc, '"', name2, "\"");
+        }
+        fclose(f);
+    }
+    
+    if (argc == 0  ||  contains(argv, argc, "tag2category.csv")){
+        f = fopen("tag2category.csv", "r");
+        while(fscanf(f, "%s\t%s", name1, name2) != EOF)
+            //compsky::mysql::exec("INSERT IGNORE INTO tag2category (tag_id,category_id) SELECT t.id,c.id FROM tag t, category c WHERE t.name=\"", _f::esc, '"', name1, "\" AND c.name=\"", _f::esc, '"', name2, "\"");
+        fclose(f);
+    }
+    
     
     compsky::mysql::exit();
 }
