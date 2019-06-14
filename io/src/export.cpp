@@ -75,10 +75,10 @@ int main(int argc,  const char** argv){
     if (argc == 0  ||  contains(argv, argc, "tag")){
         double r, g, b, a;
         f = fopen("tag.csv", "w");
-        compsky::mysql::query_buffer(&RES, "SELECT name r, g, b, a FROM tag");
+        compsky::mysql::query_buffer(&RES, "SELECT name, CONCAT_WS(',', r, g, b, a) FROM tag");
         constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f_inc;
-        while(compsky::mysql::assign_next_row(RES, &ROW, &name, &r, &g, &b, &a))
-            compsky::asciify::write(f,  _f::start, '\t', name, f_inc, 4, r, f_inc, 4, g, f_inc, 4, b, f_inc, 4, a, _f::end,  '\n');
+        while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2))
+            compsky::asciify::write(f, name, '\t', name2, '\n');
         fclose(f);
     }
     
