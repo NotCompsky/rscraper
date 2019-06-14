@@ -11,9 +11,11 @@ MYSQL_ROW ROW;
 
 extern "C" char* DST = NULL; // alias for BUF
 
-namespace compsky::asciify {
-    BUF = (char*)malloc(4096 * 1024);
-    size_t BUF_SZ = 4096 * 1024;
+namespace compsky {
+    namespace asciify {
+        char* BUF = (char*)malloc(4096 * 1024);
+        size_t BUF_SZ = 4096 * 1024;
+    }
 }
 
 
@@ -48,8 +50,8 @@ constexpr uint64_t str2id(const char* str,  const size_t start_index,  const siz
     return n;
 }
 
-static_assert(str2id("6l4z3", 0, 5) == 11063919); // /u/AutoModerator
-
+//static_assert(str2id("6l4z3", 0, 5) == 11063919); // /u/AutoModerator
+// Causes error in MXE GCC
 
 
 size_t estimated_n_bytes(const char* csv){
@@ -196,7 +198,7 @@ void csv2cls(const char* csv){
     size_t id_str_len;
     constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f;
     constexpr static const compsky::asciify::flag::StrLen ff;
-    while (compsky::mysql::assign_next_result(RES, &ROW, &id, &n_cmnts, &r, &g, &b, &a, &s)){
+    while (compsky::mysql::assign_next_row(RES, &ROW, &id, &n_cmnts, &r, &g, &b, &a, &s)){
         if (id != last_id){
             --compsky::asciify::BUF_INDX;  // Overwrite trailing comma left by RGBs
             id_str_len = id2str(id, id_str);

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14.1 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
+cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
 FIND_PACKAGE(Compsky COMPONENTS asciify mysql REQUIRED)
 
 
@@ -19,6 +19,7 @@ set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 add_library(rscraper-tagger SHARED "${SRC_DIR}/rtagger.cpp")
 target_link_libraries(rscraper-tagger mysqlclient compsky_asciify compsky_mysql)
+set_property(TARGET rscraper-tagger PROPERTY CXX_STANDARD 17)
 
 foreach(tgt "rscraper-tagger")
     foreach(dfn ${MY_DEFINITIONS})
@@ -38,3 +39,7 @@ install(
     PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/rscraper"
         COMPONENT dev
 )
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(rscraper-tagger z secur32 ssl crypto crypt32 ws2_32)
+endif()
