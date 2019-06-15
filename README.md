@@ -27,11 +27,11 @@ Packages required for GUI:
 
 On Ubuntu, they can be installed with:
 
-    `sudo apt install libb64-0d libcurl4 default-libmysqlclient`
+    sudo apt install libb64-0d libcurl4 default-libmysqlclient
 
 Installing MySQL takes some configuration.
 
-    `sudo apt install mysql-client mysql-server`
+    sudo apt install mysql-client mysql-server
 
 By default, it seems that `root` can log in to the MySQL server as `root` without a password (through an authentication socket). If that is the case, you can run `sudo rscraper-init` immediately.
 
@@ -64,16 +64,16 @@ Optional packages required for creating man pages:
 
 The commands will be similar for other distros, but for Ubuntu specifically:
 
-    `sudo apt install libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev`
+    sudo apt install libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev
 
 Then install [libcompsky](https://github.com/compsky/libcompsky) with the linked instructions.
 
 Then navigate to this project's root directory and run:
 
-    `mkdir build`
-    `cd build`
-    `cmake ..`
-    `sudo cmake install`
+    mkdir build
+    cd build
+    cmake ..
+    sudo cmake install
 
 ### Windows
 
@@ -90,7 +90,7 @@ If you don't already have `b64`:
     Copy the `CMakeLists.txt` file in the `rscraper` repository underneath `3rdparty/cmake` into the root of the `b64`
     mkdir build
     cd build
-    `x86_64-w64-mingw32.static-cmake ..`
+    x86_64-w64-mingw32.static-cmake ..`
     make
     sudo make install
 
@@ -100,11 +100,11 @@ Then make and install [libcompsky](https://github.com/compsky/libcompsky) with `
 
 Then navigate to `rscraper` root directory and run:
 
-    `x86_64-w64-mingw32.static-cmake ..`
-    `make`
-    `sudo make install`
+    x86_64-w64-mingw32.static-cmake ..
+    make rscraper-str2id rscraper-str2id rscraped-tagged-subs rscraper-id2str rscraped-reason rscraper-tags rscraper-tagger rscraper-init rscraper-import rscraper-export
+    sudo make install
 
-But you've probably run into a few million lines of `undefined reference` errors. This is where I decided to try give compiling for Windows a rest. It is definitely possible, and perhaps one brave soul might decide to give it a try some day.
+I have not yet sorted out `rscrape-cmnts` and `rscrape-mods` to build on MXE, but it only fails at the last stage (linking). Someone with more knowledge of building on Windows would probably find it trivial.
 
 #### VS Code
 
@@ -114,10 +114,10 @@ Install `libcurl`. I recommend getting [the source code](https://curl.haxx.se/de
 
 Once in the root directory of curl, open up the `Command Prompt for VS` as admin and run:
 
-    `mkdir build`
-    `cd build`
-    `cmake ..`
-    `cmake --build . --config Release --target INSTALL`
+    mkdir build
+    cd build
+    cmake ..
+    cmake --build . --config Release --target INSTALL
 
 
 
@@ -125,10 +125,10 @@ Once in the root directory of curl, open up the `Command Prompt for VS` as admin
 
 Right click on the `Command Prompt for VS` and run as admin.
 
-    `mkdir build`
-    `cd build`
-    `cmake --config Release -G "Visual Studio 15 2017 Win64" ..`
-    `cmake --build . --config Release --target INSTALL`
+    mkdir build
+    cd build
+    cmake --config Release -G "Visual Studio 15 2017 Win64" ..
+    cmake --build . --config Release --target INSTALL
 
 Now, you should get a lot of errors such as `LNK1181: cannot open input file 'compsky_asciify-NOTFOUND.obj' [C:/.../rscrape-cmnts.vcxproj]`. You need to find these `vcxproj` files, and replace all instances of the string `-NOTFOUND` with `.lib`. For instance, the `sed` script `sed -i 's/-NOTFOUND/.lib/g' $(find -name '*.vcxproj')` will do this for you, if you have a bash terminal handy.
 
