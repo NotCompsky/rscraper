@@ -21,19 +21,49 @@ Packages required for GUI:
 
 ### Installing
 
-#### Unix
+#### Ubuntu
 
 ##### Prerequisites
 
-On Ubuntu, they can be installed with:
-
     sudo apt install libb64-0d libcurl4 default-libmysqlclient
 
-Installing MySQL takes some configuration.
+If you require GUI:
+
+    sudo apt install libqt5 libqt5widgets5 qt5-default
+
+Installing MySQL server:
 
     sudo apt install mysql-client mysql-server
 
+If you forget to install these mysql packages and run `cmake` first, you will need to run `cmake` again to avoid `cannot find mysql.h` errors. If that doesn't solve the issue, 
+
 By default, it seems that `root` can log in to the MySQL server as `root` without a password (through an authentication socket). If that is the case, you can run `sudo rscraper-init` immediately.
+
+###### Erros
+
+####### mysql.h: No such file or directory
+
+You probably forgot to install the mysql packages (rerun cmake afterwards).
+
+If that doesn't solve it, just edit the `compsky/mysql/mysql.h` file to change the first line to `#define MYSQL_UNDER_DIR`.
+
+#### Raspbian Stretchy
+
+##### Prerequisites
+
+    sudo apt install libb64-0d libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev
+
+For GUI (optional):
+
+    sudo apt install libqt5 libqt5widgets5 qt5-default
+
+For MySQL server:
+
+    sudo apt install mysql-client mysql-server 
+
+For regex matching (optional):
+
+    sudo apt install libboost-regex-dev
 
 #### Windows
 
@@ -82,6 +112,8 @@ The recommended way of building for Windows is using `MXE` on a Unix system. I h
 Actually, I have not compiled the utilities that depend on `libcurl` in MXE either, yet, but it only fails at the last hurdle, linking the binaries.
 
 #### Cross Compiling on Linux with MXE
+
+First a note about cross-compiling: 
 
 If you don't already have `libcurl`, navigate to your `MXE` root directory and run `make curl`.
 
