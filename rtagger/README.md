@@ -1,4 +1,26 @@
-Contains examples of how to use rtagger in a server.
+![Example 1](res/img/1.png)
+
+![Example 2](res/img/2.png)
+
+# Installation
+
+Install the [Javascript script](rtagger/src/rtagger.js) into greasemonkey.
+
+# Usage
+
+[server.py](rtagger/server.py) must be running (on the port specified in [Javascript script](rtagger/src/rtagger.js)) in order to add tags to users.
+
+# Requirements
+
+## Browser Addons
+
+    * GreaseMonkey or similar
+
+## Server
+
+To use the Python server example:
+
+    * flask
 
 # General
 
