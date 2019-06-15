@@ -69,7 +69,7 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
 
 ## Commands
 
-### Linux and Mac
+### Linux, Mac, and other Unix-derived
 
 Navigate to this project's root directory and run:
 
