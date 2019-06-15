@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name			rtagger++
+// @name			rtagger
 // @namespace		http://localhost/
-// @description		Tag people according to rscraper++
+// @description		Tag people according to https://github.com/NotCompsky/rscraper
 // @copyright		2019+, Compsky
 // @include			https://www.reddit.com/*
 // @include			https://old.reddit.com/*
