@@ -24,7 +24,7 @@ See [docs](docs)
 
 * mysql
 * libmysqlclient
-* [libcompsky](https://github.com/compsky/libcompsky)
+* [libcompsky](https://github.com/NotCompsky/libcompsky)
 * libcurl
 * libb64
 
