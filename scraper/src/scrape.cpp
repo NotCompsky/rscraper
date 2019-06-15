@@ -66,7 +66,7 @@ char SQL__INSERT_INTO_SUBREDDIT[strlen_constexpr(SQL__INSERT_INTO_SUBREDDIT_STR)
 size_t SQL__INSERT_INTO_SUBREDDIT_INDX;
 
 
-void count_user_subreddit_cmnt(const unsigned long int user_id,  const unsigned long int subreddit_id, const char* subreddit_name){
+void count_user_subreddit_cmnt(const uint64_t user_id,  const uint64_t subreddit_id, const char* subreddit_name){
     char* dummy = compsky::asciify::BUF;
     auto dummy_indx = compsky::asciify::BUF_INDX;
     
@@ -85,14 +85,14 @@ void count_user_subreddit_cmnt(const unsigned long int user_id,  const unsigned 
     compsky::asciify::BUF_INDX = dummy_indx;
 }
 
-void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
+void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
     SET_STR(body,           cmnt["data"]["body"]);
     SET_STR(subreddit_name, cmnt["data"]["subreddit"]);
     SET_STR(author_name,    cmnt["data"]["author"]);
     
     
-    const unsigned long int author_id = myru::id2n_lower(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
-    const unsigned long int subreddit_id = myru::id2n_lower(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
+    const uint64_t author_id = myru::id2n_lower(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
+    const uint64_t subreddit_id = myru::id2n_lower(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
     const bool is_submission_nsfw = cmnt["data"]["over_18"].GetBool();
     char is_subreddit_nsfw = 2; // 0 for certainly SFW, 1 for certainly NSFW. 2 for unknown.
     
@@ -146,8 +146,8 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     
     compsky::mysql::exec("INSERT IGNORE INTO user (id, name) VALUES (",  author_id,  ",'",  author_name,  "')");
     
-    unsigned long int parent_id = myru::id2n_lower(cmnt["data"]["parent_id"].GetString() + 3);
-    unsigned long int submission_id;
+    uint64_t parent_id = myru::id2n_lower(cmnt["data"]["parent_id"].GetString() + 3);
+    uint64_t submission_id;
     
     if (cmnt["data"]["parent_id"].GetString()[1] == '3'){
         // "t3_" or "t1_" prefix
@@ -182,11 +182,11 @@ void process_live_cmnt(rapidjson::Value& cmnt, const unsigned long int cmnt_id){
     compsky::asciify::BUF_INDX = dummy_indx;
 }
 
-unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned long int last_processed_cmnt_id){
+uint64_t process_live_replies(rapidjson::Value& replies, const uint64_t last_processed_cmnt_id){
     /*
     'replies' object is the 'replies' JSON object which has property 'kind' of value 'Listing'
     */
-    unsigned long int cmnt_id;
+    uint64_t cmnt_id;
     
     SQL__INSERT_SUBMISSION_FROM_CMNT_INDX = strlen_constexpr(SQL__INSERT_SUBMISSION_FROM_CMNT_STR);
     SQL__INSERT_INTO_USER2SUBCNT_INDX = strlen_constexpr(SQL__INSERT_INTO_USER2SUBCNT_STR);
@@ -225,7 +225,7 @@ unsigned long int process_live_replies(rapidjson::Value& replies, const unsigned
 }
 
 void process_all_comments_live(){
-    unsigned long int last_processed_cmnt_id = 0;
+    uint64_t last_processed_cmnt_id = 0;
     
     while (true){
         sleep(myrcu::REDDIT_REQUEST_DELAY);
