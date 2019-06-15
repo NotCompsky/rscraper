@@ -2,7 +2,7 @@
 // @name			rtagger
 // @namespace		http://localhost/
 // @description		Tag people according to https://github.com/NotCompsky/rscraper
-// @copyright		2019+, Compsky
+// @copyright		2019+, NotCompsky
 // @include			https://www.reddit.com/*
 // @include			https://old.reddit.com/*
 // @include			https://new.reddit.com/*
@@ -35,7 +35,7 @@ function main(d){
 
 GM_xmlhttpRequest({
     method:     'GET',
-    url:        'http://localhost:8000/' + user_ids.join(","),
+    url:        'http://localhost:8080/' + user_ids.join(","),
     onload:     function(response){
                     main(JSON.parse(response.responseText));
                 }
