@@ -4,9 +4,13 @@
 
 See [scraper](scraper) directory for details.
 
-## Tagger
+## Browser Tagger
 
 See [rtagger](rtagger) directory for details.
+
+## Tag Manager
+
+See [tags](tags) directory for details.
 
 ## Utilities
 
