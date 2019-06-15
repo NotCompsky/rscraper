@@ -2,54 +2,85 @@
 
 See `docs` directory for documentation.
 
-# Building
+# Installing
 
-## Prerequisites
+## Dependencies
 
-Core Requirements:
+### Required
 
     * mysql
     * libmysqlclient
     * [libcompsky](https://github.com/compsky/libcompsky)
     * libcurl
     * libb64
-    * rapidjson
-
-Packages required for GUI:
-
-    * libqt5
-
-### Installing
 
 #### Ubuntu
 
-##### Prerequisites
+    sudo apt install libb64-0d libcurl4 default-libmysqlclient mysql-client mysql-server
 
-    sudo apt install libb64-0d libcurl4 default-libmysqlclient
+### GUI
 
-If you require GUI:
+    * qt5
+
+#### Ubuntu
 
     sudo apt install libqt5 libqt5widgets5 qt5-default
 
-Installing MySQL server:
+# Building
 
-    sudo apt install mysql-client mysql-server
+## Dependencies
 
-If you forget to install these mysql packages and run `cmake` first, you will need to run `cmake` again to avoid `cannot find mysql.h` errors. If that doesn't solve the issue, 
+### Required
 
-By default, it seems that `root` can log in to the MySQL server as `root` without a password (through an authentication socket). If that is the case, you can run `sudo rscraper-init` immediately.
+In addition to those required for installing.
 
-###### Erros
+    * libb64-dev
+    * libcurl-dev
+    * libmysqlclient-dev
+    * rapidjson
 
-####### mysql.h: No such file or directory
+#### Ubuntu
 
-You probably forgot to install the mysql packages (rerun cmake afterwards).
+    sudo apt install libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev
 
-If that doesn't solve it, just edit the `compsky/mysql/mysql.h` file to change the first line to `#define MYSQL_UNDER_DIR`.
+#### Windows (native)
 
-#### Raspbian Stretchy
+Install [libb64](https://sourceforge.net/projects/libb64/files/latest/download). Download the source code, go to `libb64`'s directory, enter `src`, and copy `cencode.c` to this project's `3rdparty/src` folder. Go to `libb64`'s directory, and copy the `include` folder into this project's `3rdparty` folder.
 
-##### Prerequisites
+Download the [mysql](https://dev.mysql.com/downloads/connector/c/) binary from the link and follow its instructions, making sure you check the `install C connector` or `install C API bindings` option.
+
+Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty` directory.
+
+### Regex Matching
+
+    * boost::regex
+
+#### Ubuntu
+
+    sudo apt install libboost-regex-dev
+
+### Man Pages
+
+    * pandoc
+
+#### Ubuntu
+
+    sudo apt install pandoc
+
+## Commands
+
+### Ubuntu
+
+Navigate to this project's root directory and run:
+
+    mkdir build
+    cd build
+    cmake ..
+    sudo cmake install
+
+## Raspbian Stretchy
+
+### Prerequisites
 
     sudo apt install libb64-0d libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev
 
@@ -65,55 +96,7 @@ For regex matching (optional):
 
     sudo apt install libboost-regex-dev
 
-#### Windows
-
-##### Prerequisites
-
-Install [libb64](https://sourceforge.net/projects/libb64/files/latest/download). Download the source code, go to `libb64`'s directory, enter `src`, and copy `cencode.c` to this project's `3rdparty/src` folder. Go to `libb64`'s directory, and copy the `include` folder into this project's `3rdparty` folder.
-
-//in `Command Prompt for VS`, and run `cl /LD /Iinclude src/cencode.c /link`. From the `libb64` folder copy `include` into the `rscraper/3rdparty` folder. From the `libb64` folder move the resulting `dll` file into the `rscraper` folder underneath `3rdparty/lib`.
-
-Download the [mysql](https://dev.mysql.com/downloads/connector/c/) binary from the link and follow its instructions, making sure you check the `install C connector` or `install C API bindings` option.
-
-Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty` directory.
-
-I believe curl has been built into Windows since late 2018.
-
-## Building
-
-Packages required for regex:
-
-    * boost::regex
-
-### Unix
-
-#### Prerequisites
-
-Optional packages required for creating man pages:
-    * pandoc
-
-The commands will be similar for other distros, but for Ubuntu specifically:
-
-    sudo apt install libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev
-
-Then install [libcompsky](https://github.com/compsky/libcompsky) with the linked instructions.
-
-Then navigate to this project's root directory and run:
-
-    mkdir build
-    cd build
-    cmake ..
-    sudo cmake install
-
-### Windows
-
-The recommended way of building for Windows is using `MXE` on a Unix system. I have not successfully build it with Visual Studio Code 2015 on my Windows machine.
-
-Actually, I have not compiled the utilities that depend on `libcurl` in MXE either, yet, but it only fails at the last hurdle, linking the binaries.
-
-#### Cross Compiling on Linux with MXE
-
-First a note about cross-compiling: 
+### Windows (Cross Compiling from Linux)
 
 If you don't already have `libcurl`, navigate to your `MXE` root directory and run `make curl`.
 
@@ -140,6 +123,12 @@ I have not yet sorted out `rscrape-cmnts` and `rscrape-mods` to build on MXE, bu
 
 `rscraped-tagged-subs`, `rscraped-reason`, `rscraper-tagger`, `rscraper-init`, `rscraper-import`, `rscraper-export` and `rscraper-tags` fail due to `multiple definitions` of `BUF`.
 
+### Windows
+
+The recommended way of building for Windows is using `MXE` on a Unix system. I have not successfully build it with Visual Studio Code 2015 on my Windows machine.
+
+The code in this section is mostly notes I made during my attempt to build it on Windows from the command line with VS Code, and not trustworthy.
+
 #### VS Code
 
 ##### Prerequisites
@@ -152,8 +141,6 @@ Once in the root directory of curl, open up the `Command Prompt for VS` as admin
     cd build
     cmake ..
     cmake --build . --config Release --target INSTALL
-
-
 
 ##### Building
 
@@ -180,7 +167,33 @@ Note that `--config Release` must be used because `-DCMAKE_BUILD_TYPE` is ignore
 
 The directories must be explicitly stated because the find_package command does not find them, even if the FindMySQL.cmake file from the CMake community wiki is copied into the CMake Modules folder. 
 
-#### 
+### Possible Issues
+
+If you forget to install these mysql packages and run `cmake` first, you will need to run `cmake` again to avoid `cannot find mysql.h` errors. If that doesn't solve the issue, 
+
+By default, it seems that `root` can log in to the MySQL server as `root` without a password (through an authentication socket). If that is the case, you can run `sudo rscraper-init` immediately.
+
+#### Cannot find libcompsky_*.so (RUNTIME error)
+
+You need to add `/usr/local/lib` (or equivalent, where libcompsky*.so are installed) to your `LD_LIBRARY_PATH`:
+
+    echo "/usr/local/lib"  |  sudo tee /etc/ld.so.conf.d/99local.conf
+
+#### libcompsky linking errors (possible)
+
+I have no idea why, but CMake seems to decide that COMPSKY_LIB_DIRS is its build directory, and not the path set in `CompskyConfig.cmake`. This means that, if you have deleted the build directory of `libcompsky`, you will have to specify `-DWHY_THIS_NECESSARY=/path/to/compsky/lib/directory` when running `cmake ..`.
+
+#### mysql.h: No such file or directory
+
+You probably forgot to install the mysql packages (rerun cmake afterwards).
+
+If that doesn't solve it, just edit the `compsky/mysql/mysql.h` file to change the first line to `#define MYSQL_UNDER_DIR`.
+
+# Initialising
+
+Run `sudo rscraper-init` to initialise the tables, user, and config file.
+
+To pre-populate the database, run `rscraper-import` on a directory of datasets (must have specific names), or `rscraper-import [TABLE_NAME].csv` to import only a specific file.
 
 # Advanced Usage
 
