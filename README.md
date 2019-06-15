@@ -1,6 +1,16 @@
-# Usage
+# Components
 
-See `docs` directory for documentation.
+## Scrapers
+
+See [docs](docs)
+
+## Tagger
+
+See [rtagger](rtagger) directory for details.
+
+## Utilities
+
+See [docs](docs)
 
 # Installing
 
