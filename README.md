@@ -18,11 +18,11 @@ See [docs](docs)
 
 ### Required
 
-    * mysql
-    * libmysqlclient
-    * [libcompsky](https://github.com/compsky/libcompsky)
-    * libcurl
-    * libb64
+* mysql
+* libmysqlclient
+* [libcompsky](https://github.com/compsky/libcompsky)
+* libcurl
+* libb64
 
 #### Ubuntu, Raspbian, and other Debian-derived
 
@@ -30,7 +30,7 @@ See [docs](docs)
 
 ### GUI
 
-    * qt5
+* qt5
 
 #### Ubuntu, Raspbian, and other Debian-derived
 
@@ -44,10 +44,10 @@ See [docs](docs)
 
 In addition to those required for installing.
 
-    * libb64-dev
-    * libcurl-dev
-    * libmysqlclient-dev
-    * rapidjson
+* libb64-dev
+* libcurl-dev
+* libmysqlclient-dev
+* rapidjson
 
 #### Ubuntu, Raspbian, and other Debian-derived
 
@@ -63,7 +63,7 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
 
 ### Regex Matching
 
-    * boost::regex
+* boost::regex
 
 #### Ubuntu, Raspbian, and other Debian-derived
 
@@ -71,7 +71,7 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
 
 ### Man Pages
 
-    * pandoc
+* pandoc
 
 #### Ubuntu, Raspbian, and other Debian-derived
 
