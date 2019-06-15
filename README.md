@@ -14,7 +14,7 @@ See `docs` directory for documentation.
     * libcurl
     * libb64
 
-#### Ubuntu
+#### Ubuntu, Raspbian, and other Debian-derived
 
     sudo apt install libb64-0d libcurl4 default-libmysqlclient mysql-client mysql-server
 
@@ -22,7 +22,7 @@ See `docs` directory for documentation.
 
     * qt5
 
-#### Ubuntu
+#### Ubuntu, Raspbian, and other Debian-derived
 
     sudo apt install libqt5 libqt5widgets5 qt5-default
 
@@ -39,7 +39,7 @@ In addition to those required for installing.
     * libmysqlclient-dev
     * rapidjson
 
-#### Ubuntu
+#### Ubuntu, Raspbian, and other Debian-derived
 
     sudo apt install libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev
 
@@ -55,7 +55,7 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
 
     * boost::regex
 
-#### Ubuntu
+#### Ubuntu, Raspbian, and other Debian-derived
 
     sudo apt install libboost-regex-dev
 
@@ -63,13 +63,13 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
 
     * pandoc
 
-#### Ubuntu
+#### Ubuntu, Raspbian, and other Debian-derived
 
     sudo apt install pandoc
 
 ## Commands
 
-### Ubuntu
+### Linux and Mac
 
 Navigate to this project's root directory and run:
 
@@ -77,24 +77,6 @@ Navigate to this project's root directory and run:
     cd build
     cmake ..
     sudo cmake install
-
-## Raspbian Stretchy
-
-### Prerequisites
-
-    sudo apt install libb64-0d libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev
-
-For GUI (optional):
-
-    sudo apt install libqt5 libqt5widgets5 qt5-default
-
-For MySQL server:
-
-    sudo apt install mysql-client mysql-server 
-
-For regex matching (optional):
-
-    sudo apt install libboost-regex-dev
 
 ### Windows (Cross Compiling from Linux)
 
