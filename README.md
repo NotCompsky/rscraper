@@ -101,10 +101,12 @@ Then make and install [libcompsky](https://github.com/compsky/libcompsky) with `
 Then navigate to `rscraper` root directory and run:
 
     x86_64-w64-mingw32.static-cmake ..
-    make rscraper-str2id rscraper-str2id rscraped-tagged-subs rscraper-id2str rscraped-reason rscraper-tags rscraper-tagger rscraper-init rscraper-import rscraper-export
+    make rscraper-str2id rscraper-id2str
     sudo make install
 
 I have not yet sorted out `rscrape-cmnts` and `rscrape-mods` to build on MXE, but it only fails at the last stage (linking). Someone with more knowledge of building on Windows would probably find it trivial.
+
+`rscraped-tagged-subs`, `rscraped-reason`, `rscraper-tagger`, `rscraper-init`, `rscraper-import`, `rscraper-export` and `rscraper-tags` fail due to `multiple definitions` of `BUF`.
 
 #### VS Code
 
