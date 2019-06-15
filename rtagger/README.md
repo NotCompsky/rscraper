@@ -4,11 +4,11 @@
 
 # Installation
 
-Install the [Javascript script](rtagger/src/rtagger.js) into greasemonkey.
+Install the [Javascript script](src/rtagger.js) into greasemonkey.
 
 # Usage
 
-[server.py](rtagger/server.py) must be running (on the port specified in [Javascript script](rtagger/src/rtagger.js)) in order to add tags to users.
+[server.py](server.py) must be running (on the port specified in [Javascript script](src/rtagger.js)) in order to add tags to users.
 
 # Requirements
 
