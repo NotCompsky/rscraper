@@ -3,8 +3,14 @@ cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Test
 project(RScraper C CXX) # WARNING: Sets some important variables about the plarform. Don't call find_package before setting a project name.
 
 
-FIND_PACKAGE(Compsky COMPONENTS asciify mysql REQUIRED)
-# Gives that `*** No rule to make target 'compsky_asciify-NOTFOUND'` error if defined only in individual subdirectories' CMakeLists.
+if(WHY_THIS_NECESSARY)
+    set(COMPSKY_INCLUDE_DIRS "${WHY_THIS_NECESSARY}/../include")
+    set(COMPSKY_BIN_DIRS "${WHY_THIS_NECESSARY}/../bin")
+    set(COMPSKY_LIB_DIRS "${WHY_THIS_NECESSARY}")
+else()
+    find_package(Compsky COMPONENTS asciify mysql REQUIRED)
+    # Gives that `*** No rule to make target 'compsky_asciify-NOTFOUND'` error if defined only in individual subdirectories' CMakeLists.
+endif()
 
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS "TRUE") # For Windows Visual Studio # Doesn't seem to do anything though!
