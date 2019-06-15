@@ -62,6 +62,25 @@ int main(int argc,  const char** argv){
     --argc;
     
     
+    // Arg Parser
+    bool force = false;
+    while(true){
+        const char* s = *argv;
+        if (s[2] != 0  ||  s[0] != '-')
+            break;
+        switch(s[1]){
+            case 'f':
+                force = true;
+                break;
+            default:
+                fprintf(stderr, "Unrecognised option: %s\n", s);
+                exit(1);
+        }
+        ++argv;
+        --argc;
+    }
+    
+    
     /* No dependencies on other tables */
     
     if (argc == 0  ||  contains(argv, argc, "user.csv")){
@@ -131,11 +150,19 @@ int main(int argc,  const char** argv){
     if (argc == 0  ||  contains(argv, argc, "user2subreddit_cmnt_count.csv")){
         f = fopen("user2subreddit_cmnt_count.csv", "r");
         compsky::asciify::BUF_INDX = 0;
-        constexpr static const char* pre = "INSERT INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ";
+        char* pre;
+        char* post;
+        if (force){
+            pre  = "INSERT INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ";
+            post = " ON DUPLICATE KEY SET count=VALUES(count)";
+        } else {
+            pre = "INSERT IGNORE INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ";
+            post = "";
+        }
         compsky::asciify::asciify(pre);
         while(fscanf(f, "%lu\t%lu\t%lu", &user_id, &subreddit_id, &count) != EOF){
             compsky::asciify::asciify("(\"", _f::esc, '"', name1, "\"),");
-            compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3,  " ON DUPLICATE KEY UPDATE count=count+VALUES(count)");
+            compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3,  post);
         }
         if (compsky::asciify::BUF_INDX != strlen(pre))
             fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX - 1, stdout); // TMP
