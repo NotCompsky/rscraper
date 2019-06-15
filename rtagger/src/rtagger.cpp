@@ -2,6 +2,7 @@
 
 #include <string.h> // for memcpy, strlen
 #include <stdio.h> // for printf // TMP
+#include <stdlib.h> // for abort
 
 #include <compsky/mysql/query.hpp>
 

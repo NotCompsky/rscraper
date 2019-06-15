@@ -1,4 +1,5 @@
 #include <stdio.h> // for fwrite
+#include <stdlib.h> // for malloc
 
 #include <compsky/mysql/mysql.hpp>
 #include <compsky/mysql/query.hpp>

@@ -1,4 +1,5 @@
 #include <stdio.h> // for fwrite
+#include <stdlib.h> // for malloc
 #include <iostream> // for std::cout
 
 #include <compsky/mysql/query.hpp>
@@ -7,6 +8,13 @@
 
 MYSQL_RES* RES;
 MYSQL_ROW ROW;
+
+
+constexpr size_t strlen_constexpr(const char* s){
+    // GCC strlen is constexpr; this is apparently a bug
+    return *s  ?  1 + strlen_constexpr(s + 1)  :  0;
+}
+
 
 namespace compsky {
     namespace asciify {
@@ -39,7 +47,7 @@ namespace _f {
 }
 
 bool contains(const char** ls,  const int n,    const char* s){
-    const size_t slen = strlen(s);
+    const size_t slen = strlen_constexpr(s);
     for (auto i = 0;  i < n;  ++i)
         if (strncmp(ls[i], s, slen) == 0)
             return true;
@@ -90,7 +98,7 @@ int main(int argc,  const char** argv){
             compsky::asciify::asciify('(', id, ',', '"', _f::esc, '"', name1, '"', ')', ',');
             compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 1 + 1 + 2*128 + 1 + 1 + 1);
         }
-        if (compsky::asciify::BUF_INDX != strlen(pre))
+        if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
             compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
         fclose(f);
     }
@@ -104,7 +112,7 @@ int main(int argc,  const char** argv){
             compsky::asciify::asciify('(', id, ',', '"', _f::esc, '"', name1, '"', ')', ',');
             compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 1 + 1 + 2*128 + 1 + 1 + 1);
         }
-        if (compsky::asciify::BUF_INDX != strlen(pre))
+        if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
             compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
         fclose(f);
     }
@@ -120,7 +128,7 @@ int main(int argc,  const char** argv){
             compsky::asciify::asciify("(\"", _f::esc, '"', name1, "\",", name2, "),");
             compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 2 + 4*7 + 2);
         }
-        if (compsky::asciify::BUF_INDX != strlen(pre))
+        if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
             compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
         fclose(f);
     }
@@ -135,7 +143,7 @@ int main(int argc,  const char** argv){
             compsky::asciify::asciify("(\"", _f::esc, '"', name1, "\"),");
             compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3);
         }
-        if (compsky::asciify::BUF_INDX != strlen(pre))
+        if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
             compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
         fclose(f);
     }
@@ -152,7 +160,7 @@ int main(int argc,  const char** argv){
             post = " ON DUPLICATE KEY SET count=VALUES(count)";
         } else {
             pre = "INSERT IGNORE INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ";
-            post = "";
+            post = " ";
         }
         compsky::asciify::asciify(pre);
         while(fscanf(f, "%lu\t%lu\t%lu", &user_id, &subreddit_id, &count) != EOF){
