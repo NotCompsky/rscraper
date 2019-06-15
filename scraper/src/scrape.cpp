@@ -46,12 +46,8 @@ namespace compsky {
 
 constexpr size_t strlen_constexpr(const char* s){
     // GCC strlen is constexpr; this is apparently a bug
-    size_t n = 0;
-    while (*s != 0  &&  n < 1024) // We need a limit on the number of iterations or else it throws an error
-        ++n;
-    return n;
+    return *s  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
-
 
 constexpr const char* SQL__INSERT_SUBMISSION_FROM_CMNT_STR = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
 char SQL__INSERT_SUBMISSION_FROM_CMNT[strlen_constexpr(SQL__INSERT_SUBMISSION_FROM_CMNT_STR) + 100*strlen_constexpr("(01234567890123456789,01234567890123456789,2),") + 1] = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";

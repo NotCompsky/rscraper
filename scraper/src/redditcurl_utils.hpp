@@ -2,9 +2,9 @@
 #define __MYRCU__
 
 #ifdef _WIN32
-  #include <b64/cencode.h> // for base64_encode*
+# include <b64/cencode.h> // for base64_encode*
 #else
-  #include <b64/encode.h> // for base64::*
+# include <b64/encode.h> // for base64::*
 #endif
 
 #include <stdlib.h> // for free, malloc, realloc
@@ -13,6 +13,8 @@
 #include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
 // NOTE: These are to prefer local headers, as rapidjson is a header-only library. This allows easy use of any version of rapidjson, as those provided by repositories might be dated.
 
+#include <compsky/asciify/asciify.hpp>
+
 #include "error_codes.hpp" // for myerr:*
 #include "curl_utils.hpp" // for mycu::*
 
@@ -20,16 +22,16 @@ namespace myrcu {
 
 
 #ifdef DEBUG
-    #include <stdio.h> // for fprintf
-    #include <execinfo.h> // for printing stack trace
+# include <stdio.h> // for fprintf
+# include <execinfo.h> // for printing stack trace
+#else
+# undef printf
+# define printf(...)
 #endif
 
 constexpr size_t strlen_constexpr(const char* s){
     // GCC strlen is constexpr; this is apparently a bug
-    size_t n = 0;
-    while (*s != 0  &&  n < 1024) // We need a limit on the number of iterations or else it throws an error
-        ++n;
-    return n;
+    return *s  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
 
 constexpr int REDDIT_REQUEST_DELAY = 1;
@@ -38,8 +40,7 @@ constexpr const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
 constexpr const size_t PARAMS_LEN = strlen_constexpr(PARAMS);
 
 constexpr const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
-constexpr const char* TOKEN_FMT = "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX";
-char AUTH_HEADER[strlen_constexpr(AUTH_HEADER_PREFIX) + strlen_constexpr(TOKEN_FMT) + 1] = "Authorization: bearer ";
+char AUTH_HEADER[strlen_constexpr(AUTH_HEADER_PREFIX) + 128 + 1] = "Authorization: bearer ";
 
 constexpr const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
 constexpr const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
@@ -66,7 +67,7 @@ CURL* LOGIN_CURL;
 struct curl_slist* LOGIN_HEADERS;
 constexpr const char* LOGIN_POSTDATA_PREFIX = "grant_type=password&password=";
 constexpr const char* LOGIN_POSTDATA_KEYNAME = "&username=";
-char* LOGIN_POSTDATA;
+char LOGIN_POSTDATA[strlen_constexpr(LOGIN_POSTDATA_PREFIX) + 128 + strlen_constexpr(LOGIN_POSTDATA_KEYNAME) + 128 + 1];
 
 
 
@@ -90,7 +91,6 @@ void handler(int n){
 #endif
     
     free(mycu::MEMORY.memory);
-    free(LOGIN_POSTDATA);
     curl_easy_cleanup(mycu::curl);
     curl_global_cleanup();
     exit(n);
@@ -145,6 +145,9 @@ void init_login(){
     memcpy(LOGIN_POSTDATA + i,  USR,  strlen(USR));
     i += strlen(USR);
     
+    //constexpr static const compsky::asciify::flag::ChangeBuffer change_buffer;
+    //compsky::asciify::asciify(change_buffer, LOGIN_POSTDATA, 0, LOGIN_POSTDATA_PREFIX, PWD, LOGIN_POSTDATA_KEYNAME, USR);
+    
     LOGIN_POSTDATA[i] = 0;
     
     
@@ -170,8 +173,21 @@ void login(){
     
     int i = strlen_constexpr(AUTH_HEADER_PREFIX);
     
-    memcpy(AUTH_HEADER + i,  mycu::MEMORY.memory + strlen_constexpr("{\"access_token\": \""),  strlen_constexpr(TOKEN_FMT));
-    i += strlen_constexpr(TOKEN_FMT);
+    printf("MEMORY:         %s\n", mycu::MEMORY.memory);
+    printf("LOGIN_POSTDATA: %s\n", LOGIN_POSTDATA);
+    
+    switch(mycu::MEMORY.size){
+        case strlen_constexpr("{\"message\": \"Unauthorized\", \"error\": 401}"):
+            handler(myerr::UNAUTHORISED);
+        case strlen_constexpr("{\"error\": \"unsupported_grant_type\"}"):
+            handler(myerr::UNSUPPORTED_GRANT_TYPE);
+    }
+    
+    char* s = mycu::MEMORY.memory + strlen_constexpr("{\"access_token\": \"");
+    while(*s != '"'){
+        AUTH_HEADER[i++] = *s;
+        ++s;
+    }
     
     AUTH_HEADER[i] = 0;
     
@@ -211,10 +227,10 @@ void init(const char* fp){
     USER_AGENT = REDDIT_AUTH[3];
     PROXY_URL = REDDIT_AUTH[4];
     
+    printf("%s \n%s \n%s \n%s \n%s \n",  REDDIT_AUTH[0],  REDDIT_AUTH[1],  REDDIT_AUTH[2],  REDDIT_AUTH[3],  REDDIT_AUTH[4]);
+    
     mycu::MEMORY.memory = (char*)malloc(0);
     mycu::MEMORY.n_allocated = 0;
-    
-    LOGIN_POSTDATA = (char*)malloc(strlen_constexpr(LOGIN_POSTDATA_PREFIX) + strlen(PWD) + strlen(LOGIN_POSTDATA_KEYNAME) + strlen(USR) + 1);
     
     
     curl_easy_setopt(mycu::curl, CURLOPT_USERAGENT, USER_AGENT);

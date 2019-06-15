@@ -8,9 +8,9 @@ MYSQL_RES* RES;
 MYSQL_ROW ROW;
 
 namespace compsky {
-        namespace asciify {
+    namespace asciify {
         char* BUF = (char*)malloc(4096);
-        int BUF_SZ = 4096;
+        constexpr static const size_t BUF_SZ = 4096;
             
         void ensure_buf_can_fit(size_t n){
             if (BUF_INDX + n  >  BUF_SZ){

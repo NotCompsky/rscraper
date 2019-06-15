@@ -54,7 +54,7 @@ set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 
 if(Boost_FOUND)
-    set(USE_BOOST_REGEX)
+    set(USE_BOOST_REGEX 1)
 else()
     message(WARNING "boost::regex not found, so there will be no regex matching in the examples")
 endif()
