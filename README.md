@@ -2,7 +2,7 @@
 
 ## Scrapers
 
-See [docs](docs)
+See [scraper](scraper) directory for details.
 
 ## Tagger
 
@@ -186,11 +186,3 @@ If that doesn't solve it, just edit the `compsky/mysql/mysql.h` file to change t
 Run `sudo rscraper-init` to initialise the tables, user, and config file.
 
 To pre-populate the database, run `rscraper-import` on a directory of datasets (must have specific names), or `rscraper-import [TABLE_NAME].csv` to import only a specific file.
-
-# Advanced Usage
-
-The request delay for Reddit is 1 second. The maximum number of comments we can get with each request is 100. The rate at which new comments are written, we could almost always use a delay of 3 seconds.
-
-To make better use of our request allowance, we can have our programs use a single proxy, which manages the requests from any number of these programs, such that there is at least 1 second between requests sent to reddit.com.
-
-I spent a long time trying to find a program that did this - in the end, it seems that `ncat` (from nmap) is the closest tool, but (as of nmap 7.60) you need to slightly modify the source code for it - in `ncat_proxy.c`, under `ncat_http_server`, replace `fork_handler(i, c);` with `http_server_handler(c); sleep(1);`.
