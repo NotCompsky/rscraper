@@ -16,8 +16,8 @@ Aside from that, it just needs a server to run on, and that server must support 
 
 # Installation
 
-Install the [Javascript script](src/rtagger.js) into greasemonkey.
+Install the [Javascript script](rtagger.js) into greasemonkey.
 
 # Usage
 
-Your chosen must be running (on the port specified in [Javascript script](src/rtagger.js)) in order for the Javascript script to add tags to users.
+Your chosen must be running (on the port specified in [Javascript script](rtagger.js)) in order for the Javascript script to add tags to users.
