@@ -2,6 +2,14 @@
 
 See [the manuals](../docs) for usage information on each tool.
 
+# Building
+
+The `src/filter_*.cpp` files are meant to be edited to customise your build.
+
+For instance, to use a custom regex matching for comment contents, you simply have to edit [filter_comment_body_regexp.cpp](src/filter_comment_body_regexp.cpp).
+
+The edits will not be applied until you rebuild and reinstall the package.
+
 # Advanced Usage
 
 The request delay for Reddit is 1 second. The maximum number of comments we can get with each request is 100. The rate at which new comments are written, we could almost always use a delay of 3 seconds.
