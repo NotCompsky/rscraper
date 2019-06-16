@@ -1,43 +1,4 @@
-void process_moderator(rapidjson::Value& user){
-    SET_STR(user_id,    user["id"]);
-    user_id += 3; // Skip prefix "t2_"
-    SET_STR(user_name,  user["name"]);
-    
-    const size_t RSET(added_on, user["date"], GetFloat);
-    
-    // TODO: process mod_permissions, converting array of strings like "all" to integer of bits
-}
-
-void process_moderators(const char* subreddit, const int subreddit_len){
-    constexpr const char* a = "/about/moderators/?raw_json=1";
-    char api_url[strlen(API_SUBREDDIT_URL_PREFIX) + subreddit_len + strlen(a) + 1];
-    int i = 0;
-    
-    
-    memcpy(api_url + i,  API_SUBREDDIT_URL_PREFIX,  strlen(API_SUBREDDIT_URL_PREFIX));
-    i += strlen(API_SUBREDDIT_URL_PREFIX);
-    
-    memcpy(api_url + i,  subreddit,  subreddit_len);
-    i += subreddit_len;
-    
-    memcpy(api_url + i,  a,  strlen(a));
-    i += strlen(a);
-    
-    api_url[i] = 0;
-    
-    
-    request(api_url);
-    
-    rapidjson::Document d;
-    if (d.Parse(MEMORY.memory).HasParseError())
-        handler(ERR_INVALID_PJ);
-    
-    
-    for (rapidjson::Value::ValueIterator itr = d["data"]["children"].Begin();  itr != d["data"]["children"].End();  ++itr)
-        process_moderator(*itr);
-    
-    
-}
+// Unused code
 
 void process_submission_duplicates(const char* submission_id, const int submission_id_len){
     int i = 0;
