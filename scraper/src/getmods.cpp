@@ -21,7 +21,7 @@
 #include "curl_utils.hpp" // for mycu::*
 #include "redditcurl_utils.hpp" // for myrcu::*
 
-#include "filter_user.cpp" // for filter_user::*
+#include "filter_user.hpp" // for filter_user::*
 
 #include <compsky/mysql/mysql.hpp> // for mymysql::*, BUF, BUF_INDX
 

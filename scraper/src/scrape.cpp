@@ -20,9 +20,9 @@
 #include "curl_utils.hpp" // for mycu::*
 #include "redditcurl_utils.hpp" // for myrcu::*, rapidjson::*
 
-#include "filter_comment_body.cpp" // for filter_comment_body::*
-#include "filter_user.cpp" // for filter_user::*
-#include "filter_subreddit.cpp" // for filter_subreddit::*
+#include "filter_comment_body.hpp" // for filter_comment_body::*
+#include "filter_user.hpp" // for filter_user::*
+#include "filter_subreddit.hpp" // for filter_subreddit::*
 
 #include <compsky/asciify/base.hpp>
 #include <compsky/mysql/query.hpp>
@@ -128,7 +128,6 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
     
     unsigned int reason_matched;
     if ((reason_matched = filter_comment_body::wl::match(metadata, body, strlen(body)))){
-        PRINTF("MATCHED: %s\n", filter_comment_body::wl::what[0].str().c_str());
         goto goto__do_process_this_live_cmnt;
     }
     // if filter_comment_body::bl: return;

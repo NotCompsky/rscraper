@@ -8,7 +8,7 @@
 
 #include "structs.h" // for cmnt_meta
 
-#include "filter_comment_body_regexp.cpp" // for regexpr_str
+#include "filter_comment_body_regexp.hpp" // for regexpr_str
 
 
 namespace filter_comment_body {

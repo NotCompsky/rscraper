@@ -1,0 +1,14 @@
+#ifndef __FILTER_COMMENT_BODY_REGEXP__
+#define __FILTER_COMMENT_BODY_REGEXP__
+
+extern const char* regexpr_str;
+
+enum {
+    NONE,
+    GROUP_UNCONDITIONAL,
+    GROUP_PROGRAMMING,
+    GROUP_LINUX,
+    GROUP_EGG
+};
+
+#endif
