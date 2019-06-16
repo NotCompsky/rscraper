@@ -60,6 +60,7 @@ add_subdirectory(tags)
 add_subdirectory(rtagger)
 add_subdirectory(utils)
 add_subdirectory(io)
+add_subdirectory(query)
 
 # Add all targets to the build-tree export set
 export(TARGETS rscraper-tagger FILE "${PROJECT_BINARY_DIR}/RScraperTargets.cmake")
