@@ -4,7 +4,10 @@
 
 # Installation
 
-You can either install the [Javascript script](rtagger.js) into the greasemonkey addon, or open [the addon](browser-addon/rtagger.xpi) with your browser and install that.
+You can either:
+
+* Install the [Javascript script](rtagger.js) into the Greasemonkey (or equivalent) addon
+* Download [the addon](browser-addon/rtagger.xpi), open it with your browser, and install it
 
 ## AddOn
 
