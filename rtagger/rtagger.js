@@ -2,7 +2,7 @@
 // @name			rtagger
 // @namespace		http://localhost/
 // @description		Tag people according to https://github.com/NotCompsky/rscraper
-// @copyright		2019+, NotCompsky
+// @copyright		2019+, Adam Gray (GPLv3.0)
 // @include			https://www.reddit.com/*
 // @include			https://old.reddit.com/*
 // @include			https://new.reddit.com/*
