@@ -31,11 +31,7 @@
 
 #include "filter_user.hpp" // for filter_user::*
 
-#include <compsky/mysql/mysql.hpp> // for mymysql::*, BUF, BUF_INDX
-
-namespace res1 {
-    results.hpp"_results.hpp" // for ROW, RES, COL, ERR
-}
+#include <compsky/mysql/query.hpp> // for compsky::mysql::*
 
 #ifdef SPIDER
 #include <vector> // for std::vector
@@ -43,14 +39,22 @@ namespace res1 {
 #endif
 
 
+MYSQL_RES* RES;
+MYSQL_ROW ROW;
+
+
+constexpr size_t strlen_constexpr(const char* s){
+    // GCC strlen is constexpr; this is apparently a bug
+    return *s  ?  1 + strlen_constexpr(s + 1)  :  0;
+}
+
+
 constexpr const char* URL_PRE  = "https://oauth.reddit.com/r/";
 constexpr const char* URL_POST = "/about/moderators/?raw_json=1";
 char URL[strlen(URL_PRE) + myru::SUBREDDIT_NAME_MAX + strlen(URL_POST) + 1] = "https://oauth.reddit.com/r/";
 
 
-constexpr const char* SQL__INSERT_USER_MODDED_SUB_PRE = "INSERT INTO moderator (permissions, added_on, rank, user_id, subreddit_id) VALUES (0,0,0,";
-char SQL__INSERT_USER_MODDED_SUB[strlen(SQL__INSERT_USER_MODDED_SUB_PRE) + 20 + 1 + 20 + 1 + 1] = "INSERT INTO moderator (permissions, added_on, rank, user_id, subreddit_id) VALUES (0,0,0,";
-// NOTE: Do not need 'IGNORE' as this is only called if there were no previous results
+
 
 std::vector<uint64_t> SUBS_TO_SCRAPE;
 std::vector<unsigned int> DEPTHS;
@@ -91,105 +95,51 @@ uint64_t calc_permission(const char* str){
     }
 }
 
-constexpr const char* SQL__INSERT_USER__PRE  = "INSERT IGNORE INTO user (id, name) VALUES (";
-char SQL__INSERT_USER[strlen(SQL__INSERT_USER__PRE) + 20 + 1 + 128 + 1 + 1] = "INSERT IGNORE INTO user (id, name) VALUES (";
-
 constexpr const char* SQL__INSERT_MOD_PRE = "INSERT IGNORE INTO moderator (subreddit_id, user_id, permissions, added_on, rank) VALUES ";
 constexpr const char* SQL__INSERT_MOD_POST = " ON DUPLICATE KEY UPDATE rank=VALUES(rank), permissions=VALUES(permissions)";
 constexpr size_t BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA = 1 + 20 + 1 + 20 + 1 + 20 + 1 + 10 + 1; // Maximum length of a single entry
-char* SQL__INSERT_MOD = (char*)malloc(strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA + strlen(SQL__INSERT_MOD_POST) + 1);
+char SQL__INSERT_MOD[strlen_constexpr(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA + strlen(SQL__INSERT_MOD_POST) + 1];
 // Some subreddits have thousands of moderators. I do not know the limit.
-size_t SQL__INSERT_MOD_SIZE = strlen(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA;
 size_t SQL__INSERT_MOD_INDX;
 
-constexpr const char* SQL__INSERT_SUBREDDIT_NAME_PRE = "INSERT IGNORE INTO subreddit (id, name) VALUES (";
-char SQL__INSERT_SUBREDDIT_NAME[strlen(SQL__INSERT_SUBREDDIT_NAME_PRE) + 20+1+128+1 + 1] = "INSERT IGNORE INTO subreddit (id, name) VALUES (";
 char SUBREDDIT_NAME[128];
 size_t SUBREDDIT_NAME_LEN;
 
 
-constexpr const char* SQL__GET_SUBREDDIT_ID_PRE = "SELECT id FROM subreddit WHERE name = \"";
-char SQL__GET_SUBREDDIT_ID[strlen(SQL__GET_SUBREDDIT_ID_PRE) + 20+1+128+1 + 1] = "SELECT id FROM subreddit WHERE name = \"";
-
-
-
-constexpr const char* SQL__SELECT_SUBREDDIT_NAME_PRE = "SELECT name FROM subreddit WHERE id = ";
-char SQL__SELECT_SUBREDDIT_NAME[strlen(SQL__SELECT_SUBREDDIT_NAME_PRE) + 20+1+128+1 + 1] = "SELECT name FROM subreddit WHERE id = ";
-
-void sql__resize_insert_mod(){
-    SQL__INSERT_MOD_INDX *= 2;
-    SQL__INSERT_MOD = (char*)realloc(SQL__INSERT_MOD,  SQL__INSERT_MOD_INDX);
-    // TODO: Check for nullptr
+void sql__flush_insert_mod(){
+    compsky::mysql::exec_buffer(SQL__INSERT_MOD, SQL__INSERT_MOD_INDX);
+    SQL__INSERT_MOD_INDX = strlen_constexpr(SQL__INSERT_MOD_PRE);
 }
 
-constexpr const char* SQL__GET_USER_MODDED_SUBS_PRE = "SELECT subreddit_id FROM moderator WHERE user_id = ";
-char SQL__GET_USER_MODDED_SUBS[strlen(SQL__GET_USER_MODDED_SUBS_PRE) + 20 + 1] = "SELECT subreddit_id FROM moderator WHERE user_id = ";
 
-
-constexpr const char* SQL__GET_MODS_OF__PRE  = "SELECT u.id, u.name FROM user u JOIN (SELECT user_id FROM moderator WHERE permissions != 0 AND subreddit_id = ";
-constexpr const char* SQL__GET_MODS_OF__POST = ") A ON A.user_id = u.id";
-char SQL__GET_MODS_OF[strlen(SQL__GET_MODS_OF__PRE) + 20 + 1] = "SELECT u.id, u.name FROM user u JOIN (SELECT user_id FROM moderator WHERE permissions != 0 AND subreddit_id = ";
-
-
-template<typename T>
-void ascii2n(char* s,  T*& n){
-    while (*s != 0){
-        *n *= 10;
-        *n += *s - '0';
-        ++s;
+unsigned int ascii2n(const char* str){
+    unsigned int n = 0;
+    for(char* s = const_cast<char*>(str);  *s != 0;  ++s){
+        n *= 10;
+        n += *s - '0';
     }
 };
 
 
 bool previously_got_user_modded_subs(const uint64_t user_id){
-    auto i = strlen(SQL__GET_USER_MODDED_SUBS_PRE);
-    i += itoa_nonstandard(user_id,  SQL__GET_USER_MODDED_SUBS + i);
-    SQL__GET_USER_MODDED_SUBS[i] = 0;
-    
-    PRINTF("SQL__GET_USER_MODDED_SUBS: %s\n", SQL__GET_USER_MODDED_SUBS);
-    
-    res1::query(SQL__GET_USER_MODDED_SUBS);
+    compsky::mysql::query(&RES, "SELECT subreddit_id FROM moderator WHERE user_id=",  user_id);
     
     uint64_t subreddit_id = 0;
-    while (res1::assign_next_result(&subreddit_id){
+    while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit_id)){
         if (std::find(SUBS_TO_SCRAPE.begin(), SUBS_TO_SCRAPE.end(), subreddit_id) == SUBS_TO_SCRAPE.end()){
             SUBS_TO_SCRAPE.push_back(subreddit_id);
             DEPTHS.push_back(DEPTH + 1);
         }
     }
     
-    res1::free_result();
-    
     return (subreddit_id);
 }
 
-void insert_subreddit_nameid(const char* name,  const uint64_t id){
-    auto i = strlen(SQL__INSERT_SUBREDDIT_NAME_PRE);
-    i += itoa_nonstandard(id,  SQL__INSERT_SUBREDDIT_NAME + i);
-    SQL__INSERT_SUBREDDIT_NAME[i++] = ',';
-    SQL__INSERT_SUBREDDIT_NAME[i++] = '"';
-    memcpy(SQL__INSERT_SUBREDDIT_NAME + i,  name,  strlen(name));
-    i += strlen(name);
-    SQL__INSERT_SUBREDDIT_NAME[i++] = '"';
-    SQL__INSERT_SUBREDDIT_NAME[i++] = ')';
-    SQL__INSERT_SUBREDDIT_NAME[i] = 0;
-    
-    mymysql::exec(SQL__INSERT_SUBREDDIT_NAME);
-}
-
 void record_user_modded_subreddit(const uint64_t user_id,  const uint64_t subreddit_id,  const char* subreddit_name){
-    auto i = strlen(SQL__INSERT_USER_MODDED_SUB_PRE);
-    i += itoa_nonstandard(user_id,  SQL__INSERT_USER_MODDED_SUB + i);
-    SQL__INSERT_USER_MODDED_SUB[i++] = ',';
-    i += itoa_nonstandard(subreddit_id,  SQL__INSERT_USER_MODDED_SUB + i);
-    SQL__INSERT_USER_MODDED_SUB[i++] = ')';
-    SQL__INSERT_USER_MODDED_SUB[i] = 0;
+    compsky::mysql::exec("INSERT INTO moderator (permissions, added_on, rank, user_id, subreddit_id) VALUES (0,0,0,",  user_id,  ',',  subreddit_id,  ")");
+    // NOTE: Do not need 'IGNORE' as this is only called if there were no previous results
     
-    mymysql::exec(SQL__INSERT_USER_MODDED_SUB);
-    
-    
-    insert_subreddit_nameid(subreddit_name, subreddit_id);
-    
+    compsky::mysql::exec("INSERT IGNORE INTO subreddit (id, name) VALUES (",  subreddit_id, ",\"", subreddit_name, "\")");
     
     SUBS_TO_SCRAPE.push_back(subreddit_id);
     DEPTHS.push_back(DEPTH + 1);
@@ -205,7 +155,7 @@ void add_user_modded_subs(const char* user_name,  const uint64_t user_id){
     
     if (mycu::MEMORY.memory[0] == '<'){
         // <!doctype html>
-        fprintf(stderr, "Reddit returned 404 for /user/%s/moderated_subreddits.json\n");
+        fprintf(stderr, "Reddit returned 404 for /user/%s/moderated_subreddits.json\n", user_name);
         return;
     }
     
@@ -246,91 +196,55 @@ void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user,  unsigned
     for (rapidjson::Value::ValueIterator itr = user["mod_permissions"].Begin();  itr != user["mod_permissions"].End();  ++itr)
         permissions |= calc_permission(itr->GetString());
     
-    if (SQL__INSERT_MOD_SIZE  <  SQL__INSERT_MOD_INDX + BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA + 1)
-        sql__resize_insert_mod();
+    if (sizeof(SQL__INSERT_MOD)  <  SQL__INSERT_MOD_INDX + BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA + 1)
+        sql__flush_insert_mod();
     
     auto i = SQL__INSERT_MOD_INDX;
     char* stmt = SQL__INSERT_MOD;
     
     const uint64_t added_on = user["date"].GetFloat(); // Have to, due to .0 ending
     
-    stmt[i++] = '(';
-    i += itoa_nonstandard(subreddit_id,  stmt + i);
-    stmt[i++] = ',';
-    i += itoa_nonstandard(user_id,  stmt + i);
-    stmt[i++] = ',';
-    i += itoa_nonstandard(permissions,  stmt + i);
-    stmt[i++] = ',';
-    i += itoa_nonstandard(added_on,  stmt + i);
-    stmt[i++] = ',';
-    i += itoa_nonstandard(rank,  stmt + i);
-    stmt[i++] = ')';
-    stmt[i++] = ',';
+    constexpr static const compsky::asciify::flag::ChangeBuffer change_buf;
     
-    SQL__INSERT_MOD_INDX = i;
+    compsky::asciify::asciify(change_buf, SQL__INSERT_MOD, SQL__INSERT_MOD_INDX, '(', subreddit_id, ',', user_id, ',', permissions, ',', added_on, ',', rank, ')', ',');
     
+    SQL__INSERT_MOD_INDX = compsky::asciify::BUF_INDX;
     
     // TODO: Collect these following small commands into one per subreddit
-    i = strlen(SQL__INSERT_USER__PRE);
-    i += itoa_nonstandard(user_id,  SQL__INSERT_USER + i);
-    SQL__INSERT_USER[i++] = ',';
-    SQL__INSERT_USER[i++] = '"';
-    memcpy(SQL__INSERT_USER + i,  user_name,  strlen(user_name));
-    i += strlen(user_name);
-    SQL__INSERT_USER[i++] = '"';
-    SQL__INSERT_USER[i++] = ')';
-    SQL__INSERT_USER[i] = 0;
-    
-    PRINTF("SQL__INSERT_USER: %s\n", SQL__INSERT_USER);
-    mymysql::exec(SQL__INSERT_USER);
-    
+    compsky::mysql::exec("INSERT IGNORE INTO user (id, name) VALUES (",  user_id,  ",\"",  user_name,  "\")");
     
     process_mod(subreddit_id, user_id, user_name);
 }
 
 void subreddit_id2name(const uint64_t id){
-    int i = strlen(SQL__SELECT_SUBREDDIT_NAME_PRE);
-    i += itoa_nonstandard(id,  SQL__SELECT_SUBREDDIT_NAME + i);
-    SQL__SELECT_SUBREDDIT_NAME[i] = 0;
+    compsky::mysql::query(&RES, "SELECT name FROM subreddit WHERE id=",  id);
     
-    PRINTF("SQL__SELECT_SUBREDDIT_NAME: %s\n", SQL__SELECT_SUBREDDIT_NAME); // tmp
-    
-    res1::query(SQL__SELECT_SUBREDDIT_NAME);
-    
-    char* s;
-    if (res1::assign_next_result(&s)){
+    char* s = nullptr;
+    while(compsky::mysql::assign_next_row(RES, &ROW, &s)){
         SUBREDDIT_NAME_LEN = strlen(s);
         memcpy(SUBREDDIT_NAME,  s,  SUBREDDIT_NAME_LEN);
-        return;
     }
-    res1::free_result();
-    myrcu::handler(myerr::IMPOSSIBLE);
+    
+    if (s == nullptr)
+        myrcu::handler(myerr::IMPOSSIBLE);
+    
+    return;
 }
 
 void get_mods_of(const uint64_t subreddit_id){
-    int i;
-    
-    i = strlen(SQL__GET_MODS_OF__PRE);
-    i += itoa_nonstandard(subreddit_id,  SQL__GET_MODS_OF + i);
-    memcpy(SQL__GET_MODS_OF + i,  SQL__GET_MODS_OF__POST,  strlen(SQL__GET_MODS_OF__POST));
-    i += strlen(SQL__GET_MODS_OF__POST);
-    SQL__GET_MODS_OF[i] = 0;
-    
-    res1::query(SQL__GET_MODS_OF);
+    compsky::mysql::query(&RES,  "SELECT u.id, u.name FROM user u JOIN (SELECT user_id FROM moderator WHERE permissions != 0 AND subreddit_id=",  subreddit_id,  ") A ON A.user_id = u.id");
     
     uint64_t user_id = 0;
     char* user_name;
-    while(res1::assign_next_result(&user_id, &user_name)){
+    while(compsky::mysql::assign_next_row(RES, &ROW, &user_name)){
         process_mod(subreddit_id, user_id, user_name);
     }
-    
-    res1::free_result();
     
     subreddit_id2name(subreddit_id);
     
     PRINTF("Not cached: %s\n", SUBREDDIT_NAME);
     
-    i = strlen(URL_PRE);
+    auto i = strlen(URL_PRE);
     memcpy(URL + i,  SUBREDDIT_NAME,  SUBREDDIT_NAME_LEN);
     i += SUBREDDIT_NAME_LEN;
     memcpy(URL + i,  URL_POST,  strlen(URL_POST));
@@ -353,7 +267,7 @@ void get_mods_of(const uint64_t subreddit_id){
     if (myrcu::try_again(d))
         goto goto_getmodsoftryagain;
     
-    SQL__INSERT_MOD_INDX = strlen(SQL__INSERT_MOD_PRE);
+    SQL__INSERT_MOD_INDX = strlen_constexpr(SQL__INSERT_MOD_PRE);
     
     unsigned int rank = 0;
     for (rapidjson::Value::ValueIterator itr = d["data"]["children"].Begin();  itr != d["data"]["children"].End();  ++itr)
@@ -361,25 +275,17 @@ void get_mods_of(const uint64_t subreddit_id){
     
     memcpy(SQL__INSERT_MOD + SQL__INSERT_MOD_INDX,  SQL__INSERT_MOD_POST,  strlen(SQL__INSERT_MOD_POST));
     i += strlen(SQL__INSERT_MOD_POST);
-    SQL__INSERT_MOD[--SQL__INSERT_MOD_INDX] = 0; // Overwrite trailing comma
+    --SQL__INSERT_MOD_INDX; // Ignore trailing comma
     
     
-    mymysql::exec(SQL__INSERT_MOD);
+    compsky::mysql::exec_buffer(SQL__INSERT_MOD, SQL__INSERT_MOD_INDX);
 }
 
 uint64_t subreddit2id(const char* name){
-    auto i = strlen(SQL__GET_SUBREDDIT_ID_PRE);
-    memcpy(SQL__GET_SUBREDDIT_ID + i,  name,  strlen(name));
-    i += strlen(name);
-    SQL__GET_SUBREDDIT_ID[i++] = '"';
-    SQL__GET_SUBREDDIT_ID[i] = 0;
-    
-    PRINTF("SQL__GET_SUBREDDIT_ID: %s\n", SQL__GET_SUBREDDIT_ID); // tmp
-    res1::query(SQL__GET_SUBREDDIT_ID);
+    compsky::mysql::query(&RES, "SELECT id FROM subreddit WHERE name=\"",  name,  "\"");
     
     uint64_t subreddit_id = 0;
-    res1::assign_next_result(&subreddit_id);
-    res1::free_result();
+    while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit_id));
     
     if (subreddit_id != 0)
         return subreddit_id;
@@ -389,13 +295,13 @@ uint64_t subreddit2id(const char* name){
 }
 
 int main(const int argc,  const char** argv){
-    mymysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
+    compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
     mycu::init();         // Init CURL
     myrcu::init(getenv("RSCRAPER_REDDIT_CFG")); // Init OAuth
     
-    ascii2n(argv[1], &MAX_DEPTH);
+    MAX_DEPTH = ascii2n(argv[1]);
     
-    memcpy(SQL__INSERT_MOD,  SQL__INSERT_MOD_PRE,  strlen(SQL__INSERT_MOD_PRE));
+    memcpy(SQL__INSERT_MOD,  SQL__INSERT_MOD_PRE,  strlen_constexpr(SQL__INSERT_MOD_PRE));
     
     for (auto i = 2;  i < argc;  ++i){
         SUBS_TO_SCRAPE.push_back(subreddit2id(argv[i]));
