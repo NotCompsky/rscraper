@@ -5,7 +5,7 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-
+#include <ctime> // for std::ctime
 #include <stdio.h> // for fwrite
 #include <stdlib.h> // for malloc
 
@@ -33,7 +33,7 @@ namespace compsky {
 
 #ifdef SUB2TAG
 constexpr const char* a = 
-    "SELECT S.name, S.id, c.id, c.content "
+    "SELECT S.name, S.id, c.id, c.created_at, c.content, '' as reason " // Dummy column '' to substitute for 'reason' column
     "FROM comment c "
     "JOIN ("
         "SELECT R.name, s.id "
@@ -50,21 +50,21 @@ constexpr const char* a2 =
                     "FROM tag t "
                     "WHERE t.name IN ('";
 
-constexpr const char* b = 
+constexpr const char* b2 = 
                 "')) T on T.id = s2t.tag_id "
             ") S2T on S2T.subreddit_id = r.id ";
-constexpr const char* b2 = 
+constexpr const char* b = 
         ") R on R.id = s.subreddit_id "
     ") S on S.id = c.submission_id";
 #else
 constexpr const char* a = 
-    "SELECT r.name, D.submission_id, D.comment_id, D.content, D.reason "
+    "SELECT r.name, D.submission_id, D.comment_id, D.created_at, D.content, D.reason "
     "FROM subreddit r "
     "JOIN ( "
-        "SELECT C.comment_id, C.content, C.submission_id, s.subreddit_id, C.reason "
+        "SELECT C.comment_id, C.created_at, C.content, C.submission_id, s.subreddit_id, C.reason "
         "FROM submission s "
         "JOIN ( "
-            "SELECT c.id as 'comment_id', c.content, c.submission_id, B.name as 'reason' "
+            "SELECT c.id as 'comment_id', c.content, c.submission_id, c.created_at, B.name as 'reason' "
             "FROM comment c "
             "JOIN ( "
                 "SELECT rm.id, rm.name "
@@ -120,13 +120,21 @@ int main(const int argc,  const char** argv){
     uint64_t post_id;
     uint64_t cmnt_id;
     size_t body_sz;
-    while (compsky::mysql::assign_next_row(RES, &ROW, &subname, &post_id, &cmnt_id, f, &body_sz, &body)){
+    uint64_t t;
+    char* reason = "";
+    char dt_buf[200];
+    struct tm* dt;
+    while (compsky::mysql::assign_next_row(RES, &ROW, &subname, &post_id, &cmnt_id, &t, f, &body_sz, &body, &reason)){
         char post_id_str[10];
         char cmnt_id_str[10];
         id2str(post_id, post_id_str);
         id2str(cmnt_id, cmnt_id_str);
         
-        compsky::asciify::asciify("https://www.reddit.com/r/",  subname,  "/comments/",  post_id_str,  "/_/",  cmnt_id_str,  '\n');
+        const time_t tt = t;
+        dt = localtime(&tt);
+        strftime(dt_buf, sizeof(dt_buf), "%Y %a %b %d %H:%M:%S", dt);
+        
+        compsky::asciify::asciify("https://www.reddit.com/r/",  subname,  "/comments/",  post_id_str,  "/_/",  cmnt_id_str,  '\n',  dt_buf,  '\t',  reason,  '\n');
         
         if (compsky::asciify::BUF_INDX + body_sz > compsky::asciify::BUF_SZ){
             fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX, stdout);
