@@ -54,7 +54,7 @@ namespace compsky {
 
 constexpr size_t strlen_constexpr(const char* s){
     // GCC strlen is constexpr; this is apparently a bug
-    return *s  ?  1 + strlen_constexpr(s + 1)  :  0;
+    return (*s)  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
 
 constexpr const char* SQL__INSERT_SUBMISSION_FROM_CMNT_STR = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
@@ -102,10 +102,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
     const uint64_t author_id = myru::id2n_lower(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
     const uint64_t subreddit_id = myru::id2n_lower(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
     const bool is_submission_nsfw = cmnt["data"]["over_18"].GetBool();
-    char is_subreddit_nsfw = 2; // 0 for certainly SFW, 1 for certainly NSFW. 2 for unknown.
-    
-    if (!is_submission_nsfw)
-        is_subreddit_nsfw = 0;
+    const uint8_t is_subreddit_nsfw = (is_submission_nsfw) ? 2 : 0; // 0 for certainly SFW, 1 for certainly NSFW. 2 for unknown.
     
     
     if (filter_subreddit::to_count(subreddit_id) && filter_user::to_count(author_id))
