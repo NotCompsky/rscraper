@@ -120,6 +120,8 @@ Navigate to `rscraper` root directory and run:
     sed -i 's/#include "\(includes|os\).h"//g' 3rdparty/src/base64.c
     sed -i 's/#define BASE64_H/#define BASE64_H\n\n#include<stdlib.h>\n/g' 3rdparty/include/base64.h
     
+    mkdir build
+    cd build
     x86_64-w64-mingw32.static-cmake ..
     make rscraper-str2id rscraper-id2str
     sudo make install
