@@ -1,13 +1,7 @@
-/*
- * Synopsis: [EXECUTABLE_PATH] [AUTHORISATION_FILE_PATH]   :[PORT]
- * Example:  build/server      C:/Users/me/reddit_auth.txt :8000
-*/
-
 package main
 
 /*
 #cgo LDFLAGS: -lrscraper-tagger
-// Relative path doesn't seem to work (-Lbuild -lrscraper_tagger), so must be either absolute path to SO file, or the usual library link after the library has been installed to a system library directory. If the latter, the library must reside in $LD_LIBRARY_PATH (or the Windows equivalent).
 #cgo CFLAGS: -O3
 
 extern char* DST;
@@ -19,6 +13,7 @@ import "C" // Pseudopackage
 import "io"
 import "net/http"
 import "os"
+import "syscall"
 import "os/signal"
 
 
@@ -40,7 +35,7 @@ func main(){
     C.init()
     mux := http.NewServeMux()
     mux.HandleFunc("/", process)
-    http.ListenAndServe(os.Args[1], mux)
+    http.ListenAndServe(":8080", mux)
 }
 
 /*
