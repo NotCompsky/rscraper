@@ -13,15 +13,9 @@ set_property(TARGET rscraper-init PROPERTY CXX_STANDARD 17)
 
 add_executable(rscraper-id2str "${SRC_DIR}/id2str.c")
 target_compile_definitions(rscraper-id2str PRIVATE TOSTR)
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    target_link_libraries(rscraper-id2str z secur32 ssl crypto crypt32 ws2_32)
-endif()
 
 
 add_executable(rscraper-str2id "${SRC_DIR}/id2str.c")
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    target_link_libraries(rscraper-str2id z secur32 ssl crypto crypt32 ws2_32)
-endif()
 
 
 
