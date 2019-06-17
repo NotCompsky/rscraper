@@ -1,32 +1,3 @@
-# Print table of tags to their associated subreddits
-
-SELECT r.name, S2T.name
-FROM subreddit r
-JOIN (
-    SELECT s2t.subreddit_id, T.name
-    FROM subreddit2tag s2t
-    JOIN (
-        SELECT t.id, t.name
-        FROM tag t
-    ) T on T.id = s2t.tag_id
-) S2T on S2T.subreddit_id = r.id
-WHERE r.name IN ("europe", "ukpolitics", "unitedkingdom")
-;
-
-SELECT t.name, S2T.name
-FROM tag t
-LEFT JOIN (
-    SELECT s2t.tag_id, R.name
-    FROM subreddit2tag s2t
-    JOIN (
-        SELECT r.id, r.name
-        FROM subreddit r
-    ) R on R.id = s2t.subreddit_id
-) S2T on S2T.tag_id = t.id
-;
-
-
-
 # Print table of large (according to comments we've recorded) subreddits to their associated tags and tag categories
 
 SELECT A.user, A.tag, c.name as 'category'
@@ -66,22 +37,6 @@ WHERE r.id IN (SELECT subreddit_id FROM user2subreddit_cmnt_count GROUP BY subre
 ;
 
 
-
-
-
-# Print table of categories to their associated tags and alphas
-
-SELECT r.name, S2T.name, S2T.a
-FROM category r
-LEFT JOIN (
-    SELECT s2t.category_id, T.name, T.a
-    FROM tag2category s2t
-    JOIN (
-        SELECT t.id, t.name, t.a
-        FROM tag t
-    ) T on T.id = s2t.tag_id
-) S2T on S2T.category_id = r.id
-;
 
 
 # Find subreddits that have multiple tags of the same category
