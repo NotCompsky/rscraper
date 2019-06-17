@@ -33,7 +33,6 @@ namespace myrcu {
 # include <stdio.h> // for fprintf
 # include <execinfo.h> // for printing stack trace
 #else
-# undef printf
 # define printf(...)
 #endif
 
@@ -275,7 +274,7 @@ bool try_again(rapidjson::Document& d){
         switch (d["error"].GetInt()){
             case 401:
                 // Unauthorised
-                PRINTF("Unauthorised. Logging in again with user:pass: %s:%s\n", USR, PWD);
+                printf("Unauthorised. Logging in again with user:pass: %s:%s\n", USR, PWD);
                 sleep(REDDIT_REQUEST_DELAY);
                 login();
                 break;
@@ -305,7 +304,7 @@ void get_user_moderated_subs(const char* username){
     curl_easy_setopt(BROWSER_CURL, CURLOPT_WRITEDATA, (void *)&mycu::MEMORY);
     
     //mycu::request(URL__USER_MOD_OF);
-    PRINTF("GET %s\n", URL__USER_MOD_OF);
+    printf("GET %s\n", URL__USER_MOD_OF);
     curl_easy_setopt(BROWSER_CURL, CURLOPT_URL, URL__USER_MOD_OF);
     
     mycu::MEMORY.size = 0; // 'Clear' last request

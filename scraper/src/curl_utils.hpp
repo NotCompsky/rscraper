@@ -10,21 +10,15 @@
 #define __MYCU__
 
 #include <curl/curl.h>
-#ifdef DEBUG
-  #include <stdio.h> // for printf
-#endif
 #include <stdlib.h> // for malloc, realloc
 
 #include "error_codes.hpp" // for myerr:*
 
-
-
-#ifdef DEBUG
-  #define PRINTF(...) printf(__VA_ARGS__);
+#ifndef DEBUG
+# define printf(...)
 #else
-  #define PRINTF(...) ;
+# include <stdio.h> // for printf
 #endif
-
 
 
 /* Defined in redditcurl_utils.hpp */
@@ -44,6 +38,7 @@ struct MemoryStruct {
     char* memory;
     size_t size;
     size_t n_allocated;
+    void enlarge(size_t n);
 };
 
 struct MemoryStruct MEMORY;

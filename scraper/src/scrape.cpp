@@ -36,10 +36,10 @@
 #include <compsky/mysql/query.hpp>
 
 
-#ifdef DEBUG
-  #define PRINTF(...) printf(__VA_ARGS__);
+#ifndef DEBUG
+# define printf(...)
 #else
-  #define PRINTF(...) ;
+# include <stdio.h>
 #endif
 
 
@@ -206,7 +206,7 @@ uint64_t process_live_replies(rapidjson::Value& replies, const uint64_t last_pro
     
     if (SQL__INSERT_SUBMISSION_FROM_CMNT_INDX != strlen_constexpr(SQL__INSERT_SUBMISSION_FROM_CMNT_STR)){
         SQL__INSERT_SUBMISSION_FROM_CMNT[--SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = 0; // Overwrite trailing comma
-        PRINTF("stmt: %s\n", SQL__INSERT_SUBMISSION_FROM_CMNT);
+        printf("stmt: %s\n", SQL__INSERT_SUBMISSION_FROM_CMNT);
         compsky::mysql::exec_buffer(SQL__INSERT_SUBMISSION_FROM_CMNT, SQL__INSERT_SUBMISSION_FROM_CMNT_INDX);
     }
     
@@ -215,13 +215,13 @@ uint64_t process_live_replies(rapidjson::Value& replies, const uint64_t last_pro
         constexpr const char* b = " ON DUPLICATE KEY UPDATE count = count + 1";
         memcpy(SQL__INSERT_INTO_USER2SUBCNT + SQL__INSERT_INTO_USER2SUBCNT_INDX,  b,  strlen_constexpr(b));
         SQL__INSERT_INTO_USER2SUBCNT_INDX += strlen_constexpr(b);
-        PRINTF("stmt: %s\n", SQL__INSERT_INTO_USER2SUBCNT);
+        printf("stmt: %s\n", SQL__INSERT_INTO_USER2SUBCNT);
         compsky::mysql::exec_buffer(SQL__INSERT_INTO_USER2SUBCNT, SQL__INSERT_INTO_USER2SUBCNT_INDX);
     }
     
     if (SQL__INSERT_INTO_SUBREDDIT_INDX != strlen_constexpr(SQL__INSERT_INTO_SUBREDDIT_STR)){
         SQL__INSERT_INTO_SUBREDDIT[--SQL__INSERT_INTO_SUBREDDIT_INDX] = 0;
-        PRINTF("stmt: %s\n", SQL__INSERT_INTO_SUBREDDIT);
+        printf("stmt: %s\n", SQL__INSERT_INTO_SUBREDDIT);
         compsky::mysql::exec_buffer(SQL__INSERT_INTO_SUBREDDIT, SQL__INSERT_INTO_SUBREDDIT_INDX);
     }
     

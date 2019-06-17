@@ -40,7 +40,6 @@ unsigned long int str2id(const char* str){
             n += *str - 'a' + 10;
         ++str;
     }
-    //PRINTF("%lu\n", n);
     return n;
 }
 
