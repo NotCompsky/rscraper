@@ -1,5 +1,3 @@
-#cmakedefine USE_BOOST_REGEX
-
 #ifdef USE_BOOST_REGEX
   #include <boost/regex.hpp> // for boost::
 #endif
@@ -72,8 +70,4 @@ unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len
 
 
 }
-
-
-
-
 } // end namespace
