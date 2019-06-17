@@ -10,13 +10,15 @@ Relies on `rscraper-tagger` that is built in this project. See [root instruction
 
 Aside from that, it just needs a server to run on, and that server must support C imports. In the examples you can find both a [Python flask server](server.py) and a [Go server](src/rtagger.go)
 
-## Browser Addons
-
-    * GreaseMonkey or similar
-
 # Installation
 
-Install the [Javascript script](rtagger.js) into greasemonkey.
+You can either install the [Javascript script](rtagger.js) into the greasemonkey addon, or install the addon into your browser.
+
+## AddOn
+
+To install the addon, simply open the [rtagger.xpi](browser-addon/rtagger.xpi) file with your browser.
+
+If you wish to build the `xpi` from source, navigate to the `browser-addon` directory and run `./build`.
 
 # Usage
 

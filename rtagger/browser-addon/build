@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm rtagger.xpi
+zip -1 -r rtagger.xpi icons js options.html options.js manifest.json
