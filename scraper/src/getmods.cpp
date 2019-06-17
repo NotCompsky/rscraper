@@ -148,19 +148,16 @@ void record_user_modded_subreddit(const uint64_t user_id,  const uint64_t subred
 void add_user_modded_subs(const char* user_name,  const uint64_t user_id){
     rapidjson::Document d;
     
-    goto__getusermoddedsubs:
-    
-    sleep(myrcu::REDDIT_REQUEST_DELAY);
-    myrcu::get_user_moderated_subs(user_name);
-    
-    if (mycu::MEMORY.memory[0] == '<'){
-        // <!doctype html>
-        fprintf(stderr, "Reddit returned 404 for /user/%s/moderated_subreddits.json\n", user_name);
-        return;
-    }
-    
-    if (myrcu::try_again(d))
-        goto goto__getusermoddedsubs;
+    do {
+        sleep(myrcu::REDDIT_REQUEST_DELAY);
+        myrcu::get_user_moderated_subs(user_name);
+        
+        if (mycu::MEMORY.memory[0] == '<'){
+            // <!doctype html>
+            fprintf(stderr, "Reddit returned 404 for /user/%s/moderated_subreddits.json\n", user_name);
+            return;
+        }
+    } while(myrcu::try_again(d));
     
     for (rapidjson::Value::ValueIterator itr = d["data"].Begin();  itr != d["data"].End();  ++itr){
         const uint64_t subreddit_id = myru::id2n_lower((*itr)["name"].GetString() + 3); // Skip t5_ prefix
@@ -251,21 +248,18 @@ void get_mods_of(const uint64_t subreddit_id){
     i += strlen(URL_POST);
     URL[i] = 0;
     
-    goto_getmodsoftryagain:
-    
-    sleep(myrcu::REDDIT_REQUEST_DELAY);
-    mycu::request(URL);
-    
-    if (mycu::MEMORY.memory[0] == '<'){
-        // <!doctype html>
-        fprintf(stderr, "Reddit returned 404 for %s\n", URL);
-        return;
-    }
-    
-    rapidjson::Document d;
-    
-    if (myrcu::try_again(d))
-        goto goto_getmodsoftryagain;
+    do {
+        sleep(myrcu::REDDIT_REQUEST_DELAY);
+        mycu::request(URL);
+        
+        if (mycu::MEMORY.memory[0] == '<'){
+            // <!doctype html>
+            fprintf(stderr, "Reddit returned 404 for %s\n", URL);
+            return;
+        }
+        
+        rapidjson::Document d;
+    } while(myrcu::try_again(d));
     
     SQL__INSERT_MOD_INDX = strlen_constexpr(SQL__INSERT_MOD_PRE);
     
