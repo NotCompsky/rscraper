@@ -40,7 +40,8 @@ constexpr const char* a =
         "FROM submission s "
         "JOIN ( "
             "SELECT r.id, r.name "
-            "FROM subreddit r "
+            "FROM subreddit r ";
+constexpr const char* a2 = 
             "JOIN ( "
                 "SELECT s2t.subreddit_id "
                 "FROM subreddit2tag s2t "
@@ -51,7 +52,8 @@ constexpr const char* a =
 
 constexpr const char* b = 
                 "')) T on T.id = s2t.tag_id "
-            ") S2T on S2T.subreddit_id = r.id "
+            ") S2T on S2T.subreddit_id = r.id ";
+constexpr const char* b2 = 
         ") R on R.id = s.subreddit_id "
     ") S on S.id = c.submission_id";
 #else
@@ -66,11 +68,14 @@ constexpr const char* a =
             "FROM comment c "
             "JOIN ( "
                 "SELECT rm.id, rm.name "
-                "FROM reason_matched rm "
+                "FROM reason_matched rm ";
+constexpr const char* a2 = 
                 "WHERE rm.name IN ('";
 
+constexpr const char* b2 = 
+                "')";
 constexpr const char* b = 
-            "')) B on B.id = c.reason_matched "
+            ") B on B.id = c.reason_matched "
         ") C on C.submission_id = s.id "
     ") D on D.subreddit_id = r.id";
 #endif
@@ -98,13 +103,16 @@ int main(const int argc,  const char** argv){
     constexpr static const compsky::asciify::flag::concat::Start c;
     constexpr static const compsky::asciify::flag::concat::End d;
     
-    compsky::mysql::query(&RES,
-        a,
-            c, "','", 3,
-                argv+1, argc-1,
-            d,
-        b
-    );
+    if (argc == 1)
+        compsky::mysql::query(&RES, a, b);
+    else
+        compsky::mysql::query(&RES,
+            a, a2,
+                c, "','", 3,
+                    argv+1, argc-1,
+                d,
+            b2, b
+        );
     
     char* subname;
     constexpr static const compsky::asciify::flag::StrLen f;
