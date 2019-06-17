@@ -123,12 +123,12 @@ Navigate to `rscraper` root directory and run:
     mkdir build
     cd build
     x86_64-w64-mingw32.static-cmake ..
-    make rscraper-str2id rscraper-id2str
+    make rscraper-str2id rscraper-id2str rscraped-tagged-subs rscraped-reason rscraper-import rscraper-export rscraper-tags
     sudo make install
 
 I have not yet sorted out `rscrape-cmnts` and `rscrape-mods` to build on MXE, but it only fails at the last stage (linking). Someone with more knowledge of building on Windows would probably find it trivial.
 
-`rscraped-tagged-subs`, `rscraped-reason`, `rscraper-tagger`, `rscraper-init`, `rscraper-import`, `rscraper-export` and `rscraper-tags` fail due to `multiple definitions` of `BUF`.
+`rscraper-init` fails due to multiple definition of `compsky::mysql::MYSQL_AUTH` and `compsky::mysql::OBJ`.
 
 ### Windows
 
