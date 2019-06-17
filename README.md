@@ -12,6 +12,10 @@ See [rtagger](rtagger) directory for details.
 
 See [tags](tags) directory for details.
 
+## SQL Query Programs
+
+See [query](query) directory for details.
+
 ## Utilities
 
 See [docs](docs)
