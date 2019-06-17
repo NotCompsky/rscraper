@@ -9,13 +9,11 @@
 #ifndef __MYRCU__
 #define __MYRCU__
 
-#ifdef _WIN32
-# include <b64/cencode.h> // for base64_encode*
-#else
-# include <b64/encode.h> // for base64::*
-#endif
-
 #include <stdlib.h> // for free, malloc, realloc
+
+extern "C" {
+# include <base64.h> // for base64_encode // Must be after stdlib.h for size_t
+}
 
 #include "rapidjson/document.h" // for rapidjson::Document
 #include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
@@ -35,6 +33,13 @@ namespace myrcu {
 #else
 # define printf(...)
 #endif
+
+
+/* For base64.c */
+#define os_malloc malloc
+#define os_free free
+#define os_memset memset
+
 
 constexpr size_t strlen_constexpr(const char* s){
     // GCC strlen is constexpr; this is apparently a bug
@@ -110,22 +115,11 @@ void init_login(){
     i = strlen_constexpr(BASIC_AUTH_PREFIX);
     
     {
-  #ifdef _WIN32
-    // Use C ABI rather than C++ to simplify Windows compatibility
-    base64_encodestate state;
-    base64_init_encodestate(&state);
-    base64_encode_block(KEY_AND_SECRET,  strlen(KEY_AND_SECRET),  BASIC_AUTH_HEADER + i,  &state);
-  #else
-    // Using the C functions gives me linker errors on Ubuntu
-    base64::encoder base64_encoder;
-    base64_encoder.encode(KEY_AND_SECRET,  strlen(KEY_AND_SECRET),  BASIC_AUTH_HEADER + i);
-  #endif
+    unsigned char* ucstr_in = (unsigned char*)KEY_AND_SECRET;
+    unsigned char* ucstr_out = base64_encode(ucstr_in,  strlen(KEY_AND_SECRET),  0);
+    char* cstr_out = (char*)ucstr_out;
+    memcpy(BASIC_AUTH_HEADER + i,  cstr_out,  strlen(cstr_out) + 1); // base64_encode terminates with null byte
     }
-    
-    i += strlen_constexpr(BASIC_AUTH_FMT);
-    
-    BASIC_AUTH_HEADER[i] = 0;
-    
     
     LOGIN_HEADERS = curl_slist_append(LOGIN_HEADERS, BASIC_AUTH_HEADER);
     

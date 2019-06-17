@@ -30,11 +30,10 @@ See [docs](docs)
 * libmysqlclient
 * [libcompsky](https://github.com/NotCompsky/libcompsky)
 * libcurl
-* libb64
 
 #### Ubuntu, Raspbian, and other Debian-derived
 
-    sudo apt install libb64-0d libcurl4 default-libmysqlclient mysql-client mysql-server
+    sudo apt install libcurl4 default-libmysqlclient mysql-client mysql-server
 
 ### GUI
 
@@ -52,7 +51,6 @@ See [docs](docs)
 
 In addition to those required for installing.
 
-* libb64-dev
 * libcurl-dev
 * libmysqlclient-dev
 * rapidjson
@@ -61,9 +59,17 @@ In addition to those required for installing.
 
     sudo apt install libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev
 
+#### Windows (Cross Compiling from Linux)
+
+If you don't already have `libcurl`, navigate to your `MXE` root directory and run `make curl`.
+
+Download `rapidjson` and copy its `include` directory into `rscraper/3rdparty`.
+
+Then make and install [libcompsky](https://github.com/compsky/libcompsky) with `x86_64-w64-mingw32.static-cmake`.
+
 #### Windows (native)
 
-Install [libb64](https://sourceforge.net/projects/libb64/files/latest/download). Download the source code, go to `libb64`'s directory, enter `src`, and copy `cencode.c` to this project's `3rdparty/src` folder. Go to `libb64`'s directory, and copy the `include` folder into this project's `3rdparty` folder.
+Download `base64.h` and `base64.c` as described in the Unix section, and apply the regex substitutions (presumably manually).
 
 Download the [mysql](https://dev.mysql.com/downloads/connector/c/) binary from the link and follow its instructions, making sure you check the `install C connector` or `install C API bindings` option.
 
@@ -89,8 +95,14 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
 
 ### Linux, Mac, and other Unix-derived
 
-Navigate to this project's root directory and run:
-
+    git clone https://github.com/NotCompsky/rscraper
+    
+    curl http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.h -o 3rdparty/include/base64.h
+    curl http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.c -o 3rdparty/src/base64.c
+    sed -i 's/os_//g' 3rdparty/src/base64.c
+    sed -i 's/#include "\(includes|os\).h"//g' 3rdparty/src/base64.c
+    sed -i 's/#define BASE64_H/#define BASE64_H\n\n#include<stdlib.h>\n/g' 3rdparty/include/base64.h
+    
     mkdir build
     cd build
     cmake ..
@@ -98,23 +110,16 @@ Navigate to this project's root directory and run:
 
 ### Windows (Cross Compiling from Linux)
 
-If you don't already have `libcurl`, navigate to your `MXE` root directory and run `make curl`.
+Navigate to `rscraper` root directory and run:
 
-If you don't already have `b64`:
-    Download `b64` source code
-    Copy the `CMakeLists.txt` file in the `rscraper` repository underneath `3rdparty/cmake` into the root of the `b64`
-    mkdir build
-    cd build
-    x86_64-w64-mingw32.static-cmake ..`
-    make
-    sudo make install
-
-Download `rapidjson` and copy its `include` directory into `rscraper/3rdparty`.
-
-Then make and install [libcompsky](https://github.com/compsky/libcompsky) with `x86_64-w64-mingw32.static-cmake`.
-
-Then navigate to `rscraper` root directory and run:
-
+    git clone https://github.com/NotCompsky/rscraper
+    
+    curl http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.h -o 3rdparty/include/base64.h
+    curl http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.c -o 3rdparty/src/base64.c
+    sed -i 's/os_//g' 3rdparty/src/base64.c
+    sed -i 's/#include "\(includes|os\).h"//g' 3rdparty/src/base64.c
+    sed -i 's/#define BASE64_H/#define BASE64_H\n\n#include<stdlib.h>\n/g' 3rdparty/include/base64.h
+    
     x86_64-w64-mingw32.static-cmake ..
     make rscraper-str2id rscraper-id2str
     sudo make install
