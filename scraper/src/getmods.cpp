@@ -38,6 +38,11 @@
 #include <algorithm> // for std::find
 #endif
 
+#ifndef DEBUG
+# undef printf
+# define printf(...)
+#endif
+
 
 MYSQL_RES* RES;
 MYSQL_ROW ROW;
@@ -239,7 +244,7 @@ void get_mods_of(const uint64_t subreddit_id){
     
     subreddit_id2name(subreddit_id);
     
-    PRINTF("Not cached: %s\n", SUBREDDIT_NAME);
+    printf("Not cached: %s\n", SUBREDDIT_NAME);
     
     auto i = strlen(URL_PRE);
     memcpy(URL + i,  SUBREDDIT_NAME,  SUBREDDIT_NAME_LEN);
@@ -248,6 +253,7 @@ void get_mods_of(const uint64_t subreddit_id){
     i += strlen(URL_POST);
     URL[i] = 0;
     
+    rapidjson::Document d;
     do {
         sleep(myrcu::REDDIT_REQUEST_DELAY);
         mycu::request(URL);
@@ -258,7 +264,7 @@ void get_mods_of(const uint64_t subreddit_id){
             return;
         }
         
-        rapidjson::Document d;
+        
     } while(myrcu::try_again(d));
     
     SQL__INSERT_MOD_INDX = strlen_constexpr(SQL__INSERT_MOD_PRE);
