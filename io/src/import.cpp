@@ -190,5 +190,5 @@ int main(int argc,  const char** argv){
     }
     
     
-    compsky::mysql::exit();
+    compsky::mysql::exit_mysql();
 }

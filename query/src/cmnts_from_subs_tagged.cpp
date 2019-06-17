@@ -123,5 +123,5 @@ int main(const int argc,  const char** argv){
         compsky::asciify::asciify(body, "\n\n\n");
     }
     fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX, stdout);
-    compsky::mysql::exit();
+    compsky::mysql::exit_mysql();
 }

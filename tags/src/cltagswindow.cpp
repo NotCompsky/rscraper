@@ -69,5 +69,5 @@ ClTagsDialog::ClTagsDialog(QWidget* parent){
 }
 
 ClTagsDialog::~ClTagsDialog(){
-    compsky::mysql::exit();
+    compsky::mysql::exit_mysql();
 }

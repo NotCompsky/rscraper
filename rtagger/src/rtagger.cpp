@@ -77,7 +77,7 @@ void init(){
 
 extern "C"
 void exit_mysql(){
-    compsky::mysql::exit();
+    compsky::mysql::exit_mysql();
 }
 
 void enlarge_dst(size_t extra_sz){
