@@ -18,7 +18,7 @@
 #else
   #include <unistd.h> // for sleep
 #endif
-#include <string.h> // for malloc, realloc
+#include <string.h> // for malloc
 
 #include "rapidjson_utils.h" // for SET_DBG_* macros
 
