@@ -5,12 +5,13 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#include <inttypes.h> // for uint64_t
 
 struct cmnt_meta {
     const char* author_name;
     const char* subreddit_name;
     
     // ID comparison should be faster for filtering based on exact matches
-    const unsigned long int author_id;
-    const unsigned long int subreddit_id;
+    const uint64_t author_id;
+    const uint64_t subreddit_id;
 };
