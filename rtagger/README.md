@@ -9,9 +9,7 @@ You can either:
 * Install the [Javascript script](rtagger.js) into the Greasemonkey (or equivalent) addon
 * Download [the addon](browser-addon/rtagger.xpi), open it with your browser, and install it
 
-## AddOn
-
-To install the addon, simply open the [rtagger.xpi](browser-addon/rtagger.xpi) file with your browser.
+# Building
 
 If you wish to build the `xpi` from source, navigate to the `browser-addon` directory and run `./build`.
 
