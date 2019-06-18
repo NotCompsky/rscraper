@@ -154,12 +154,13 @@ void csv2cls(const char* csv){
     {
     size_t i = 6; // Skip first prefix
     size_t j = 6;
-    bool last_id_invalid = (csv[i] == 'a');
+    bool current_id_valid = (csv[i-1] == '_');
+    printf("%c\n", csv[i-1]);
     while (true){
         switch(csv[i]){
             case 0:
             case ',':
-                if (!last_id_invalid){
+                if (current_id_valid){
                     const uint64_t id = str2id(csv, j, i);
                     
                     compsky::asciify::asciify(id);
@@ -168,8 +169,8 @@ void csv2cls(const char* csv){
                 if (csv[i] == 0)
                     goto goto_break;
                 i += 6; // Skip "id-t2_"
-                if (csv[i+1] == 'a') // 7th character of "may-invalid"
-                    last_id_invalid = true;
+                current_id_valid = (csv[i] == '_');
+                printf("%c\n", csv[i]);
                 j = i + 1; // Start at character after comma
                 break;
         }
@@ -189,6 +190,8 @@ void csv2cls(const char* csv){
     memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_post,  strlen(stmt_post));
     compsky::asciify::BUF_INDX += strlen(stmt_post);
     }
+    
+    printf("QRY: %s\n",  compsky::asciify::BUF,  compsky::asciify::BUF_INDX); // TMP
     
     compsky::mysql::query_buffer(&RES, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
     
