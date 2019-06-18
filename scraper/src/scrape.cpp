@@ -6,17 +6,12 @@
  */
 
 
-/*
- * Scrape comments from /r/all as they appear
- */
-
-
 #include <string.h> // for memcpy
 #ifdef _WIN32
-  #include <windows.h> // for sleep
-  #define sleep(n) Sleep(1000 * n)
+# include <windows.h> // for sleep
+# define sleep(n) Sleep(1000 * n)
 #else
-  #include <unistd.h> // for sleep
+# include <unistd.h> // for sleep
 #endif
 #include <string.h> // for malloc
 
@@ -36,13 +31,6 @@
 #include <compsky/mysql/query.hpp>
 
 
-#ifndef DEBUG
-# define printf(...)
-#else
-# include <stdio.h>
-#endif
-
-
 MYSQL_ROW ROW;
 
 namespace compsky {
@@ -57,14 +45,14 @@ constexpr size_t strlen_constexpr(const char* s){
     return (*s)  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
 
-constexpr const char* SQL__INSERT_SUBMISSION_FROM_CMNT_STR = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
+constexpr static const char* SQL__INSERT_SUBMISSION_FROM_CMNT_STR = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
 char SQL__INSERT_SUBMISSION_FROM_CMNT[strlen_constexpr(SQL__INSERT_SUBMISSION_FROM_CMNT_STR) + 100*strlen_constexpr("(01234567890123456789,01234567890123456789,2),") + 1] = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
 size_t SQL__INSERT_SUBMISSION_FROM_CMNT_INDX;
 
 
 
 
-constexpr const char* SQL__INSERT_INTO_USER2SUBCNT_STR = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
+constexpr static const char* SQL__INSERT_INTO_USER2SUBCNT_STR = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
 char SQL__INSERT_INTO_USER2SUBCNT[strlen_constexpr(SQL__INSERT_INTO_USER2SUBCNT_STR) + 100*(1 + 1+1+20+1+20 + 1 + 1) + 1] = "INSERT INTO user2subreddit_cmnt_count (count, user_id, subreddit_id) VALUES ";
 size_t SQL__INSERT_INTO_USER2SUBCNT_INDX;
 
@@ -117,31 +105,32 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
         subreddit_id,
     };
     
+    unsigned int reason_matched = 0;
+    
     
     switch (filter_user::matches_id(author_id)){
         case 1: return; // blacklist
-        case 2: goto goto__do_process_this_live_cmnt; // whitelist
+        case 2: goto process_this_comment; // whitelist
         default: break; // 0 is the default
     }
     
     switch (filter_subreddit::matches_id(subreddit_id)){
         case 1: return; // blacklist
-        case 2: goto goto__do_process_this_live_cmnt; // whitelist
+        case 2: goto process_this_comment; // whitelist
         default: break; // 0 is the default
     }
     
     
-    unsigned int reason_matched;
     if ((reason_matched = filter_comment_body::wl::match(metadata, body, strlen(body)))){
-        goto goto__do_process_this_live_cmnt;
+        goto process_this_comment;
     }
     // if filter_comment_body::bl: return;
     
     
-    
     return;
     
-    goto__do_process_this_live_cmnt:
+    
+    process_this_comment:
     
     
     SET_STR(permalink,      cmnt["data"]["permalink"]);
@@ -206,7 +195,6 @@ uint64_t process_live_replies(rapidjson::Value& replies, const uint64_t last_pro
     
     if (SQL__INSERT_SUBMISSION_FROM_CMNT_INDX != strlen_constexpr(SQL__INSERT_SUBMISSION_FROM_CMNT_STR)){
         SQL__INSERT_SUBMISSION_FROM_CMNT[--SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = 0; // Overwrite trailing comma
-        printf("stmt: %s\n", SQL__INSERT_SUBMISSION_FROM_CMNT);
         compsky::mysql::exec_buffer(SQL__INSERT_SUBMISSION_FROM_CMNT, SQL__INSERT_SUBMISSION_FROM_CMNT_INDX);
     }
     
@@ -215,13 +203,11 @@ uint64_t process_live_replies(rapidjson::Value& replies, const uint64_t last_pro
         constexpr const char* b = " ON DUPLICATE KEY UPDATE count = count + 1";
         memcpy(SQL__INSERT_INTO_USER2SUBCNT + SQL__INSERT_INTO_USER2SUBCNT_INDX,  b,  strlen_constexpr(b));
         SQL__INSERT_INTO_USER2SUBCNT_INDX += strlen_constexpr(b);
-        printf("stmt: %s\n", SQL__INSERT_INTO_USER2SUBCNT);
         compsky::mysql::exec_buffer(SQL__INSERT_INTO_USER2SUBCNT, SQL__INSERT_INTO_USER2SUBCNT_INDX);
     }
     
     if (SQL__INSERT_INTO_SUBREDDIT_INDX != strlen_constexpr(SQL__INSERT_INTO_SUBREDDIT_STR)){
         SQL__INSERT_INTO_SUBREDDIT[--SQL__INSERT_INTO_SUBREDDIT_INDX] = 0;
-        printf("stmt: %s\n", SQL__INSERT_INTO_SUBREDDIT);
         compsky::mysql::exec_buffer(SQL__INSERT_INTO_SUBREDDIT, SQL__INSERT_INTO_SUBREDDIT_INDX);
     }
     
