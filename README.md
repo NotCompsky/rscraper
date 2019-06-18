@@ -56,7 +56,7 @@ If you do not wish to host the MySQL server yourself, skip this section.
 
 During configuration, ensure that `TCP/IP` is enabled. Make a note of the port number and root password.
 
-Then run `rscraper-init`. The default answers will be, in order:
+Then run `rscraper-init`. The default answers are, in order:
 
     C:\\Users\\YOU\\rscraper_mysql.cfg (no need to escape \\s)
     localhost
@@ -142,6 +142,8 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
     sudo cmake install
 
 ### Windows (Cross Compiling from Linux)
+
+I've successfully compiled the full project. I haven't successfully ran it on Windows.
 
 Navigate to `rscraper` root directory and run:
 
