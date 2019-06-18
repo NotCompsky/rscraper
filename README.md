@@ -35,6 +35,39 @@ See [docs](docs)
 
     sudo apt install libcurl4 default-libmysqlclient mysql-client mysql-server
 
+Then run `rscraper-init`. The default answers will be, in order:
+
+    /home/YOU/.config/mysql/rscraper.cfg
+    localhost
+    rscraper
+    <YOUR CHOICE>
+    rscraper
+    <LEAVE BLANK>
+    root
+    <LEAVE BLANK>
+
+#### Windows 10
+
+##### MySQL
+
+If you do not wish to host the MySQL server yourself, skip this section.
+
+[Download and install a MySQL community server](https://dev.mysql.com/downloads/mysql/).
+
+During configuration, ensure that `TCP/IP` is enabled. Make a note of the port number and root password.
+
+Then run `rscraper-init`. The default answers will be, in order:
+
+    C:\\Users\\YOU\\rscraper_mysql.cfg (no need to escape \\s)
+    localhost
+    <LEAVE BLANK>
+    rscraper
+    <YOUR CHOICE>
+    rscraper
+    3306
+    root
+    <ROOT PASSWORD>
+
 ### GUI
 
 * qt5
@@ -141,8 +174,8 @@ Wait for the (same) linking errors when building rscrape-mods
     
     cd scraper
     x86_64-w64-mingw32.static-g++ -O3 -DNDEBUG   -Wl,--whole-archive CMakeFiles/rscrape-mods.dir/objects.a -Wl,--no-whole-archive  -o rscrape-mods.exe -Wl,--out-implib,librscrape-mods.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles/rscrape-mods.dir/linklibs.rsp -Wl,-Bstatic -lcurl -Wl,-Bdynamic -Wl,-Bsymbolic-functions -Wl,--as-needed -lssh2 -lgnutls -lidn2 -lnettle -lhogweed -lgcrypt -lgpg-error -lunistring -liconv -lssl -lcrypto -lz -lws2_32 -lcrypt32 -lwldap32 -lgmp -lpthread
-
-Then continue with `make`
+    cd ..
+    make
 
 ### Windows
 
