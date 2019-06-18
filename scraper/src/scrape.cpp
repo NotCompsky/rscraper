@@ -15,8 +15,6 @@
 #endif
 #include <string.h> // for malloc
 
-#include "rapidjson_utils.h" // for SET_DBG_* macros
-
 #include "error_codes.hpp" // for myerr:*
 
 #include "reddit_utils.hpp" // for myru::*
@@ -82,10 +80,9 @@ void count_user_subreddit_cmnt(const uint64_t user_id,  const uint64_t subreddit
 }
 
 void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
-    SET_STR(body,           cmnt["data"]["body"]);
-    SET_STR(subreddit_name, cmnt["data"]["subreddit"]);
-    SET_STR(author_name,    cmnt["data"]["author"]);
-    
+    const char* body            = cmnt["data"]["body"].GetString();
+    const char* subreddit_name  = cmnt["data"]["subreddit"].GetString();
+    const char* author_name     = cmnt["data"]["author"].GetString();
     
     const uint64_t author_id = myru::id2n_lower(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
     const uint64_t subreddit_id = myru::id2n_lower(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
@@ -133,9 +130,9 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
     process_this_comment:
     
     
-    SET_STR(permalink,      cmnt["data"]["permalink"]);
+    const char* permalink = cmnt["data"]["permalink"].GetString();
     
-    const time_t RSET_FLT(created_at,     cmnt["data"]["created_utc"]);
+    const time_t created_at = cmnt["data"]["created_utc"].GetFloat(); // It's delivered in float format
     
     compsky::mysql::exec("INSERT IGNORE INTO user (id, name) VALUES (",  author_id,  ",'",  author_name,  "')");
     

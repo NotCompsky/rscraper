@@ -21,8 +21,6 @@
 #include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
 // NOTE: These are to prefer local headers, as rapidjson is a header-only library. This allows easy use of any version of rapidjson, as those provided by repositories might be dated.
 
-#include "rapidjson_utils.h" // for SET_DBG_* macros
-
 #include "error_codes.hpp" // for myerr:*
 
 #include "reddit_utils.hpp" // for myru::*
@@ -194,10 +192,10 @@ void process_mod(const uint64_t subreddit_id,  const uint64_t user_id,  const ch
 }
 
 void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user,  unsigned int modrank){
-    SET_STR(user_id_str,    user["id"]);
+    const char* user_id_str = user["id"].GetString();
     user_id_str += 3; // Skip prefix "t2_"
     const uint64_t user_id = myru::id2n_lower(user_id_str);
-    SET_STR(user_name,  user["name"]);
+    const char* user_name = user["name"].GetString();
     
     uint64_t permissions = 0;
     for (rapidjson::Value::ValueIterator itr = user["mod_permissions"].Begin();  itr != user["mod_permissions"].End();  ++itr)
