@@ -47,6 +47,11 @@
 MYSQL_RES* RES;
 MYSQL_ROW ROW;
 
+namespace compsky {
+    namespace asciify {
+        char* BUF = (char*)malloc(4096);
+    }
+}
 
 constexpr size_t strlen_constexpr(const char* s){
     // GCC strlen is constexpr; this is apparently a bug
