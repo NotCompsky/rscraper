@@ -123,17 +123,26 @@ Navigate to `rscraper` root directory and run:
     mkdir build
     cd build
     x86_64-w64-mingw32.static-cmake ..
-    make rscraper-str2id rscraper-id2str rscraped-tagged-subs rscraped-reason rscraper-import rscraper-export rscraper-tags rscraper-init
+    make
     sudo make install
 
 #### rscrape-cmnts and rscrape-mods
 
-I have not yet sorted out `rscrape-cmnts` and `rscrape-mods` to build on MXE, but it only fails at the last stage (linking).
-
-To get close, you can run `make rscrape-cmnts`, then
+I had a lot of fun trying to get `rscrape-cmnts` and `rscrape-mods` to build on MXE. If you get the `undefined reference to nettle_cnd_memcpy` error, run the following commands:
 
     cd scraper
-    x86_64-w64-mingw32.static-g++ -O3 -DNDEBUG   -Wl,--whole-archive CMakeFiles/rscrape-cmnts.dir/objects.a -Wl,--no-whole-archive  -o rscrape-cmnts.exe -Wl,--out-implib,librscrape-cmnts.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles/rscrape-cmnts.dir/linklibs.rsp -Wl,-Bstatic -lcurl -Wl,-Bdynamic -Wl,-Bsymbolic-functions -Wl,--as-needed -lssh2 -lgnutls -lidn2 -lnettle -lhogweed -lgcrypt -lgpg-error -lunistring -liconv -lssl -lcrypto -lz -lws2_32 -lcrypt32 -lwldap32 -lgmp
+    x86_64-w64-mingw32.static-g++ -O3 -DNDEBUG   -Wl,--whole-archive CMakeFiles/rscrape-cmnts.dir/objects.a -Wl,--no-whole-archive  -o rscrape-cmnts.exe -Wl,--out-implib,librscrape-cmnts.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles/rscrape-cmnts.dir/linklibs.rsp -Wl,-Bstatic -lcurl -Wl,-Bdynamic -Wl,-Bsymbolic-functions -Wl,--as-needed -lssh2 -lgnutls -lidn2 -lnettle -lhogweed -lgcrypt -lgpg-error -lunistring -liconv -lssl -lcrypto -lz -lws2_32 -lcrypt32 -lwldap32 -lgmp -lpthread
+    
+    cd ..
+    
+    make
+    
+Wait for the (same) linking errors when building rscrape-mods
+    
+    cd scraper
+    x86_64-w64-mingw32.static-g++ -O3 -DNDEBUG   -Wl,--whole-archive CMakeFiles/rscrape-mods.dir/objects.a -Wl,--no-whole-archive  -o rscrape-mods.exe -Wl,--out-implib,librscrape-mods.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles/rscrape-mods.dir/linklibs.rsp -Wl,-Bstatic -lcurl -Wl,-Bdynamic -Wl,-Bsymbolic-functions -Wl,--as-needed -lssh2 -lgnutls -lidn2 -lnettle -lhogweed -lgcrypt -lgpg-error -lunistring -liconv -lssl -lcrypto -lz -lws2_32 -lcrypt32 -lwldap32 -lgmp -lpthread
+
+Then continue with `make`
 
 ### Windows
 
