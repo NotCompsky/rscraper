@@ -84,7 +84,7 @@ if("rscrape-cmnts" IN_LIST MY_TARGETS)
     endif()
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
         target_compile_definitions(rscrape-cmnts PUBLIC CURL_STATICLIB)
-    #    target_link_libraries(rscrape-cmnts idn2 ssh2 unistring gcrypt z secur32 ssl crypto crypt32 ws2_32) # gmp gnurx unistring  nettle gnutls gcrypt
+        target_link_libraries(rscrape-cmnts ssh2 gnutls idn2 nettle hogweed gcrypt gpg-error unistring iconv ssl crypto z ws2_32 crypt32 wldap32 gmp)
     endif()
 endif()
 if("rscrape-mods" IN_LIST MY_TARGETS)
@@ -102,7 +102,7 @@ if("rscrape-mods" IN_LIST MY_TARGETS)
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
         target_compile_definitions(rscrape-mods PUBLIC CURL_STATICLIB)
         target_link_libraries(rscrape-mods ssh2)
-        #target_link_libraries(rscrape-mods ssh2 idn2 gnutls unistring nettle  z secur32 ssl crypto crypt32 ws2_32) # idn2 ssh2 unistring gcrypt  # gmp gnurx unistring  nettle gnutls gcrypt
+        target_link_libraries(rscrape-cmnts ssh2 gnutls idn2 nettle hogweed gcrypt gpg-error unistring iconv ssl crypto z ws2_32 crypt32 wldap32 gmp)
     endif()
 endif()
 

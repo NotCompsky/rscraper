@@ -126,7 +126,14 @@ Navigate to `rscraper` root directory and run:
     make rscraper-str2id rscraper-id2str rscraped-tagged-subs rscraped-reason rscraper-import rscraper-export rscraper-tags rscraper-init
     sudo make install
 
-I have not yet sorted out `rscrape-cmnts` and `rscrape-mods` to build on MXE, but it only fails at the last stage (linking). Someone with more knowledge of building on Windows would probably find it trivial.
+#### rscrape-cmnts and rscrape-mods
+
+I have not yet sorted out `rscrape-cmnts` and `rscrape-mods` to build on MXE, but it only fails at the last stage (linking).
+
+To get close, you can run `make rscrape-cmnts`, then
+
+    cd scraper
+    x86_64-w64-mingw32.static-g++ -O3 -DNDEBUG   -Wl,--whole-archive CMakeFiles/rscrape-cmnts.dir/objects.a -Wl,--no-whole-archive  -o rscrape-cmnts.exe -Wl,--out-implib,librscrape-cmnts.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles/rscrape-cmnts.dir/linklibs.rsp -Wl,-Bstatic -lcurl -Wl,-Bdynamic -Wl,-Bsymbolic-functions -Wl,--as-needed -lssh2 -lgnutls -lidn2 -lnettle -lhogweed -lgcrypt -lgpg-error -lunistring -liconv -lssl -lcrypto -lz -lws2_32 -lcrypt32 -lwldap32 -lgmp
 
 ### Windows
 
