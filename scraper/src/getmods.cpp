@@ -105,8 +105,8 @@ uint64_t calc_permission(const char* str){
     }
 }
 
-constexpr const char* SQL__INSERT_MOD_PRE = "INSERT IGNORE INTO moderator (subreddit_id, user_id, permissions, added_on, rank) VALUES ";
-constexpr const char* SQL__INSERT_MOD_POST = " ON DUPLICATE KEY UPDATE rank=VALUES(rank), permissions=VALUES(permissions)";
+constexpr const char* SQL__INSERT_MOD_PRE = "INSERT IGNORE INTO moderator (subreddit_id, user_id, permissions, added_on, modrank) VALUES ";
+constexpr const char* SQL__INSERT_MOD_POST = " ON DUPLICATE KEY UPDATE modrank=VALUES(modrank), permissions=VALUES(permissions)";
 constexpr size_t BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA = 1 + 20 + 1 + 20 + 1 + 20 + 1 + 10 + 1; // Maximum length of a single entry
 char SQL__INSERT_MOD[strlen_constexpr(SQL__INSERT_MOD_PRE) + 100*BRCKT_SUBID_COMMA_USERID_COMMA_PERMS_BRCKT_COMMA + strlen(SQL__INSERT_MOD_POST) + 1];
 // Some subreddits have thousands of moderators. I do not know the limit.
@@ -146,7 +146,7 @@ bool previously_got_user_modded_subs(const uint64_t user_id){
 }
 
 void record_user_modded_subreddit(const uint64_t user_id,  const uint64_t subreddit_id,  const char* subreddit_name){
-    compsky::mysql::exec("INSERT INTO moderator (permissions, added_on, rank, user_id, subreddit_id) VALUES (0,0,0,",  user_id,  ',',  subreddit_id,  ")");
+    compsky::mysql::exec("INSERT INTO moderator (permissions, added_on, modrank, user_id, subreddit_id) VALUES (0,0,0,",  user_id,  ',',  subreddit_id,  ")");
     // NOTE: Do not need 'IGNORE' as this is only called if there were no previous results
     
     compsky::mysql::exec("INSERT IGNORE INTO subreddit (id, name) VALUES (",  subreddit_id, ",\"", subreddit_name, "\")");
@@ -193,7 +193,7 @@ void process_mod(const uint64_t subreddit_id,  const uint64_t user_id,  const ch
   #endif
 }
 
-void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user,  unsigned int rank){
+void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user,  unsigned int modrank){
     SET_STR(user_id_str,    user["id"]);
     user_id_str += 3; // Skip prefix "t2_"
     const uint64_t user_id = myru::id2n_lower(user_id_str);
@@ -213,7 +213,7 @@ void process_mod(const uint64_t subreddit_id,  rapidjson::Value& user,  unsigned
     
     constexpr static const compsky::asciify::flag::ChangeBuffer change_buf;
     
-    compsky::asciify::asciify(change_buf, SQL__INSERT_MOD, SQL__INSERT_MOD_INDX, '(', subreddit_id, ',', user_id, ',', permissions, ',', added_on, ',', rank, ')', ',');
+    compsky::asciify::asciify(change_buf, SQL__INSERT_MOD, SQL__INSERT_MOD_INDX, '(', subreddit_id, ',', user_id, ',', permissions, ',', added_on, ',', modrank, ')', ',');
     
     SQL__INSERT_MOD_INDX = compsky::asciify::BUF_INDX;
     
@@ -274,9 +274,9 @@ void get_mods_of(const uint64_t subreddit_id){
     
     SQL__INSERT_MOD_INDX = strlen_constexpr(SQL__INSERT_MOD_PRE);
     
-    unsigned int rank = 0;
+    unsigned int modrank = 0;
     for (rapidjson::Value::ValueIterator itr = d["data"]["children"].Begin();  itr != d["data"]["children"].End();  ++itr)
-        process_mod(subreddit_id, *itr, ++rank);
+        process_mod(subreddit_id, *itr, ++modrank);
     
     memcpy(SQL__INSERT_MOD + SQL__INSERT_MOD_INDX,  SQL__INSERT_MOD_POST,  strlen(SQL__INSERT_MOD_POST));
     i += strlen(SQL__INSERT_MOD_POST);

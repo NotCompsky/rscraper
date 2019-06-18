@@ -84,15 +84,13 @@ CREATE TABLE IF NOT EXISTS category (
 );
 
 CREATE TABLE IF NOT EXISTS moderator (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id BIGINT UNSIGNED NOT NULL,
     subreddit_id BIGINT UNSIGNED NOT NULL,
     permissions BIGINT UNSIGNED NOT NULL,
     added_on BIGINT UNSIGNED NOT NULL,
     removed_by BIGINT UNSIGNED NOT NULL DEFAULT 0,
     last_updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    rank INT UNSIGNED NOT NULL,
-    UNIQUE KEY `user2subreddit` (`user_id`, `subreddit_id`),
-    PRIMARY KEY (id)
+    modrank INT UNSIGNED NOT NULL,
+    PRIMARY KEY `user2subreddit` (`user_id`, `subreddit_id`)
 );
 )====="
