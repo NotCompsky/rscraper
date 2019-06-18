@@ -11,13 +11,22 @@
 // ==/UserScript==
 
 
-var user_ids = [];  for (var t of document.getElementsByClassName("author")){
-    user_ids.push(t.classList[2]);
+var user_ids = [];
+for (var t of document.getElementsByClassName("author")){
+    var s = t.classList[2];
+    if (s[0] == 'm'){
+        s = t.classList[3];
+    }
+    user_ids.push(s);
 }
 
 function main(d){
     for (var t of document.getElementsByClassName("author")){
-        var tpls = d[t.classList[2]];
+        var s = t.classList[2];
+        if (s[0] == 'm'){
+            s = t.classList[3];
+        }
+        var tpls = d[s];
         // NOTE: Thread starter has additional (non-ID) tag in 2nd index.
         // TODO: Account for this
         if (tpls === undefined){
