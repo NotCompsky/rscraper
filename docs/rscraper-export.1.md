@@ -8,7 +8,13 @@ rscraper-export - Export from the rscraper database in a format that can be impo
 
 # SYNOPSIS
 
-rscrape-mods [*TABLES*]
+rscrape-mods [*OPTIONS*] [*TABLES*]
+
+# OPTIONS
+
+*-c* CATEGORY_NAME
+:   Only export things relating to the category. Can be specified multiple times.
+    For instance, users are only exported if they have commented in a subreddit belonging to one of the specified categories.
 
 # ARGUMENTS
 
