@@ -193,6 +193,9 @@ void init(const char* fp){
     mycu::MEMORY.n_allocated = 0;
     
     
+    init_login(fp);
+    
+    
     curl_easy_setopt(mycu::curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(mycu::curl, CURLOPT_TIMEOUT, 20);
     
@@ -200,9 +203,6 @@ void init(const char* fp){
     
     curl_easy_setopt(mycu::curl, CURLOPT_WRITEFUNCTION, mycu::write_res_to_mem);
     curl_easy_setopt(mycu::curl, CURLOPT_WRITEDATA, (void *)&mycu::MEMORY);
-    
-    
-    init_login(fp);
     
     
     if (PROXY_URL[0] != '-'){
