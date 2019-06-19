@@ -5,9 +5,11 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#ifndef __CATEGORYTAB_H__
+#define __CATEGORYTAB_H__
 
 #include <QWidget>
-#include <QVBoxLayout>
+#include <QGridLayout>
 
 
 class ClTagsTab : public QWidget{
@@ -19,5 +21,8 @@ class ClTagsTab : public QWidget{
     void add_tag();
     uint64_t create_tag(QString& qs,  const char* s);
   private:
-    QVBoxLayout* l;
+    QGridLayout* l;
+    int row;
 };
+
+#endif

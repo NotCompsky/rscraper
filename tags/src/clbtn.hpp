@@ -5,6 +5,8 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#ifndef __CLBTN_H__
+#define __CLBTN_H__
 
 #include <QColor>
 #include <QMouseEvent>
@@ -24,3 +26,6 @@ class SelectColourButton : public QPushButton{
   public Q_SLOTS:
     void set_colour();
 };
+
+
+#endif
