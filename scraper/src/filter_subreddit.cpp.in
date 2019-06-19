@@ -1,3 +1,6 @@
+#include "filter_subreddit.hpp"
+
+
 namespace filter_subreddit {
 
 int matches_id(const uint64_t id){

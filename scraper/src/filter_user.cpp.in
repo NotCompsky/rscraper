@@ -1,3 +1,6 @@
+#include "filter_user.hpp"
+
+
 namespace filter_user {
 
 int matches_id(const uint64_t id){
