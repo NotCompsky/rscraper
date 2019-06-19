@@ -1,6 +1,3 @@
-3rdparty/include/*
-3rdparty/src/*
-
 build/*
 build-mxe/*
 

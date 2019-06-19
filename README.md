@@ -149,6 +149,7 @@ Navigate to `rscraper` root directory and run:
 
     git clone https://github.com/NotCompsky/rscraper
     
+    cd rscraper
     curl http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.h -o 3rdparty/include/base64.h
     curl http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.c -o 3rdparty/src/base64.c
     sed -i 's/os_//g' 3rdparty/src/base64.c
