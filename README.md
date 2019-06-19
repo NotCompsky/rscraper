@@ -131,12 +131,8 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
     git clone https://github.com/NotCompsky/rscraper
     
     cd rscraper
-    curl http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.h -o 3rdparty/include/base64.h
-    curl http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.c -o 3rdparty/src/base64.c
-    sed -i 's/os_//g' 3rdparty/src/base64.c
-    sed -i 's/#include "includes\.h"//g' 3rdparty/src/base64.c
-    sed -i 's/#include "os\.h"//g' 3rdparty/src/base64.c
-    sed -i 's/#define BASE64_H/#define BASE64_H\n\n#include<stdlib.h>\n/g' 3rdparty/include/base64.h
+    curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/libb64.h -o 3rdparty/include/libb64.h
+    curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/cencode.c -o 3rdparty/src/base64.c
     
     mkdir build
     cd build
@@ -152,12 +148,8 @@ Navigate to `rscraper` root directory and run:
     git clone https://github.com/NotCompsky/rscraper
     
     cd rscraper
-    curl http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.h -o 3rdparty/include/base64.h
-    curl http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.c -o 3rdparty/src/base64.c
-    sed -i 's/os_//g' 3rdparty/src/base64.c
-    sed -i 's/#include "includes\.h"//g' 3rdparty/src/base64.c
-    sed -i 's/#include "os\.h"//g' 3rdparty/src/base64.c
-    sed -i 's/#define BASE64_H/#define BASE64_H\n\n#include<stdlib.h>\n/g' 3rdparty/include/base64.h
+    curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/libb64.h -o 3rdparty/include/libb64.h
+    curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/cencode.c -o 3rdparty/src/base64.c
     
     mkdir build
     cd build

@@ -12,7 +12,7 @@
 #include <stdlib.h> // for free, malloc, realloc
 
 extern "C" {
-# include <base64.h> // for base64_encode // Must be after stdlib.h for size_t
+# include <libb64.h> // for base64_encode // Must be after stdlib.h for size_t
 }
 
 #include "rapidjson/document.h" // for rapidjson::Document
@@ -122,11 +122,9 @@ void init_login(const char* fp){
     printf("%s \n%s \n%s \n%s \n%s \n",  REDDIT_AUTH[0],  REDDIT_AUTH[1],  REDDIT_AUTH[2],  REDDIT_AUTH[3],  REDDIT_AUTH[4]);
     
     {
-    size_t i = strlen_constexpr(BASIC_AUTH_PREFIX);;
-    unsigned char* ucstr_in = reinterpret_cast<unsigned char*>(KEY_AND_SECRET);
-    unsigned char* ucstr_out = base64_encode(ucstr_in,  strlen(KEY_AND_SECRET),  0);
-    char* cstr_out = reinterpret_cast<char*>(ucstr_out);
-    memcpy(BASIC_AUTH_HEADER + i,  cstr_out,  strlen(cstr_out) + 1); // base64_encode terminates with null byte
+    base64_encodestate state;
+    base64_init_encodestate(&state);
+    base64_encode_block(KEY_AND_SECRET,  strlen(KEY_AND_SECRET),  BASIC_AUTH_HEADER + strlen_constexpr(BASIC_AUTH_PREFIX),  &state);
     }
     
     LOGIN_HEADERS = curl_slist_append(LOGIN_HEADERS, BASIC_AUTH_HEADER);
