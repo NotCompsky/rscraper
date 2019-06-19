@@ -15,6 +15,7 @@ rscrape-mods [*OPTIONS*] [*TABLES*]
 *-c* CATEGORY_NAME
 :   Only export things relating to the category. Can be specified multiple times.
     For instance, users are only exported if they have commented in a subreddit belonging to one of the specified categories.
+    To see the available category names, use `rscraper-export category` and view the resulting `category.csv` file.
 
 # ARGUMENTS
 
