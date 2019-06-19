@@ -35,11 +35,9 @@ CREATE TABLE IF NOT EXISTS comment (
 );
 
 CREATE TABLE IF NOT EXISTS subreddit2tag (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     subreddit_id BIGINT UNSIGNED NOT NULL,
     tag_id BIGINT UNSIGNED NOT NULL,
-    UNIQUE KEY `subreddit2tag` (`subreddit_id`, `tag_id`),
-    PRIMARY KEY (id)
+    PRIMARY KEY `subreddit2tag` (`subreddit_id`, `tag_id`)
 );
 
 CREATE TABLE IF NOT EXISTS tag (
@@ -61,19 +59,16 @@ CREATE TABLE IF NOT EXISTS reason_matched (
 );
 
 CREATE TABLE IF NOT EXISTS user2subreddit_cmnt_count (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id BIGINT UNSIGNED NOT NULL,
     subreddit_id BIGINT UNSIGNED NOT NULL,
     count INT UNSIGNED NOT NULL,
-    UNIQUE KEY `user2subreddit` (`user_id`, `subreddit_id`),
-    PRIMARY KEY (id)
+    PRIMARY KEY `user2subreddit` (`user_id`, `subreddit_id`)
 );
 
 CREATE TABLE IF NOT EXISTS tag2category (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     tag_id BIGINT UNSIGNED NOT NULL,
     category_id INT UNSIGNED NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY `tag2category` (`tag_id`, `category_id`)
 );
 
 CREATE TABLE IF NOT EXISTS category (
