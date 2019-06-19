@@ -172,7 +172,7 @@ int main(int argc,  const char** argv){
         }
         compsky::asciify::asciify(pre);
         while(fscanf(f, "%lu\t%lu\t%lu", &user_id, &subreddit_id, &count) != EOF){
-            compsky::asciify::asciify("(\"", _f::esc, '"', name1, "\"),");
+            compsky::asciify::asciify("(", user_id, ',', subreddit_id, ',', count, "),");
             compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3,  post);
         }
         if (compsky::asciify::BUF_INDX != strlen(pre))
