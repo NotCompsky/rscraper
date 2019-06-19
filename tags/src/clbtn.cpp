@@ -20,8 +20,7 @@ extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
 
-SelectColourButton::SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  const char* name,  QWidget* parent){
-    this->tag_id = id;
+SelectColourButton::SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  const char* name,  QWidget* parent) : tag_id(id) {
     this->setText(name);
     this->setAutoFillBackground(true);
     this->setFlat(true);
