@@ -8,6 +8,14 @@
 
 // Unused code
 
+constexpr static const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
+constexpr static const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
+constexpr static const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
+constexpr static const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
+
+constexpr static const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
+constexpr static const size_t PARAMS_LEN = strlen_constexpr(PARAMS);
+
 void process_submission_duplicates(const char* submission_id, const int submission_id_len){
     int i = 0;
     char api_url[strlen(API_DUPLICATES_URL_PREFIX) + submission_id_len + 1 + PARAMS_LEN + 1];

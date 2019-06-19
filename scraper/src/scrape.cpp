@@ -218,7 +218,7 @@ void process_all_comments_live(){
         sleep(myrcu::REDDIT_REQUEST_DELAY);
         
         
-        mycu::request(myrcu::API_ALLCOMMENTS_URL);
+        mycu::request("https://oauth.reddit.com/r/all/comments/?limit=100&raw_json=1");
         
         rapidjson::Document d;
         

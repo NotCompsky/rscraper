@@ -35,12 +35,6 @@ namespace myrcu {
 #endif
 
 
-/* For base64.c */
-#define os_malloc malloc
-#define os_free free
-#define os_memset memset
-
-
 constexpr size_t strlen_constexpr(const char* s){
     // GCC strlen is constexpr; this is apparently a bug
     return *s  ?  1 + strlen_constexpr(s + 1)  :  0;
@@ -48,39 +42,21 @@ constexpr size_t strlen_constexpr(const char* s){
 
 constexpr int REDDIT_REQUEST_DELAY = 1;
 
-constexpr const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
-constexpr const size_t PARAMS_LEN = strlen_constexpr(PARAMS);
-
 constexpr const char* AUTH_HEADER_PREFIX = "Authorization: bearer ";
 char AUTH_HEADER[strlen_constexpr(AUTH_HEADER_PREFIX) + 128 + 1] = "Authorization: bearer ";
-
-constexpr const char* API_SUBMISSION_URL_PREFIX = "https://oauth.reddit.com/comments/";
-constexpr const char* API_DUPLICATES_URL_PREFIX = "https://oauth.reddit.com/duplicates/";
-constexpr const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.com/r/";
-constexpr const char* SUBMISSION_URL_PREFIX = "https://XXX.reddit.com/r/";
-constexpr const char* API_ALLCOMMENTS_URL = "https://oauth.reddit.com/r/all/comments/?limit=100&raw_json=1";
-
-constexpr const int BUF_SZ = 1024;
-char BUF[BUF_SZ];
-char* REDDIT_AUTH[6];
-char* USR;
-char* PWD;
-char* KEY_AND_SECRET;
-char* USER_AGENT;
-char* PROXY_URL;
 
 
 constexpr const char* BASIC_AUTH_PREFIX = "Authorization: Basic ";
 constexpr const char* BASIC_AUTH_FMT = "base-64-encoded-client_key:client_secret----------------";
-char BASIC_AUTH_HEADER[strlen_constexpr("Authorization: Basic ") + strlen_constexpr("base-64-encoded-client_key:client_secret----------------") + 1] = "Authorization: Basic ";
+char BASIC_AUTH_HEADER[512] = "Authorization: Basic ";
 
 
 CURL* LOGIN_CURL;
 struct curl_slist* LOGIN_HEADERS;
-constexpr const char* LOGIN_POSTDATA_PREFIX = "grant_type=password&password=";
-constexpr const char* LOGIN_POSTDATA_KEYNAME = "&username=";
-char LOGIN_POSTDATA[strlen_constexpr(LOGIN_POSTDATA_PREFIX) + 128 + strlen_constexpr(LOGIN_POSTDATA_KEYNAME) + 128 + 1];
 
+char LOGIN_POSTDATA[512];
+char* USER_AGENT;
+char* PROXY_URL;
 
 
 constexpr const char* URL__USER_MOD_OF__PRE  = "https://www.reddit.com/user/";
@@ -109,15 +85,47 @@ void handler(int n){
 }
 
 
-void init_login(){
-    int i;
+void init_login(const char* fp){
+    char* REDDIT_AUTH[6];
+    char* USR;
+    char* PWD;
+    char* KEY_AND_SECRET;
     
-    i = strlen_constexpr(BASIC_AUTH_PREFIX);
+    FILE* f = fopen(fp, "r");
+    fread(compsky::asciify::BUF, 1, 9999, f);
+    
+    /*
+    reddit config file must have format:
+    USERNAME: my_k00l_username
+    PASSWORD: my_5up3r_53cur3_p455w0rd
+    KEY_SCRT: something:somethingelse
+    USERAGNT: my_program_name (by /u/my_k00l_username)
+    PROXYURL: either the url of the proxy to use, or a single dash to indicate no proxy is used
+    */
+    
+    int n_lines = 0;
+    char* itr;
+    REDDIT_AUTH[0] = compsky::asciify::BUF + 10;
+    for (itr = REDDIT_AUTH[0];  n_lines < 5;  ++itr)
+        if (*itr == '\n'){
+            *itr = 0;
+            itr += 11; // To skip "ABCD: "
+            REDDIT_AUTH[++n_lines] = itr;
+        }
+
+    USR = REDDIT_AUTH[0];
+    PWD = REDDIT_AUTH[1];
+    KEY_AND_SECRET = REDDIT_AUTH[2];
+    USER_AGENT = REDDIT_AUTH[3];
+    PROXY_URL = REDDIT_AUTH[4];
+    
+    printf("%s \n%s \n%s \n%s \n%s \n",  REDDIT_AUTH[0],  REDDIT_AUTH[1],  REDDIT_AUTH[2],  REDDIT_AUTH[3],  REDDIT_AUTH[4]);
     
     {
-    unsigned char* ucstr_in = static_cast<unsigned char*>(KEY_AND_SECRET);
+    size_t i = strlen_constexpr(BASIC_AUTH_PREFIX);;
+    unsigned char* ucstr_in = reinterpret_cast<unsigned char*>(KEY_AND_SECRET);
     unsigned char* ucstr_out = base64_encode(ucstr_in,  strlen(KEY_AND_SECRET),  0);
-    char* cstr_out = static_cast<char*>(ucstr_out);
+    char* cstr_out = reinterpret_cast<char*>(ucstr_out);
     memcpy(BASIC_AUTH_HEADER + i,  cstr_out,  strlen(cstr_out) + 1); // base64_encode terminates with null byte
     }
     
@@ -132,25 +140,8 @@ void init_login(){
     curl_easy_setopt(LOGIN_CURL, CURLOPT_HTTPHEADER, LOGIN_HEADERS);
     curl_easy_setopt(LOGIN_CURL, CURLOPT_TIMEOUT, 20);
     
-    i = 0;
-    
-    memcpy(LOGIN_POSTDATA + i,  LOGIN_POSTDATA_PREFIX,  strlen_constexpr(LOGIN_POSTDATA_PREFIX));
-    i += strlen_constexpr(LOGIN_POSTDATA_PREFIX);
-    
-    memcpy(LOGIN_POSTDATA + i,  PWD,  strlen(PWD));
-    i += strlen(PWD);
-    
-    memcpy(LOGIN_POSTDATA + i,  LOGIN_POSTDATA_KEYNAME,  strlen(LOGIN_POSTDATA_KEYNAME));
-    i += strlen(LOGIN_POSTDATA_KEYNAME);
-    
-    memcpy(LOGIN_POSTDATA + i,  USR,  strlen(USR));
-    i += strlen(USR);
-    
-    //constexpr static const compsky::asciify::flag::ChangeBuffer change_buffer;
-    //compsky::asciify::asciify(change_buffer, LOGIN_POSTDATA, 0, LOGIN_POSTDATA_PREFIX, PWD, LOGIN_POSTDATA_KEYNAME, USR);
-    
-    LOGIN_POSTDATA[i] = 0;
-    
+    constexpr static const compsky::asciify::flag::ChangeBuffer chbf;
+    compsky::asciify::asciify(chbf, LOGIN_POSTDATA, 0, "grant_type=password&password=", PWD, "&username=", USR, '\0');
     
     curl_easy_setopt(LOGIN_CURL, CURLOPT_POSTFIELDS, LOGIN_POSTDATA);
     
@@ -172,7 +163,7 @@ void login(){
     // Result is in format
     // {"access_token": "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX", "token_type": "bearer", "expires_in": 3600, "scope": "*"}
     
-    int i = strlen_constexpr(AUTH_HEADER_PREFIX);
+    size_t i = strlen_constexpr(AUTH_HEADER_PREFIX);
     
     printf("MEMORY:         %s\n", mycu::MEMORY.memory);
     printf("LOGIN_POSTDATA: %s\n", LOGIN_POSTDATA);
@@ -200,36 +191,6 @@ void login(){
 
 
 void init(const char* fp){
-    FILE* f = fopen(fp, "r");
-    fread(BUF, 1, BUF_SZ, f);
-    
-    /*
-    reddit config file must have format:
-    USERNAME: my_k00l_username
-    PASSWORD: my_5up3r_53cur3_p455w0rd
-    KEY_SCRT: something:somethingelse
-    USERAGNT: my_program_name (by /u/my_k00l_username)
-    PROXYURL: either the url of the proxy to use, or a single dash to indicate no proxy is used
-    */
-    
-    int n_lines = 0;
-    char* itr;
-    REDDIT_AUTH[0] = BUF + 10;
-    for (itr = REDDIT_AUTH[0];  n_lines < 5;  ++itr)
-        if (*itr == '\n'){
-            *itr = 0;
-            itr += 11; // To skip "ABCD: "
-            REDDIT_AUTH[++n_lines] = itr;
-        }
-
-    USR = REDDIT_AUTH[0];
-    PWD = REDDIT_AUTH[1];
-    KEY_AND_SECRET = REDDIT_AUTH[2];
-    USER_AGENT = REDDIT_AUTH[3];
-    PROXY_URL = REDDIT_AUTH[4];
-    
-    printf("%s \n%s \n%s \n%s \n%s \n",  REDDIT_AUTH[0],  REDDIT_AUTH[1],  REDDIT_AUTH[2],  REDDIT_AUTH[3],  REDDIT_AUTH[4]);
-    
     mycu::MEMORY.memory = (char*)malloc(0);
     mycu::MEMORY.n_allocated = 0;
     
@@ -243,7 +204,7 @@ void init(const char* fp){
     curl_easy_setopt(mycu::curl, CURLOPT_WRITEDATA, (void *)&mycu::MEMORY);
     
     
-    init_login();
+    init_login(fp);
     
     
     if (PROXY_URL[0] != '-'){
@@ -268,7 +229,7 @@ bool try_again(rapidjson::Document& d){
         switch (d["error"].GetInt()){
             case 401:
                 // Unauthorised
-                printf("Unauthorised. Logging in again with user:pass: %s:%s\n", USR, PWD);
+                printf("Unauthorised. Logging in again\n");
                 sleep(REDDIT_REQUEST_DELAY);
                 login();
                 break;
@@ -287,7 +248,7 @@ void init_browser_curl(){
 }
 
 void get_user_moderated_subs(const char* username){
-    auto i = strlen_constexpr(URL__USER_MOD_OF__PRE);
+    size_t i = strlen_constexpr(URL__USER_MOD_OF__PRE);
     memcpy(URL__USER_MOD_OF + i,  username,  strlen(username));
     i += strlen(username);
     memcpy(URL__USER_MOD_OF + i,  URL__USER_MOD_OF__POST,  strlen_constexpr(URL__USER_MOD_OF__POST));
@@ -309,14 +270,6 @@ void get_user_moderated_subs(const char* username){
 
 } // END namespace
 #endif
-
-
-/* Regex substitution to switch
-((REDDIT_REQUEST_DELAY|USER_AGENT|PARAMS|PARAMS_LEN|AUTH_HEADER_PREFIX|TOKEN_FMT|AUTH_HEADER|API_SUBMISSION_URL_PREFIX|API_DUPLICATES_URL_PREFIX|SUBMISSION_URL_PREFIX|API_ALLCOMMENTS_URL|USR|PWD|KEY_AND_SECRET|BASIC_AUTH_PREFIX|BASIC_AUTH_FMT|BASIC_AUTH_HEADER|LOGIN_CURL|LOGIN_HEADERS|LOGIN_POSTDATA_PREFIX|LOGIN_POSTDATA_KEYNAME|LOGIN_POSTDATA|handler)[^_a-zA-Z])
-myrcu::\1
-*/
-
-
 
 /* To convert id to name
 curl 'https://oauth.reddit.com/api/info?id=tM_abcdef,tN_ghij' -H 'Authorization: bearer ...'
