@@ -115,9 +115,9 @@ void init_login(){
     i = strlen_constexpr(BASIC_AUTH_PREFIX);
     
     {
-    unsigned char* ucstr_in = (unsigned char*)KEY_AND_SECRET;
+    unsigned char* ucstr_in = static_cast<unsigned char*>(KEY_AND_SECRET);
     unsigned char* ucstr_out = base64_encode(ucstr_in,  strlen(KEY_AND_SECRET),  0);
-    char* cstr_out = (char*)ucstr_out;
+    char* cstr_out = static_cast<char*>(ucstr_out);
     memcpy(BASIC_AUTH_HEADER + i,  cstr_out,  strlen(cstr_out) + 1); // base64_encode terminates with null byte
     }
     
