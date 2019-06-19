@@ -9,8 +9,13 @@
 #include "rtagger.hpp"
 
 #include <string.h> // for memcpy, strlen
-#include <stdio.h> // for printf // TMP
 #include <stdlib.h> // for abort
+
+#ifndef DEBUG
+# define printf(...)
+#else
+# include <stdio.h> // for printf // TMP
+#endif
 
 #include <compsky/mysql/query.hpp>
 
