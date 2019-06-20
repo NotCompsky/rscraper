@@ -14,6 +14,7 @@
 
 #include <compsky/mysql/query.hpp>
 
+#include "add_sub2tag_btn.hpp"
 #include "clbtn.hpp"
 #include "tagdialog.hpp"
 
@@ -27,12 +28,12 @@ extern std::map<QString, uint64_t> tag_name2id;
 extern QStringList tagslist;
 
 
-ClTagsTab::ClTagsTab(const uint64_t cat_id, QWidget* parent) : cat_id(cat_id), QWidget(parent){
-    this->l = new QVBoxLayout;
+ClTagsTab::ClTagsTab(const uint64_t cat_id, QWidget* parent) : cat_id(cat_id), QWidget(parent), row(0){
+    this->l = new QGridLayout;
     
     QPushButton* add_tag_btn = new QPushButton("+", this);
     connect(add_tag_btn, SIGNAL(clicked()), this, SLOT(add_tag()));
-    this->l->addWidget(add_tag_btn);
+    this->l->addWidget(add_tag_btn, 0, 0);
     
     compsky::mysql::query(&RES2,  "SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM tag WHERE id IN (SELECT tag_id FROM tag2category WHERE category_id=",  cat_id,  ") ORDER BY name");
     
@@ -42,7 +43,9 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id, QWidget* parent) : cat_id(cat_id), Q
     unsigned char r, g, b, a;
     
     while (compsky::mysql::assign_next_row(RES2, &ROW2, &id, &name, &r, &g, &b, &a)){
-        this->l->addWidget(new SelectColourButton(id, r, g, b, a, name, this));
+        ++this->row;
+        this->l->addWidget(new SelectColourButton(id, r, g, b, a, name, this),  this->row,  0);
+        this->l->addWidget(new AddSub2TagBtn(id, this),  this->row,  1);
     }
     }
     
@@ -74,5 +77,7 @@ void ClTagsTab::add_tag(){
     const uint64_t tag_id  =  (tagslist.contains(tagstr))  ?  tag_name2id[tagstr]  :  this->create_tag(tagstr, tag_str);
     
     compsky::mysql::exec("INSERT INTO tag2category (category_id, tag_id) VALUES (",  this->cat_id,  ',',  tag_id,  ')');
-    this->l->addWidget(new SelectColourButton(tag_id, 0, 0, 0, 0, tag_str, this));
+    ++this->row;
+    this->l->addWidget(new SelectColourButton(tag_id, 0, 0, 0, 0, tag_str, this),  this->row,  0);
+    this->l->addWidget(new AddSub2TagBtn(tag_id, this),  this->row,  1);
 }
