@@ -12,6 +12,7 @@
 int main(){
     compsky::mysql::create_config(
         #include "init.sql"
+        , "SELECT, INSERT, UPDATE, DELETE"
         , "RSCRAPER_MYSQL_CFG"
     );
     
