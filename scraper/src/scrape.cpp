@@ -33,7 +33,7 @@ MYSQL_ROW ROW;
 
 namespace compsky {
     namespace asciify {
-        char* BUF = (char*)malloc(4096);
+        char* BUF = (char*)malloc(50000); // Max size of Reddit comments is 40000 characters, iirc.
     }
 }
 
