@@ -16,23 +16,25 @@ extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
 
-AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), QPushButton("+Subreddit", parent) {}
+AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), QPushButton("+Subreddits", parent) {}
 
 void AddSub2TagBtn::add_subreddit(){
     bool ok;
-    TagDialog* tagdialog = new TagDialog("Subreddit Name", "");
-    if (tagdialog->exec() != QDialog::Accepted)
-        return;
-    QString qstr = tagdialog->name_edit->text();
-    if (qstr.isEmpty())
-        return;
-    
-    const QByteArray ba = qstr.toLocal8Bit();
-    const char* subreddit_name = ba.data();
-    
-    // TODO: Add QCompleter for subreddit name
-    
-    compsky::mysql::exec("INSERT IGNORE INTO subreddit2tag SELECT id,",  this->tag_id,  " FROM subreddit WHERE name=\"",  subreddit_name,  "\"");
+    while(true){
+        TagDialog* tagdialog = new TagDialog("Subreddit Name", "");
+        if (tagdialog->exec() != QDialog::Accepted)
+            return;
+        QString qstr = tagdialog->name_edit->text();
+        if (qstr.isEmpty())
+            return;
+        
+        const QByteArray ba = qstr.toLocal8Bit();
+        const char* subreddit_name = ba.data();
+        
+        // TODO: Add QCompleter for subreddit name
+        
+        compsky::mysql::exec("INSERT IGNORE INTO subreddit2tag SELECT id,",  this->tag_id,  " FROM subreddit WHERE name=\"",  subreddit_name,  "\"");
+    }
 }
 
 void AddSub2TagBtn::mousePressEvent(QMouseEvent* e){

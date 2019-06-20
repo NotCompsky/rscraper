@@ -16,23 +16,25 @@ extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
 
-RmSub2TagBtn::RmSub2TagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), QPushButton("-Subreddit", parent) {}
+RmSub2TagBtn::RmSub2TagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), QPushButton("-Subreddits", parent) {}
 
 void RmSub2TagBtn::rm_subreddit(){
     bool ok;
-    TagDialog* tagdialog = new TagDialog("Untag subreddit", "");
-    if (tagdialog->exec() != QDialog::Accepted)
-        return;
-    QString qstr = tagdialog->name_edit->text();
-    if (qstr.isEmpty())
-        return;
-    
-    const QByteArray ba = qstr.toLocal8Bit();
-    const char* subreddit_name = ba.data();
-    
-    // TODO: Add QCompleter for subreddit name
-    
-    compsky::mysql::exec("DELETE s2t FROM subreddit2tag s2t LEFT JOIN subreddit s ON s2t.subreddit_id=s.id WHERE tag_id=", this->tag_id, " AND s.name=\"", subreddit_name, "\""); //("DELETE FROM subreddit2tag WHERE tag_id=",  this->tag_id,  " AND subreddit_id IN (SELECT id FROM subreddit WHERE name=\"",  subreddit_name,  "\")");
+    while(true){
+        TagDialog* tagdialog = new TagDialog("Untag subreddit", "");
+        if (tagdialog->exec() != QDialog::Accepted)
+            return;
+        const QString qstr = tagdialog->name_edit->text();
+        if (qstr.isEmpty())
+            return;
+        
+        const QByteArray ba = qstr.toLocal8Bit();
+        const char* subreddit_name = ba.data();
+        
+        // TODO: Add QCompleter for subreddit name
+        
+        compsky::mysql::exec("DELETE s2t FROM subreddit2tag s2t LEFT JOIN subreddit s ON s2t.subreddit_id=s.id WHERE tag_id=", this->tag_id, " AND s.name=\"", subreddit_name, "\"");
+    }
 }
 
 void RmSub2TagBtn::mousePressEvent(QMouseEvent* e){

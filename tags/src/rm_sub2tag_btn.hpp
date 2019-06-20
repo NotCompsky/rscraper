@@ -5,6 +5,9 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#ifndef __RM_SUB2TAG_BTN_H__
+#define __RM_SUB2TAG_BTN_H__
+
 #include <QMouseEvent>
 #include <QPushButton>
 
@@ -19,3 +22,5 @@ class RmSub2TagBtn : public QPushButton{
   public Q_SLOTS:
     void rm_subreddit();
 };
+
+#endif
