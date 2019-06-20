@@ -35,6 +35,7 @@ add_executable(
     "${SRC_DIR}/tagdialog.cpp"
     "${SRC_DIR}/add_sub2tag_btn.cpp"
     "${SRC_DIR}/rm_sub2tag_btn.cpp"
+    "${SRC_DIR}/rm_tag_btn.cpp"
 )
 set_property(TARGET rscraper-tags PROPERTY CXX_STANDARD 17)
 target_include_directories(rscraper-tags PRIVATE ${COMPSKY_INCLUDE_DIRS})

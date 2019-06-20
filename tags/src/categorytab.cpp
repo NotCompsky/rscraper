@@ -16,6 +16,7 @@
 
 #include "add_sub2tag_btn.hpp"
 #include "rm_sub2tag_btn.hpp"
+#include "rm_tag_btn.hpp"
 #include "clbtn.hpp"
 #include "tagdialog.hpp"
 
@@ -48,6 +49,7 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id, QWidget* parent) : cat_id(cat_id), Q
         this->l->addWidget(new SelectColourButton(id, r, g, b, a, name, this),  this->row,  0);
         this->l->addWidget(new AddSub2TagBtn(id, this),  this->row,  1);
         this->l->addWidget(new RmSub2TagBtn(id, this),   this->row,  2);
+        this->l->addWidget(new RmTagBtn(id, this),       this->row,  3);
     }
     }
     
@@ -83,4 +85,5 @@ void ClTagsTab::add_tag(){
     this->l->addWidget(new SelectColourButton(tag_id, 0, 0, 0, 0, tag_str, this),  this->row,  0);
     this->l->addWidget(new AddSub2TagBtn(tag_id, this),  this->row,  1);
     this->l->addWidget(new RmSub2TagBtn(tag_id, this),   this->row,  2);
+    this->l->addWidget(new RmTagBtn(tag_id, this),       this->row,  3);
 }
