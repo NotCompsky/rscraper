@@ -46,7 +46,7 @@ Then run `rscraper-init`. The answers for a default Ubuntu 18.04 setup are, in o
     root
     <LEAVE BLANK>
 
-Then, if you wish to use the scrapers - `rscrape-cmnts` or `rscrape-mods` - run `rscraper-init-scraper`.
+Then, if you wish to use the scrapers - `rscrape-cmnts` or `rscrape-mods` - carry out the prerequisites [here](docs/rscraper-init-scraper.1.md) and then run `rscraper-init-scraper`.
 
 #### Windows 10
 
