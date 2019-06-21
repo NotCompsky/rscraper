@@ -183,57 +183,11 @@ Wait for the (same) linking errors when building rscrape-mods
     cd ..
     make
 
-### Windows
-
-The recommended way of building for Windows is using `MXE` on a Unix system. I have not successfully build it with Visual Studio Code 2015 on my Windows machine.
-
-The code in this section is mostly notes I made during my attempt to build it on Windows from the command line with VS Code, and not trustworthy.
-
-#### VS Code
-
-##### Prerequisites
-
-Install `libcurl`. I recommend getting [the source code](https://curl.haxx.se/dev/source.html) and cmake building (cmake installing) it yourself. Then navigate to `C:/Program Files/CURL/lib`, and copy `libcurl_imp.lib` to `curl.lib`.
-
-Once in the root directory of curl, open up the `Command Prompt for VS` as admin and run:
-
-    mkdir build
-    cd build
-    cmake ..
-    cmake --build . --config Release --target INSTALL
-
-##### Building
-
-Right click on the `Command Prompt for VS` and run as admin.
-
-    mkdir build
-    cd build
-    cmake --config Release -G "Visual Studio 15 2017 Win64" ..
-    cmake --build . --config Release --target INSTALL
-
-Now, you should get a lot of errors such as `LNK1181: cannot open input file 'compsky_asciify-NOTFOUND.obj' [C:/.../rscrape-cmnts.vcxproj]`. You need to find these `vcxproj` files, and replace all instances of the string `-NOTFOUND` with `.lib`. For instance, the `sed` script `sed -i 's/-NOTFOUND/.lib/g' $(find -name '*.vcxproj')` will do this for you, if you have a bash terminal handy.
-
-###### If things go wrong
-
-The expected output includes lots of warnings - `'fopen' is unsafe`, `conversion from 'size_t' to 'unsigned long'`, `format string requires an argument of 'unsigned long'` etc., which can all be safely ignored.
-
-If `mysql.h` cannot be found, run the `cmake --config Release ...` command again but with `-DWIN_MYSQL_DIR=<value>`, replacing `<value>` with the path to your MySQL server directory, replacing the backslashes with forward slashes - the default is `C:/Program Files/MySQL/MySQL Server 8.0`.
-
-If you get the `library machine type 'x64' conflicts with target machine type 'x86'` warning, you forgot to specify `Win64` in the generator `-G` option before.
-
-The generator must be set to 64 bit otherwise VC will force a x86 build (even if the x64 command prompt is used), and that causes undefined reference (linking) errors.
-
-Note that `--config Release` must be used because `-DCMAKE_BUILD_TYPE` is ignored. Debug builds are not possible in VC builds on Windows because VC believes it can only have the same debug level as libmysqlclient (which is Release).
-
-The directories must be explicitly stated because the find_package command does not find them, even if the FindMySQL.cmake file from the CMake community wiki is copied into the CMake Modules folder. 
-
-### Possible Issues
+## Possible Issues
 
 If you forget to install these mysql packages and run `cmake` first, you will need to run `cmake` again to avoid `cannot find mysql.h` errors. If that doesn't solve the issue, 
 
-By default, it seems that `root` can log in to the MySQL server as `root` without a password (through an authentication socket). If that is the case, you can run `sudo rscraper-init` immediately.
-
-#### Cannot find libcompsky_*.so (RUNTIME error)
+### Cannot find libcompsky_*.so (RUNTIME error)
 
 You need to add `/usr/local/lib` (or equivalent, where libcompsky*.so are installed) to your `LD_LIBRARY_PATH`:
 
@@ -243,11 +197,7 @@ Then run `sudo ldconfig`.
 
 If the problem persists, check that you are not overriding `LD_LIBRARY_PATH` in `~/.bashrc` or similar.
 
-#### libcompsky linking errors (possible)
-
-I have no idea why, but CMake seems to decide that COMPSKY_LIB_DIRS is its build directory, and not the path set in `CompskyConfig.cmake`. This means that, if you have deleted the build directory of `libcompsky`, you will have to specify `-DWHY_THIS_NECESSARY=/path/to/compsky/lib/directory` when running `cmake ..`.
-
-#### mysql.h: No such file or directory
+### mysql.h: No such file or directory
 
 You probably forgot to install the mysql packages (rerun cmake afterwards).
 
