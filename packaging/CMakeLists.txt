@@ -78,9 +78,9 @@ else()
 
     set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
     set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${HOMEPAGE}")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libmysqlclient20, mysql-server, libcompsky, libcurl4, libqt5widgets5, qt5-default")
-    # TODO: Split Qt5 and curl dependant portions into their own packages
-    # TODO: Sort out version ranges. Figure out if libmysqlclient dependency can be generalised.
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libcompsky, libcurl4, libqt5widgets5, qt5-default")
+    # TODO: Split Qt5 dependant portion into its own packages
+    # TODO: Sort out version ranges.
 
     # Icon and app shortcut for Linux systems
     # Note: .desktop file must have same name as executable
