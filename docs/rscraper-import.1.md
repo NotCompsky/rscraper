@@ -20,6 +20,10 @@ rscrape-mods [*OPTIONS*] [*FILES*]
 *FILES*
 :   Name(s) of tables to import with '.csv' appended. Tables include `user`, `subreddit`, `tag`, `subreddit2tag`, `tag2category`, `category`, and `user2subreddit_cmnt_count`.
 
+# PERFORMANCE
+
+By far the largest import you will have will almost certainly be `user2subreddit_cmnt_count.csv`. It should handle e.g. a 200MB CSV import in under a minute, though this will increase (potentially a lot) if there are other processes accessing the rscraper database.
+
 # EXAMPLES
 
 *rscraper-import *.csv*
