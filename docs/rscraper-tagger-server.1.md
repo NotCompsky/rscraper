@@ -1,4 +1,4 @@
-% RSCRAPE-CMNTS(1) RSCRAPER User Manual
+% RSCRAPE-TAGGER-SERVER(1) RSCRAPER User Manual
 % NotCompsky
 % June 2019
 

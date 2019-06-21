@@ -1,4 +1,4 @@
-% RSCRAPER-INIT(1) RSCRAPER User Manual
+% RSCRAPER-INIT-SCRAPER(1) RSCRAPER User Manual
 % NotCompsky
 % June 2019
 

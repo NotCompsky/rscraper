@@ -1,4 +1,4 @@
-% RSCRAPER(1) RSCRAPER User Manual
+% RSCRAPER-EXPORT(1) RSCRAPER User Manual
 % NotCompsky
 % June 2019
 
