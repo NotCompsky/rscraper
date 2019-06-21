@@ -22,22 +22,18 @@ See [docs](docs)
 
 # Installing
 
-## Dependencies
+## Ubuntu and other Debian-based systems
 
-### Required
+Install [libcompsky](https://github.com/NotCompsky/libcompsky)
 
-* mysql
-* libmysqlclient
-* [libcompsky](https://github.com/NotCompsky/libcompsky)
-* libcurl
+Now navigate to [the releases page](https://github.com/NotCompsky/rscraper/releases), download the appropriate `deb` file, and run:
 
-#### Ubuntu, Raspbian, and other Debian-derived
-
-    sudo apt install libcurl4 default-libmysqlclient mysql-client mysql-server
+    sudo dpkg -i /path/to/RScraper-VERSION-Linux.deb
+    mkdir ~/.config/rscraper
 
 Then run `rscraper-init`. The answers for a default Ubuntu 18.04 setup are, in order:
 
-    /home/YOU/.config/mysql/rscraper.cfg
+    /home/YOU/.config/rscraper/mysql.cfg
     localhost
     rscraper
     <YOUR CHOICE>
@@ -81,6 +77,10 @@ Then, if you wish to use the scrapers - `rscrape-cmnts` or `rscrape-mods` - carr
     sudo apt install libqt5 libqt5widgets5 qt5-default
 
 # Building
+
+## Packaging
+
+To build packages, append the `-DBUILD_PACKAGES=1` to the cmake commands.
 
 ## Dependencies
 
