@@ -6,6 +6,8 @@
 
 rscraper-init - Interactive tool for initialising the MySQL database for use by rscraper utilities.
 
+*Note*: Does not call *rscraper-init-scraper(1)*.
+
 # SYNOPSIS
 
 rscraper-init
@@ -31,4 +33,4 @@ Currently works best (i.e. output makes the most sense) if at most one tag per c
 
 # SEE ALSO
 
-*rscraper(1)*
+*rscraper-init-scraper(1)*, *rscraper(1)*

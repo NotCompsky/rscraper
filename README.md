@@ -35,7 +35,7 @@ See [docs](docs)
 
     sudo apt install libcurl4 default-libmysqlclient mysql-client mysql-server
 
-Then run `rscraper-init`. The default answers will be, in order:
+Then run `rscraper-init`. The answers for a default Ubuntu 18.04 setup are, in order:
 
     /home/YOU/.config/mysql/rscraper.cfg
     localhost
@@ -45,6 +45,8 @@ Then run `rscraper-init`. The default answers will be, in order:
     <LEAVE BLANK>
     root
     <LEAVE BLANK>
+
+Then, if you wish to use the scrapers - `rscrape-cmnts` or `rscrape-mods` - run `rscraper-init-scraper`.
 
 #### Windows 10
 
@@ -67,6 +69,8 @@ Then run `rscraper-init`. The default answers are, in order:
     3306
     root
     <ROOT PASSWORD>
+
+Then, if you wish to use the scrapers - `rscrape-cmnts` or `rscrape-mods` - run `rscraper-init-scraper`.
 
 ### GUI
 

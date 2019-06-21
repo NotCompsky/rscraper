@@ -47,7 +47,7 @@ link_directories("C:/Program Files/Compsky/bin")
 
 
 if("${MY_TARGETS} " STREQUAL " ")
-    set(MY_TARGETS "rscrape-cmnts" "rscrape-mods")
+    set(MY_TARGETS "rscrape-cmnts" "rscrape-mods" "rscraper-init-scraper")
 endif()
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -70,6 +70,11 @@ if(NOT EXISTS "${SRC_DIR}/filter_comment_body_regexp.hpp")
 endif()
 
 set(BASE64_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/src/base64.c")
+
+if("rscraper-init-scraper" IN_LIST MY_TARGETS)
+    add_executable(rscraper-init-scraper "${SRC_DIR}/init.cpp")
+    target_include_directories(rscraper-init-scraper PRIVATE ${COMPSKY_INCLUDE_DIRS})
+endif()
 
 if("rscrape-cmnts" IN_LIST MY_TARGETS)
     add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${FILTER_SRCS})
