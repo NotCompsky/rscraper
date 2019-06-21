@@ -11,6 +11,7 @@
 #include <map>
 
 #include <QDialogButtonBox>
+#include <QMessageBox>
 
 #include <compsky/mysql/query.hpp>
 
@@ -31,7 +32,7 @@ extern std::map<QString, uint64_t> tag_name2id;
 extern QStringList tagslist;
 
 
-ClTagsTab::ClTagsTab(const uint64_t cat_id, QWidget* parent) : cat_id(cat_id), QWidget(parent), row(0){
+ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* parent) : cat_id(cat_id), QWidget(parent), row(0), tab_widget(tab_widget){
     this->l = new QGridLayout;
     
     QPushButton* add_tag_btn = new QPushButton("+", this);
@@ -54,6 +55,10 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id, QWidget* parent) : cat_id(cat_id), Q
         this->l->addWidget(new RmTagBtn(id, this),       this->row,  4);
     }
     }
+    
+    QPushButton* rm_self_btn = new QPushButton("Delete Category");
+    connect(rm_self_btn, SIGNAL(clicked()), this, SLOT(rm_self()));
+    this->l->addWidget(rm_self_btn, ++this->row, 0);
     
     setLayout(this->l);
 }
@@ -90,4 +95,23 @@ void ClTagsTab::add_tag(){
     this->l->addWidget(new AddSub2TagBtn(tag_id, this),  this->row,  2);
     this->l->addWidget(new RmSub2TagBtn(tag_id, this),   this->row,  3);
     this->l->addWidget(new RmTagBtn(tag_id, this),       this->row,  4);
+}
+
+void ClTagsTab::rm_self(){
+    // For safety reasons, only empty categories will be deleted
+    compsky::mysql::query(&RES1, "SELECT t2c.tag_id, t.name FROM tag2category t2c, tag t WHERE t.id=t2c.tag_id AND t2c.category_id=", this->cat_id);
+    uint64_t tag_id = 0;
+    char* name;
+    QString s = "Refusing to delete non-empty category.\nTags with this category are:";
+    while(compsky::mysql::assign_next_row(RES1, &ROW1, &tag_id, &name)){
+        s += "\n";
+        s += name;
+    }
+    if (tag_id != 0){
+        QMessageBox::information(this, tr("Error"), s, QMessageBox::Cancel);
+        return;
+    }
+    compsky::mysql::exec("DELETE FROM category WHERE id=", this->cat_id);
+    this->tab_widget->removeTab(this->tab_widget->indexOf(this));
+    delete this;
 }

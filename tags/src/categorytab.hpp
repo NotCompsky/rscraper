@@ -8,20 +8,23 @@
 #ifndef __CATEGORYTAB_H__
 #define __CATEGORYTAB_H__
 
-#include <QWidget>
 #include <QGridLayout>
+#include <QTabWidget>
+#include <QWidget>
 
 
 class ClTagsTab : public QWidget{
     Q_OBJECT
   public:
-    explicit ClTagsTab(const uint64_t id, QWidget* parent = 0);
+    explicit ClTagsTab(const uint64_t id,  QTabWidget* tab_widget,  QWidget* parent = 0);
     const uint64_t cat_id;
   public Q_SLOTS:
     void add_tag();
+    void rm_self();
     uint64_t create_tag(QString& qs,  const char* s);
   private:
     QGridLayout* l;
+    QTabWidget* tab_widget;
     int row;
 };
 

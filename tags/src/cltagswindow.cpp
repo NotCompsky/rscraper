@@ -62,7 +62,7 @@ ClTagsDialog::ClTagsDialog(QWidget* parent){
     uint64_t id;
     char* name;
     while (compsky::mysql::assign_next_row(RES1, &ROW1, &id, &name)){
-        tabWidget->addTab(new ClTagsTab(id), tr(name));
+        tabWidget->addTab(new ClTagsTab(id, tabWidget), tr(name));
     }
     }
     
