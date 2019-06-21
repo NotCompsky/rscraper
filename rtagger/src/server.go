@@ -10,6 +10,7 @@ extern void exit_mysql();
 extern void csv2cls(const char* csv);
 */
 import "C" // Pseudopackage
+import "flag"
 import "io"
 import "net/http"
 import "os"
@@ -23,6 +24,10 @@ func process(w http.ResponseWriter, r* http.Request){
 }
 
 func main(){
+    var port_n string
+    flag.StringVar(&port_n, "p", "8080", "Port number")
+    flag.Parse()
+    
     /* Exit MySQL on interrupt signals */
     sgnl := make(chan os.Signal)
     signal.Notify(sgnl, os.Interrupt, syscall.SIGTERM)
@@ -35,7 +40,7 @@ func main(){
     C.init()
     mux := http.NewServeMux()
     mux.HandleFunc("/", process)
-    http.ListenAndServe(":8080", mux)
+    http.ListenAndServe(":" + port_n,  mux)
 }
 
 /*
