@@ -136,8 +136,8 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
     
     cd rscraper
     mkdir -p 3rdparty/include 3rdparty/src 3rdparty/cmake
-    curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/libb64.h -o 3rdparty/include/libb64.h
-    curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/cencode.c -o 3rdparty/src/base64.c
+    curl https://raw.githubusercontent.com/cburstedde/libsc/master/5282025f88b0d3d30035782fe048239893a8a9bc/libb64.h -o 3rdparty/include/libb64.h
+    curl https://raw.githubusercontent.com/cburstedde/libsc/master/5282025f88b0d3d30035782fe048239893a8a9bc/cencode.c -o 3rdparty/src/base64.c
     curl https://raw.githubusercontent.com/cpconduce/go_cmake/130b1823763de316ed167978ef9a7ee524f737be/bld/cmake/GolangSimple.cmake -o 3rdparty/cmake/GolangSimple.cmake
     
     mkdir build
@@ -155,8 +155,8 @@ Navigate to `rscraper` root directory and run:
     
     cd rscraper
     mkdir -p 3rdparty/include 3rdparty/src 3rdparty/cmake
-    curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/libb64.h -o 3rdparty/include/libb64.h
-    curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/cencode.c -o 3rdparty/src/base64.c
+    curl https://raw.githubusercontent.com/cburstedde/libsc/master/5282025f88b0d3d30035782fe048239893a8a9bc/libb64.h -o 3rdparty/include/libb64.h
+    curl https://raw.githubusercontent.com/cburstedde/libsc/master/5282025f88b0d3d30035782fe048239893a8a9bc/cencode.c -o 3rdparty/src/base64.c
     curl https://raw.githubusercontent.com/cpconduce/go_cmake/130b1823763de316ed167978ef9a7ee524f737be/bld/cmake/GolangSimple.cmake -o 3rdparty/cmake/GolangSimple.cmake
     
     mkdir build
