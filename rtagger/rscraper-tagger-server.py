@@ -19,7 +19,7 @@ def get_rtags(path:str):
     return res
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
     import ctypes
     

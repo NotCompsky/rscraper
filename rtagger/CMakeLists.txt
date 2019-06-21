@@ -38,6 +38,10 @@ endforeach(tgt)
 
 set_target_properties(rscraper-tagger PROPERTIES PUBLIC_HEADER "${INC_DIR}/rtagger.hpp")
 
+
+install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/rscraper-tagger-server.py" DESTINATION bin)
+
+
 install(
     TARGETS rscraper-tagger
     EXPORT RScraperTargets
