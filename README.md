@@ -70,7 +70,7 @@ Then run `rscraper-init`. The default answers are, in order:
     root
     <ROOT PASSWORD>
 
-Then, if you wish to use the scrapers - `rscrape-cmnts` or `rscrape-mods` - run `rscraper-init-scraper`.
+Then, if you wish to use the scrapers - `rscrape-cmnts` or `rscrape-mods` - carry out the prerequisites [here](docs/rscraper-init-scraper.1.md) and then run `rscraper-init-scraper`.
 
 ### GUI
 
