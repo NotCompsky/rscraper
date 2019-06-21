@@ -84,6 +84,7 @@ void ClTagsTab::add_tag(){
     
     compsky::mysql::exec("INSERT INTO tag2category (category_id, tag_id) VALUES (",  this->cat_id,  ',',  tag_id,  ')');
     ++this->row;
+    tagslist << tagstr;
     this->l->addWidget(new TagNameLabel(tag_id, tagstr, this),  this->row,  0);
     this->l->addWidget(new SelectColourButton(tag_id, 0, 0, 0, 0, this),  this->row,  1);
     this->l->addWidget(new AddSub2TagBtn(tag_id, this),  this->row,  2);

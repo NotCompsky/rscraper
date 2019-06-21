@@ -25,10 +25,10 @@ namespace _f {
 }
 
 
-TagNameLabel::TagNameLabel(const uint64_t tag_id,  char* name,  QWidget* parent) : tag_id(tag_id), tagname_q(QString::fromLatin1(name)), QLabel(name, parent) {
+TagNameLabel::TagNameLabel(const uint64_t tag_id,  char* name,  QWidget* parent) : tag_id(tag_id), QLabel(name, parent) {
 }
 
-TagNameLabel::TagNameLabel(const uint64_t tag_id,  QString& qname,  QWidget* parent) : tag_id(tag_id), tagname_q(qname), QLabel(qname, parent) {
+TagNameLabel::TagNameLabel(const uint64_t tag_id,  QString& qname,  QWidget* parent) : tag_id(tag_id), QLabel(qname, parent) {
 }
 
 
@@ -40,17 +40,16 @@ void TagNameLabel::rename_tag(){
     QString tagstr = tagdialog->name_edit->text();
     if (tagstr.isEmpty())
         return;
-    if (tagstr == this->tagname_q)
+    if (tagstr == this->text())
         return;
     
     const QByteArray ba = tagstr.toLocal8Bit();
     const char* tag_str = ba.data();
     
-    tagslist[tagslist.indexOf(this->tagname_q)] = tagstr;
+    tagslist[tagslist.indexOf(this->text())] = tagstr;
     
     compsky::mysql::exec("UPDATE tag SET name=\"", _f::esc, '"', tag_str, "\" WHERE id=",  this->tag_id);
     
-    this->tagname_q = tagstr;
     this->setText(tagstr);
 }
 
