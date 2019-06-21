@@ -4,6 +4,8 @@ if( EXISTS "${CMAKE_BINARY_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "Refusing to run in-source build.")
 endif()
 
+include("${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/cmake/GolangSimple.cmake")
+
 FIND_PACKAGE(Compsky COMPONENTS asciify mysql REQUIRED)
 
 
@@ -25,6 +27,8 @@ set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 add_library(rscraper-tagger SHARED "${SRC_DIR}/rtagger.cpp")
 target_link_libraries(rscraper-tagger mysqlclient compsky_asciify compsky_mysql)
 set_property(TARGET rscraper-tagger PROPERTY CXX_STANDARD 17)
+
+ADD_GO_INSTALLABLE_PROGRAM(rscraper-tagger-server "${SRC_DIR}/server.go")
 
 foreach(tgt "rscraper-tagger")
     foreach(dfn ${MY_DEFINITIONS})

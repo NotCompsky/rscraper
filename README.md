@@ -31,7 +31,7 @@ Now navigate to [the releases page](https://github.com/NotCompsky/rscraper/relea
     sudo dpkg -i /path/to/RScraper-VERSION-ARCHITECTURE.deb
     mkdir ~/.config/rscraper
 
-Then run `rscraper-init`. The answers for a default Ubuntu 18.04 setup are, in order:
+Then run `sudo rscraper-init`. The answers for a default Ubuntu 18.04 setup are, in order:
 
     /home/YOU/.config/rscraper/mysql.cfg
     localhost
@@ -54,7 +54,7 @@ If you do not wish to host the MySQL server yourself, skip this section.
 
 During configuration, ensure that `TCP/IP` is enabled. Make a note of the port number and root password.
 
-Then run `rscraper-init`. The default answers are, in order:
+Then run `sudo rscraper-init`. The default answers are, in order:
 
     C:\\Users\\YOU\\rscraper_mysql.cfg (no need to escape \\s)
     localhost
@@ -80,7 +80,7 @@ Then, if you wish to use the scrapers - `rscrape-cmnts` or `rscrape-mods` - carr
 
 ## Packaging
 
-To build packages, append the `-DBUILD_PACKAGES=1` to the cmake commands.
+To build packages for redistribution, append the `-DBUILD_PACKAGES=1` to the cmake commands.
 
 ## Dependencies
 
@@ -135,8 +135,10 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
     git clone https://github.com/NotCompsky/rscraper
     
     cd rscraper
+    mkdir -p 3rdparty/include 3rdparty/src 3rdparty/cmake
     curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/libb64.h -o 3rdparty/include/libb64.h
     curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/cencode.c -o 3rdparty/src/base64.c
+    curl https://raw.githubusercontent.com/cpconduce/go_cmake/130b1823763de316ed167978ef9a7ee524f737be/bld/cmake/GolangSimple.cmake -o 3rdparty/cmake/GolangSimple.cmake
     
     mkdir build
     cd build
@@ -152,8 +154,10 @@ Navigate to `rscraper` root directory and run:
     git clone https://github.com/NotCompsky/rscraper
     
     cd rscraper
+    mkdir -p 3rdparty/include 3rdparty/src 3rdparty/cmake
     curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/libb64.h -o 3rdparty/include/libb64.h
     curl https://raw.githubusercontent.com/cburstedde/libsc/master/libb64/cencode.c -o 3rdparty/src/base64.c
+    curl https://raw.githubusercontent.com/cpconduce/go_cmake/130b1823763de316ed167978ef9a7ee524f737be/bld/cmake/GolangSimple.cmake -o 3rdparty/cmake/GolangSimple.cmake
     
     mkdir build
     cd build
