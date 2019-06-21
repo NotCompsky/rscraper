@@ -16,6 +16,7 @@
 #include <compsky/mysql/query.hpp>
 
 #include "categorytab.hpp"
+#include "maintab.hpp"
 
 #define DIGITS_IN_UINT64 19
 
@@ -44,6 +45,8 @@ ClTagsDialog::ClTagsDialog(QWidget* parent){
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
     
     QTabWidget* tabWidget = new QTabWidget;
+    
+    tabWidget->addTab(new MainTab(tabWidget), "Categories");
     
     tag_name2id.clear();
     compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM tag");
