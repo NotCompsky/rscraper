@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
 
+if( EXISTS "${CMAKE_BINARY_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR "Refusing to run in-source build.")
+endif()
+
 project(RScraper C CXX) # WARNING: Sets some important variables about the plarform. Don't call find_package before setting a project name.
 
 

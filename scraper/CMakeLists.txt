@@ -1,4 +1,10 @@
 cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
+
+if( EXISTS "${CMAKE_BINARY_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR "Refusing to run in-source build.")
+endif()
+
+
 FIND_PACKAGE(Boost COMPONENTS regex)
 FIND_PACKAGE(CURL)
 

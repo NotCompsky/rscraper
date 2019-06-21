@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
-find_package(Compsky REQUIRED asciify mysql)
 
+if( EXISTS "${CMAKE_BINARY_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR "Refusing to run in-source build.")
+endif()
+
+find_package(Compsky REQUIRED asciify mysql)
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
