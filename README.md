@@ -235,6 +235,10 @@ You need to add `/usr/local/lib` (or equivalent, where libcompsky*.so are instal
 
     echo "/usr/local/lib"  |  sudo tee /etc/ld.so.conf.d/99local.conf
 
+Then run `sudo ldconfig`.
+
+If the problem persists, check that you are not overriding `LD_LIBRARY_PATH` in `~/.bashrc` or similar.
+
 #### libcompsky linking errors (possible)
 
 I have no idea why, but CMake seems to decide that COMPSKY_LIB_DIRS is its build directory, and not the path set in `CompskyConfig.cmake`. This means that, if you have deleted the build directory of `libcompsky`, you will have to specify `-DWHY_THIS_NECESSARY=/path/to/compsky/lib/directory` when running `cmake ..`.
