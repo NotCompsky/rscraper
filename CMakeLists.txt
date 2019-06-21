@@ -68,8 +68,6 @@ add_subdirectory(query)
 add_subdirectory(docs)
 if(BUILD_PACKAGES)
     add_subdirectory(packaging)
-else()
-    
 endif()
 
 # Add all targets to the build-tree export set

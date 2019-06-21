@@ -28,7 +28,7 @@ Install [libcompsky](https://github.com/NotCompsky/libcompsky)
 
 Now navigate to [the releases page](https://github.com/NotCompsky/rscraper/releases), download the appropriate `deb` file, and run:
 
-    sudo dpkg -i /path/to/RScraper-VERSION-Linux.deb
+    sudo dpkg -i /path/to/RScraper-VERSION-ARCHITECTURE.deb
     mkdir ~/.config/rscraper
 
 Then run `rscraper-init`. The answers for a default Ubuntu 18.04 setup are, in order:
