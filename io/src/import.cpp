@@ -37,12 +37,12 @@ namespace compsky {
             }
         }
         
-        void ensure_buf_can_fit(const char* pre,  size_t n,  const char* post){
+        void ensure_buf_can_fit(const char* pre,  size_t n,  const char* post,  size_t post_len){
             if (unlikely(BUF_INDX + n + strlen(post)  >  BUF_SZ)){
                 --BUF_INDX; // Overwrite trailing comma
-                memcpy(BUF + BUF_INDX,  post,  strlen(post));
-                BUF_INDX += strlen(post);
-                compsky::mysql::exec_buffer(BUF,  BUF_INDX - 1);
+                memcpy(BUF + BUF_INDX,  post,  post_len);
+                BUF_INDX += post_len;
+                compsky::mysql::exec_buffer(BUF,  BUF_INDX);
                 BUF_INDX = 0;
                 asciify(pre);
             }
@@ -163,17 +163,20 @@ int main(int argc,  const char** argv){
         compsky::asciify::BUF_INDX = 0;
         char* pre;
         char* post;
+        size_t post_strlen;
         if (force){
             pre  = "INSERT INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ";
             post = " ON DUPLICATE KEY SET count=VALUES(count)";
+            post_strlen = strlen_constexpr("INSERT INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ");
         } else {
             pre = "INSERT IGNORE INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ";
             post = " ";
+            post_strlen = 0;
         }
         compsky::asciify::asciify(pre);
         while(fscanf(f, "%lu\t%lu\t%lu", &user_id, &subreddit_id, &count) != EOF){
             compsky::asciify::asciify("(", user_id, ',', subreddit_id, ',', count, "),");
-            compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3,  post);
+            compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3,  post, post_strlen);
         }
         if (compsky::asciify::BUF_INDX != strlen(pre))
             compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
