@@ -35,7 +35,7 @@ extern QStringList tagslist;
 ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* parent) : cat_id(cat_id), QWidget(parent), row(0), tab_widget(tab_widget){
     this->l = new QGridLayout;
     
-    QPushButton* add_tag_btn = new QPushButton("+", this);
+    QPushButton* add_tag_btn = new QPushButton("+Tag", this);
     connect(add_tag_btn, SIGNAL(clicked()), this, SLOT(add_tag()));
     this->l->addWidget(add_tag_btn, 0, 0);
     
