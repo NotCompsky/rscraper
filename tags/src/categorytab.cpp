@@ -19,6 +19,7 @@
 #include "rm_tag_btn.hpp"
 #include "clbtn.hpp"
 #include "tagdialog.hpp"
+#include "tagnamelabel.hpp"
 
 
 extern MYSQL_RES* RES1;
@@ -46,10 +47,11 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id, QWidget* parent) : cat_id(cat_id), Q
     
     while (compsky::mysql::assign_next_row(RES2, &ROW2, &id, &name, &r, &g, &b, &a)){
         ++this->row;
-        this->l->addWidget(new SelectColourButton(id, r, g, b, a, name, this),  this->row,  0);
-        this->l->addWidget(new AddSub2TagBtn(id, this),  this->row,  1);
-        this->l->addWidget(new RmSub2TagBtn(id, this),   this->row,  2);
-        this->l->addWidget(new RmTagBtn(id, this),       this->row,  3);
+        this->l->addWidget(new TagNameLabel(id, name, this),  this->row,  0);
+        this->l->addWidget(new SelectColourButton(id, r, g, b, a, this),  this->row,  1);
+        this->l->addWidget(new AddSub2TagBtn(id, this),  this->row,  2);
+        this->l->addWidget(new RmSub2TagBtn(id, this),   this->row,  3);
+        this->l->addWidget(new RmTagBtn(id, this),       this->row,  4);
     }
     }
     
@@ -75,15 +77,16 @@ void ClTagsTab::add_tag(){
     if (tagstr.isEmpty())
         return;
     
-    const QByteArray ba = tagstr.toLocal8Bit();
-    const char* tag_str = ba.data();
+    QByteArray ba = tagstr.toLocal8Bit();
+    char* tag_str = ba.data();
     
     const uint64_t tag_id  =  (tagslist.contains(tagstr))  ?  tag_name2id[tagstr]  :  this->create_tag(tagstr, tag_str);
     
     compsky::mysql::exec("INSERT INTO tag2category (category_id, tag_id) VALUES (",  this->cat_id,  ',',  tag_id,  ')');
     ++this->row;
-    this->l->addWidget(new SelectColourButton(tag_id, 0, 0, 0, 0, tag_str, this),  this->row,  0);
-    this->l->addWidget(new AddSub2TagBtn(tag_id, this),  this->row,  1);
-    this->l->addWidget(new RmSub2TagBtn(tag_id, this),   this->row,  2);
-    this->l->addWidget(new RmTagBtn(tag_id, this),       this->row,  3);
+    this->l->addWidget(new TagNameLabel(tag_id, tagstr, this),  this->row,  0);
+    this->l->addWidget(new SelectColourButton(tag_id, 0, 0, 0, 0, this),  this->row,  1);
+    this->l->addWidget(new AddSub2TagBtn(tag_id, this),  this->row,  2);
+    this->l->addWidget(new RmSub2TagBtn(tag_id, this),   this->row,  3);
+    this->l->addWidget(new RmTagBtn(tag_id, this),       this->row,  4);
 }

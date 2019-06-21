@@ -28,16 +28,19 @@ void RmTagBtn::rm_tag(){
     const QWidget* par = reinterpret_cast<QWidget*>(this->parent());
     QGridLayout* l = reinterpret_cast<QGridLayout*>(par->layout());
     int row, col, rowspan, colspan;
-    l->getItemPosition(l->indexOf(this), &row, &col, &rowspan, &colspan);
+    l->getItemPosition(l->indexOf(this), &row, &col, &rowspan, &colspan); // Last position
     QLayoutItem* a = l->itemAtPosition(row, 0);
     QLayoutItem* b = l->itemAtPosition(row, 1);
     QLayoutItem* c = l->itemAtPosition(row, 2);
+    QLayoutItem* d = l->itemAtPosition(row, 3);
     delete a->widget();
     delete b->widget();
     delete c->widget();
+    delete d->widget();
     l->removeItem(a);
     l->removeItem(b);
     l->removeItem(c);
+    l->removeItem(d);
     l->removeItem(reinterpret_cast<QLayoutItem*>(this));
     delete this; // Suicide is fine, it was guaranteed allocated by new RmTagBtn
 }

@@ -5,24 +5,24 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __CLBTN_H__
-#define __CLBTN_H__
+#ifndef __TAGNAMELABEL_H__
+#define __TAGNAMELABEL_H__
 
-#include <QColor>
+#include <QLabel>
 #include <QMouseEvent>
-#include <QPushButton>
 
-
-class SelectColourButton : public QPushButton{
+class TagNameLabel : public QLabel {
     Q_OBJECT
+  private:
+    void display_subs_w_tag();
+    void rename_tag();
+    const uint64_t tag_id;
+    QString tagname_q;
   private Q_SLOTS:
     void mousePressEvent(QMouseEvent* e);
   public:
-    const uint64_t tag_id;
-    QColor colour;
-    explicit SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  QWidget* parent);
-  public Q_SLOTS:
-    void set_colour();
+    explicit TagNameLabel(const uint64_t tag_id,  char* name,      QWidget* parent);
+    explicit TagNameLabel(const uint64_t tag_id,  QString& qname,  QWidget* parent);
 };
 
 

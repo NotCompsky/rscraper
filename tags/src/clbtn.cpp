@@ -20,8 +20,7 @@ extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
 
-SelectColourButton::SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  const char* name,  QWidget* parent) : tag_id(id) {
-    this->setText(name);
+SelectColourButton::SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  QWidget* parent) : tag_id(id) {
     this->setAutoFillBackground(true);
     this->setFlat(true);
     this->colour = QColor(r, g, b, a);
@@ -57,21 +56,5 @@ void SelectColourButton::mousePressEvent(QMouseEvent* e){
         case Qt::LeftButton:
             this->set_colour();
             return;
-        case Qt::RightButton:
-            this->display_subs_w_tag();
-            return;
     }
-}
-
-void SelectColourButton::display_subs_w_tag(){
-    compsky::mysql::query(&RES1,  "SELECT r.name FROM subreddit r JOIN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id=",  this->tag_id,  ") A ON A.subreddit_id = r.id");
-    
-    char* name;
-    QString DISPLAY_TAGS_RES = "";
-    while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
-        DISPLAY_TAGS_RES += name;
-        DISPLAY_TAGS_RES += '\n';
-    }
-    
-    QMessageBox::information(this, tr("Tagged Subreddits"), DISPLAY_TAGS_RES, QMessageBox::Cancel);
 }
