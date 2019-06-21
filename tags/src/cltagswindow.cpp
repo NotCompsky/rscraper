@@ -36,6 +36,8 @@ MYSQL_ROW ROW2;
 std::map<QString, uint64_t> tag_name2id;
 QStringList tagslist;
 QCompleter* tagcompleter;
+QStringList subreddit_names;
+QCompleter* subreddit_name_completer;
 
 
 ClTagsDialog::ClTagsDialog(QWidget* parent){
@@ -63,6 +65,16 @@ ClTagsDialog::ClTagsDialog(QWidget* parent){
         tabWidget->addTab(new ClTagsTab(id), tr(name));
     }
     }
+    
+    compsky::mysql::query_buffer(&RES1, "SELECT name FROM subreddit");
+    {
+    char* name;
+    while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
+        subreddit_names << name;
+    }
+    }
+    subreddit_name_completer = new QCompleter(subreddit_names);
+    
     
     QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));

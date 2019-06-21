@@ -7,7 +7,7 @@
 
 #include "add_sub2tag_btn.hpp"
 
-#include "tagdialog.hpp"
+#include "subreddit_name_dialog.hpp"
 
 #include <compsky/mysql/query.hpp>
 
@@ -21,10 +21,10 @@ AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), 
 void AddSub2TagBtn::add_subreddit(){
     bool ok;
     while(true){
-        TagDialog* tagdialog = new TagDialog("Subreddit Name", "");
-        if (tagdialog->exec() != QDialog::Accepted)
+        SubredditNameDialog* namedialog = new SubredditNameDialog("Subreddit Name", "");
+        if (namedialog->exec() != QDialog::Accepted)
             return;
-        QString qstr = tagdialog->name_edit->text();
+        const QString qstr = namedialog->name_edit->text();
         if (qstr.isEmpty())
             return;
         

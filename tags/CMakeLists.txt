@@ -33,6 +33,7 @@ add_executable(
     "${SRC_DIR}/categorytab.cpp"
     "${SRC_DIR}/cltagswindow.cpp"
     "${SRC_DIR}/tagdialog.cpp"
+    "${SRC_DIR}/subreddit_name_dialog.cpp"
     "${SRC_DIR}/add_sub2tag_btn.cpp"
     "${SRC_DIR}/rm_sub2tag_btn.cpp"
     "${SRC_DIR}/rm_tag_btn.cpp"

@@ -5,22 +5,25 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __ADD_SUB2TAG_BTN_H__
-#define __ADD_SUB2TAG_BTN_H__
+#ifndef __SUBREDDIT_NAME_DIALOG_H__
+#define __SUBREDDIT_NAME_DIALOG_H__
 
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QLineEdit>
 #include <QMouseEvent>
 #include <QPushButton>
+#include <QVBoxLayout>
 
 
-class AddSub2TagBtn : public QPushButton{
-    Q_OBJECT
-  private Q_SLOTS:
-    void mousePressEvent(QMouseEvent* e);
+class SubredditNameDialog : public QDialog {
   public:
-    const uint64_t tag_id;
-    explicit AddSub2TagBtn(const uint64_t id,  QWidget* parent);
-  public Q_SLOTS:
-    void add_subreddit();
+    explicit SubredditNameDialog(QString title,  QString str,  QWidget* parent = 0);
+    ~SubredditNameDialog();
+    QLineEdit* name_edit;
+  private:
+    QDialogButtonBox* btn_box;
+    QVBoxLayout* l;
 };
 
 
