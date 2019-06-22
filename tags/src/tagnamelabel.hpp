@@ -17,7 +17,6 @@ class TagNameLabel : public QLabel {
     void display_subs_w_tag();
     void rename_tag();
     const uint64_t tag_id;
-    QString tagname_q;
   private Q_SLOTS:
     void mousePressEvent(QMouseEvent* e);
   public:
