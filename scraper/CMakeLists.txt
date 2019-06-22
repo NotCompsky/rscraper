@@ -27,26 +27,12 @@ if(IS_DIRECTORY "C:/Program Files (x86)/CURL")
 endif()
 
 
+if(WIN32)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/cmake/FindMYSQL.cmake")
+    include_directories("${MYSQL_INCLUDE_DIR}")
+    link_directories("${MYSQL_LIBRARIES}")
+endif()
 
-# For Windows #
-if(IS_DIRECTORY "C:/Program Files/MySQL/MySQL Server 8.0")
-    set(WIN_MYSQL_DIR "C:/Program Files/MySQL/MySQL Server 8.0")
-elseif(IS_DIRECTORY "D:/Program Files/MySQL/MySQL Server 8.0")
-    set(WIN_MYSQL_DIR "D:/Program Files/MySQL/MySQL Server 8.0")
-elseif(IS_DIRECTORY "E:/Program Files/MySQL/MySQL Server 8.0")
-    set(WIN_MYSQL_DIR "E:/Program Files/MySQL/MySQL Server 8.0")
-elseif(IS_DIRECTORY "F:/Program Files/MySQL/MySQL Server 8.0")
-    set(WIN_MYSQL_DIR "F:/Program Files/MySQL/MySQL Server 8.0")
-elseif(IS_DIRECTORY "G:/Program Files/MySQL/MySQL Server 8.0")
-    set(WIN_MYSQL_DIR "G:/Program Files/MySQL/MySQL Server 8.0")
-elseif(IS_DIRECTORY "H:/Program Files/MySQL/MySQL Server 8.0")
-    set(WIN_MYSQL_DIR "H:/Program Files/MySQL/MySQL Server 8.0")
-endif()
-if(NOT "${WIN_MYSQL_DIR} " STREQUAL " ") # Trailing space is important - string equality check fails for two empty strings
-    include_directories("${WIN_MYSQL_DIR}/include")
-    link_directories("${WIN_MYSQL_DIR}/lib")
-    message(STATUS "Using MySQL directory: ${WIN_MYSQL_DIR}")
-endif()
 message(STATUS "COMPSKY_INCLUDE_DIRS: ${COMPSKY_INCLUDE_DIRS}")
 include_directories("C:/Program Files/Compsky/include") # Should have been defined by COMPSKY_INCLUDE_DIRS
 link_directories("C:/Program Files/Compsky/bin")
@@ -64,7 +50,7 @@ if(NOT Boost_FOUND)
 endif()
 
 # Rename example files
-set(FILTER_SRCS "${SRC_DIR}/filter_comment_body_regexp.cpp" "${SRC_DIR}/filter_comment_body.cpp" "${SRC_DIR}/filter_subreddit.cpp" "${SRC_DIR}/filter_user.cpp")
+set(FILTER_SRCS "${SRC_DIR}/filter_comment_body_regexp.cpp" "${SRC_DIR}/filter_comment_body.cpp" "${SRC_DIR}/filter_subreddit.cpp" "${SRC_DIR}/filter_user.cpp" "${SRC_DIR}/filter_init.cpp")
 foreach(infile ${FILTER_SRCS})
     if(NOT EXISTS "${infile}")
         configure_file("${infile}.in" "${infile}")

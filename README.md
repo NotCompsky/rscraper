@@ -159,6 +159,8 @@ Navigate to `rscraper` root directory and run:
     curl https://raw.githubusercontent.com/cburstedde/libsc/master/5282025f88b0d3d30035782fe048239893a8a9bc/cencode.c -o 3rdparty/src/base64.c
     curl https://raw.githubusercontent.com/cpconduce/go_cmake/130b1823763de316ed167978ef9a7ee524f737be/bld/cmake/GolangSimple.cmake -o 3rdparty/cmake/GolangSimple.cmake
     
+    curl https://gist.github.com/RenatoUtsch/1623340/raw/8d2de77f02b88792516b0c6d357b1dee918f6102/FindMYSQL.cmake -o 3rdparty/cmake/FindMYSQL.cmake
+    
     mkdir build
     cd build
     x86_64-w64-mingw32.static-cmake ..
