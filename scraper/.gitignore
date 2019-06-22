@@ -1,7 +1,5 @@
 *.swp
 build/*
 src/submission_ignore_field.c
-src/filter_*.cpp
-src/filter_*.c
 *.kate-swp
 
