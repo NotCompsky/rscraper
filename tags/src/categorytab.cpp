@@ -10,6 +10,7 @@
 
 #include <map>
 
+#include <QCompleter>
 #include <QDialogButtonBox>
 #include <QMessageBox>
 
@@ -19,7 +20,7 @@
 #include "rm_sub2tag_btn.hpp"
 #include "rm_tag_btn.hpp"
 #include "clbtn.hpp"
-#include "tagdialog.hpp"
+#include "name_dialog.hpp"
 #include "tagnamelabel.hpp"
 
 
@@ -75,7 +76,9 @@ uint64_t ClTagsTab::create_tag(QString& qs,  const char* s){
 
 void ClTagsTab::add_tag(){
     bool ok;
-    TagDialog* tagdialog = new TagDialog("Tag", "");
+    NameDialog* tagdialog = new NameDialog("Tag", "");
+    QCompleter* tagcompleter = new QCompleter(tagslist);
+    tagdialog->name_edit->setCompleter(tagcompleter);
     if (tagdialog->exec() != QDialog::Accepted)
         return;
     QString tagstr = tagdialog->name_edit->text();

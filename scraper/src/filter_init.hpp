@@ -5,24 +5,15 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#ifndef __FILTER_INIT_H__
+#define __FILTER_INIT_H__
 
-#ifndef __TAGDIALOG__
-#define __TAGDIALOG__
-
-#include <QDialog>
-#include <QDialogButtonBox>
-#include <QLineEdit>
-#include <QVBoxLayout>
+#include <inttypes.h> // for uint64_t
 
 
-class TagDialog : public QDialog {
-  public:
-    explicit TagDialog(QString title,  QString str,  QWidget* parent = 0);
-    ~TagDialog();
-    QLineEdit* name_edit;
-  private:
-    QDialogButtonBox* btn_box;
-    QVBoxLayout* l;
-};
+namespace filter {
+    void init(const char* tblname,  uint64_t** list);
+}
+
 
 #endif

@@ -46,7 +46,7 @@ ClTagsDialog::ClTagsDialog(QWidget* parent){
     
     QTabWidget* tabWidget = new QTabWidget;
     
-    tabWidget->addTab(new MainTab(tabWidget), "Categories");
+    tabWidget->addTab(new MainTab(tabWidget), "__MAIN__");
     
     tag_name2id.clear();
     compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM tag");

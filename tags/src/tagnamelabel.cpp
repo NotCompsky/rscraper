@@ -7,12 +7,13 @@
 
 #include "tagnamelabel.hpp"
 
+#include <QCompleter>
 #include <QMessageBox>
 
 #include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
 
-#include "tagdialog.hpp"
+#include "name_dialog.hpp"
 
 
 extern QStringList tagslist;
@@ -34,7 +35,9 @@ TagNameLabel::TagNameLabel(const uint64_t tag_id,  QString& qname,  QWidget* par
 
 void TagNameLabel::rename_tag(){
     bool ok;
-    TagDialog* tagdialog = new TagDialog("Rename Tag", "");
+    NameDialog* tagdialog = new NameDialog("Rename Tag", "");
+    QCompleter* tagcompleter = new QCompleter(tagslist);
+    tagdialog->name_edit->setCompleter(tagcompleter);
     if (tagdialog->exec() != QDialog::Accepted)
         return;
     QString tagstr = tagdialog->name_edit->text();

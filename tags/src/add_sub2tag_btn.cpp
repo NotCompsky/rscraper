@@ -7,7 +7,7 @@
 
 #include "add_sub2tag_btn.hpp"
 
-#include "subreddit_name_dialog.hpp"
+#include "name_dialog.hpp"
 
 #include <compsky/mysql/query.hpp>
 
@@ -15,13 +15,16 @@
 extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
+extern QCompleter* subreddit_name_completer;
+
 
 AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), QPushButton("+Subreddits", parent) {}
 
 void AddSub2TagBtn::add_subreddit(){
     bool ok;
     while(true){
-        SubredditNameDialog* namedialog = new SubredditNameDialog("Subreddit Name", "");
+        NameDialog* namedialog = new NameDialog("Subreddit Name", "");
+        namedialog->name_edit->setCompleter(subreddit_name_completer);
         if (namedialog->exec() != QDialog::Accepted)
             return;
         const QString qstr = namedialog->name_edit->text();

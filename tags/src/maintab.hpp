@@ -13,6 +13,10 @@
 #include <QWidget>
 
 
+class MainTab;
+typedef  void (MainTab::*MainTabMemberFnct)();
+
+
 class MainTab : public QWidget{
     Q_OBJECT
   public:
@@ -20,6 +24,30 @@ class MainTab : public QWidget{
   public Q_SLOTS:
     void add_category();
   private:
+    int add(const char* title,  const char* typ,  const char* tblname,  MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row);
+    
+    void add_subreddit_to(const char* tblname);
+    void rm_subreddit_from(const char* tblname);
+    
+    void add_user_to(const char* tblname);
+    void rm_user_from(const char* tblname);
+    
+    void add_to_subreddit_count_bl();
+    void rm_from_subreddit_count_bl();
+    
+    void add_to_user_count_bl();
+    void rm_from_user_count_bl();
+    
+    void add_to_subreddit_contents_wl();
+    void rm_from_subreddit_contents_wl();
+    void add_to_subreddit_contents_bl();
+    void rm_from_subreddit_contents_bl();
+    
+    void add_to_user_contents_wl();
+    void rm_from_user_contents_wl();
+    void add_to_user_contents_bl();
+    void rm_from_user_contents_bl();
+    
     QTabWidget* tab_widget;
 };
 

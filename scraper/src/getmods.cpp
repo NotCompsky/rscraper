@@ -180,8 +180,9 @@ void add_user_modded_subs(const char* user_name,  const uint64_t user_id){
 
 void process_mod(const uint64_t subreddit_id,  const uint64_t user_id,  const char* user_name){
   #ifdef SPIDER
-    if (filter_user::matches_id(user_id))
+    if (user_id == 11063919)
         // It is a **very** good idea to filter out AutoModerator
+        // TODO: Allow custom whitelist and blacklist, as in rscrape-cmnts
         return;
     
     if (previously_got_user_modded_subs(user_id))

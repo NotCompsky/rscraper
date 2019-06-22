@@ -5,21 +5,19 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __SUBREDDIT_NAME_DIALOG_H__
-#define __SUBREDDIT_NAME_DIALOG_H__
+#ifndef __NAME_DIALOG_H__
+#define __NAME_DIALOG_H__
 
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QLineEdit>
-#include <QMouseEvent>
-#include <QPushButton>
 #include <QVBoxLayout>
 
 
-class SubredditNameDialog : public QDialog {
+class NameDialog : public QDialog {
   public:
-    explicit SubredditNameDialog(QString title,  QString str,  QWidget* parent = 0);
-    ~SubredditNameDialog();
+    explicit NameDialog(QString title,  QString str,  QWidget* parent = 0);
+    ~NameDialog();
     QLineEdit* name_edit;
   private:
     QDialogButtonBox* btn_box;

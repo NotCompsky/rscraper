@@ -24,6 +24,7 @@ enum {
     SUBREDDIT_NOT_IN_DB,
     UNAUTHORISED,
     UNSUPPORTED_GRANT_TYPE,
+    OUT_OF_MEMORY,
     IMPOSSIBLE // Should never happen
 };
 }

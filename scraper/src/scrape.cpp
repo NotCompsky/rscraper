@@ -29,6 +29,7 @@
 #include <compsky/mysql/query.hpp>
 
 
+MYSQL_RES* RES;
 MYSQL_ROW ROW;
 
 namespace compsky {
@@ -60,6 +61,15 @@ char SQL__INSERT_INTO_SUBREDDIT[strlen_constexpr(SQL__INSERT_INTO_SUBREDDIT_STR)
 size_t SQL__INSERT_INTO_SUBREDDIT_INDX;
 
 
+bool contains(uint64_t* list,  uint64_t item){
+    uint64_t* itr = list;
+    while(*itr != 0)
+        if (*itr == item)
+            return true;
+    return false;
+}
+
+
 void count_user_subreddit_cmnt(const uint64_t user_id,  const uint64_t subreddit_id, const char* subreddit_name){
     char* dummy = compsky::asciify::BUF;
     auto dummy_indx = compsky::asciify::BUF_INDX;
@@ -89,8 +99,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
     const bool is_submission_nsfw = cmnt["data"]["over_18"].GetBool();
     const uint8_t is_subreddit_nsfw = (is_submission_nsfw) ? 2 : 0; // 0 for certainly SFW, 1 for certainly NSFW. 2 for unknown.
     
-    
-    if (filter_subreddit::to_count(subreddit_id) && filter_user::to_count(author_id))
+    if (!contains(filter_subreddit::BLACKLIST_COUNT, subreddit_id)  &&  !contains(filter_user::BLACKLIST_COUNT, author_id))
         count_user_subreddit_cmnt(author_id, subreddit_id, subreddit_name);
     
     
@@ -104,18 +113,15 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
     
     unsigned int reason_matched = 0;
     
+    if      (contains(filter_user::WHITELIST_BODY, author_id))
+        goto process_this_comment;
+    else if (contains(filter_user::BLACKLIST_BODY, author_id))
+        return;
     
-    switch (filter_user::matches_id(author_id)){
-        case 1: return; // blacklist
-        case 2: goto process_this_comment; // whitelist
-        default: break; // 0 is the default
-    }
-    
-    switch (filter_subreddit::matches_id(subreddit_id)){
-        case 1: return; // blacklist
-        case 2: goto process_this_comment; // whitelist
-        default: break; // 0 is the default
-    }
+    if      (contains(filter_subreddit::WHITELIST_BODY, subreddit_id))
+        goto process_this_comment;
+    else if (contains(filter_subreddit::BLACKLIST_BODY, subreddit_id))
+        return;
     
     
     if ((reason_matched = filter_comment_body::wl::match(metadata, body, strlen(body)))){
@@ -233,6 +239,9 @@ int main(const int argc, const char* argv[]){
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
     mycu::init();         // Init CURL
     myrcu::init(getenv("RSCRAPER_REDDIT_CFG")); // Init OAuth
+    
+    filter_user::init();
+    filter_subreddit::init();
     
     process_all_comments_live();
     

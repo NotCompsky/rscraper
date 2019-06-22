@@ -14,9 +14,10 @@
 
 namespace filter_user {
 
-int matches_id(const uint64_t id);
-
-bool to_count(const uint64_t id);
+extern uint64_t* BLACKLIST_COUNT;
+extern uint64_t* BLACKLIST_BODY;
+extern uint64_t* WHITELIST_BODY;
+void init();
 
 }
 

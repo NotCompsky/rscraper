@@ -5,20 +5,23 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#ifndef __WLBL_LABEL_H__
+#define __WLBL_LABEL_H__
 
-#ifndef __FILTER_SUBREDDIT__
-#define __FILTER_SUBREDDIT__
+#include <QLabel>
+#include <QMouseEvent>
 
-#include <inttypes.h> // for uint64_t
+class WlBlLabel : public QLabel {
+    Q_OBJECT
+  private:
+    void display_subs_w_tag();
+  private Q_SLOTS:
+    void mousePressEvent(QMouseEvent* e);
+  public:
+    const char* tblname;
+    const char* typ;
+    explicit WlBlLabel(const char* title,  const char* typ,  const char* tblname);
+};
 
-
-namespace filter_subreddit {
-
-extern uint64_t* BLACKLIST_COUNT;
-extern uint64_t* BLACKLIST_BODY;
-extern uint64_t* WHITELIST_BODY;
-void init();
-
-}
 
 #endif

@@ -88,4 +88,36 @@ CREATE TABLE IF NOT EXISTS moderator (
     modrank INT UNSIGNED NOT NULL,
     PRIMARY KEY `user2subreddit` (`user_id`, `subreddit_id`)
 );
+
+
+CREATE TABLE IF NOT EXISTS subreddit_count_bl (
+    id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS user_count_bl (
+    id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS subreddit_contents_wl (
+    id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS subreddit_contents_bl (
+    id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS user_contents_wl (
+    id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS user_contents_bl (
+    id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
+);
+
 )====="
