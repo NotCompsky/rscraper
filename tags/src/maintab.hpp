@@ -24,10 +24,13 @@ class MainTab : public QWidget{
   public Q_SLOTS:
     void add_category();
   private:
-    int add(const char* title,  const char* typ,  const char* tblname,  MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row);
+    int add(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname,  MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row);
     
     void add_subreddit_to(const char* tblname);
     void rm_subreddit_from(const char* tblname);
+    
+    void add_subreddit_to_reason(const char* tblname);
+    void rm_subreddit_from_reason(const char* tblname);
     
     void add_user_to(const char* tblname);
     void rm_user_from(const char* tblname);
@@ -47,6 +50,9 @@ class MainTab : public QWidget{
     void rm_from_user_contents_wl();
     void add_to_user_contents_bl();
     void rm_from_user_contents_bl();
+    
+    void add_to_reason_subreddit_bl();
+    void rm_from_reason_subreddit_bl();
     
     QTabWidget* tab_widget;
 };

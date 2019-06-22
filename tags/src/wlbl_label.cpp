@@ -21,12 +21,14 @@ namespace _f {
 }
 
 
-WlBlLabel::WlBlLabel(const char* name,  const char* typ,  const char* tblname) : tblname(tblname), typ(typ), QLabel(name) {
-}
+WlBlLabel::WlBlLabel(const char* name,  const char* typ,  const char* typ_id_varname,  const char* tblname)
+:
+    tblname(tblname), typ(typ), typ_id_varname(typ_id_varname), QLabel(name)
+{}
 
 
 void WlBlLabel::display_subs_w_tag(){
-    compsky::mysql::query(&RES1,  "SELECT b.name FROM ", this->tblname, " a, ", this->typ, " b WHERE a.id=b.id");
+    compsky::mysql::query(&RES1,  "SELECT b.name FROM ", this->tblname, " a, ", this->typ, " b WHERE a.", this->typ_id_varname, "=b.id");
     
     char* name;
     QString s = this->text();

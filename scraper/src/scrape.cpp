@@ -24,6 +24,7 @@
 #include "filter_comment_body.hpp" // for filter_comment_body::*
 #include "filter_user.hpp" // for filter_user::*
 #include "filter_subreddit.hpp" // for filter_subreddit::*
+#include "filter_comment_body_regexp.hpp" // for filter_comment_body::init
 
 #include <compsky/asciify/base.hpp>
 #include <compsky/mysql/query.hpp>
@@ -63,9 +64,11 @@ size_t SQL__INSERT_INTO_SUBREDDIT_INDX;
 
 bool contains(uint64_t* list,  uint64_t item){
     uint64_t* itr = list;
-    while(*itr != 0)
+    while(*itr != 0){
         if (*itr == item)
             return true;
+        ++itr;
+    }
     return false;
 }
 
@@ -235,6 +238,7 @@ void process_all_comments_live(){
 
 int main(const int argc, const char* argv[]){
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
+    filter_comment_body::init();
     mycu::init();         // Init CURL
     myrcu::init(getenv("RSCRAPER_REDDIT_CFG")); // Init OAuth
     

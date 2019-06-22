@@ -120,4 +120,15 @@ CREATE TABLE IF NOT EXISTS user_contents_bl (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS reason_subreddit_blacklist (
+    reason INT UNSIGNED NOT NULL,
+    subreddit BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY `reason2subreddit` (reason, subreddit)
+);
+
+
+
+INSERT IGNORE INTO reason_matched VALUES (name) ("None");
+INSERT IGNORE INTO reason_matched VALUES (name) ("Unknown");
+
 )====="

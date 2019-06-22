@@ -26,6 +26,8 @@ extern MYSQL_ROW ROW1;
 extern QCompleter* subreddit_name_completer;
 QStringList user_names;
 QCompleter* user_name_completer = nullptr;
+QStringList reason_names;
+QCompleter* reason_name_completer = nullptr;
 
 
 namespace _f {
@@ -42,9 +44,18 @@ void populate_user_name_completer(){
     user_name_completer = new QCompleter(user_names);
 }
 
+void populate_reason_name_completer(){
+    compsky::mysql::query_buffer(&RES1, "SELECT name FROM reason_matched");
+    char* name;
+    while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
+        reason_names << name;
+    }
+    reason_name_completer = new QCompleter(reason_names);
+}
 
-int MainTab::add(const char* title,  const char* typ,  const char* tblname,  MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row){
-    l->addWidget(new WlBlLabel(title, typ, tblname),  row,  0);
+
+int MainTab::add(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname,  MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row){
+    l->addWidget(new WlBlLabel(title, typ, typ_id_varname, tblname),  row,  0);
     {
     QPushButton* btn1 = new QPushButton("+", this);
     connect(btn1, &QPushButton::clicked, this, f_add);
@@ -73,6 +84,7 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     row = add(
         "Blacklist",
         "subreddit",
+        "id",
         "subreddit_count_bl",
         &MainTab::add_to_subreddit_count_bl,
         &MainTab::rm_from_subreddit_count_bl,
@@ -83,6 +95,7 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     row = add(
         "Blacklist",
         "user",
+        "id",
         "user_count_bl",
         &MainTab::add_to_user_count_bl,
         &MainTab::rm_from_user_count_bl,
@@ -93,6 +106,7 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     row = add(
         "Whitelist",
         "subreddit",
+        "id",
         "subreddit_contents_wl",
         &MainTab::add_to_subreddit_contents_wl,
         &MainTab::rm_from_subreddit_contents_wl,
@@ -102,6 +116,7 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     row = add(
         "Blacklist",
         "subreddit",
+        "id",
         "subreddit_contents_bl",
         &MainTab::add_to_subreddit_contents_bl,
         &MainTab::rm_from_subreddit_contents_bl,
@@ -112,6 +127,7 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     row = add(
         "Whitelist",
         "user",
+        "id",
         "user_contents_wl",
         &MainTab::add_to_user_contents_wl,
         &MainTab::rm_from_user_contents_wl,
@@ -121,9 +137,23 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     row = add(
         "Blacklist",
         "user",
+        "id",
         "user_contents_bl",
         &MainTab::add_to_user_contents_bl,
         &MainTab::rm_from_user_contents_bl,
+        l,
+        row
+    );
+    
+    /* TODO: On right click, display reason vs subreddit, rather than just subreddit */
+    l->addWidget(new QLabel("Blacklists of comment contents per reason"), row++, 0);
+    row = add(
+        "Subreddits",
+        "subreddit",
+        "subreddit", // shorthand for subreddit_id
+        "reason_subreddit_blacklist",
+        &MainTab::add_to_reason_subreddit_bl,
+        &MainTab::rm_from_reason_subreddit_bl,
         l,
         row
     );
@@ -156,9 +186,12 @@ void MainTab::add_subreddit_to(const char* tblname){
     bool ok;
     NameDialog* dialog = new NameDialog(tblname, "");
     dialog->name_edit->setCompleter(subreddit_name_completer);
-    if (dialog->exec() != QDialog::Accepted)
-        return;
+    const auto rc = dialog->exec();
     const QString qstr = dialog->name_edit->text();
+    delete dialog;
+    
+    if (rc != QDialog::Accepted)
+        return;
     if (qstr.isEmpty())
         return;
     
@@ -169,24 +202,92 @@ void MainTab::rm_subreddit_from(const char* tblname){
     bool ok;
     NameDialog* dialog = new NameDialog(tblname, "");
     dialog->name_edit->setCompleter(subreddit_name_completer);
-    if (dialog->exec() != QDialog::Accepted)
-        return;
+    const auto rc = dialog->exec();
     const QString qstr = dialog->name_edit->text();
+    delete dialog;
+    
+    if (rc != QDialog::Accepted)
+        return;
     if (qstr.isEmpty())
         return;
     
     compsky::mysql::exec("DELETE a FROM ", tblname, " a, subreddit b WHERE a.id=b.id AND b.name=\"", qstr, "\"");
 }
 
+void MainTab::add_subreddit_to_reason(const char* tblname){
+    bool ok;
+    NameDialog* dialog;
+    int rc;
+    
+    dialog = new NameDialog("Reason", "");
+    if (user_name_completer == nullptr)
+        populate_reason_name_completer();
+    dialog->name_edit->setCompleter(reason_name_completer);
+    rc = dialog->exec();
+    const QString qstr_reason = dialog->name_edit->text();
+    delete dialog;
+    if (rc != QDialog::Accepted)
+        return;
+    if (qstr_reason.isEmpty())
+        return;
+    
+    dialog = new NameDialog("Subreddit", "");
+    dialog->name_edit->setCompleter(subreddit_name_completer);
+    rc = dialog->exec();
+    const QString qstr_subreddit = dialog->name_edit->text();
+    delete dialog;
+    if (rc != QDialog::Accepted)
+        return;
+    if (qstr_subreddit.isEmpty())
+        return;
+    
+    compsky::mysql::exec("INSERT IGNORE INTO ", tblname, " SELECT a.id,b.id FROM reason_matched a, subreddit b WHERE a.name=\"", qstr_reason, "\" AND b.name=\"", qstr_subreddit, "\"");
+}
+
+void MainTab::rm_subreddit_from_reason(const char* tblname){
+    bool ok;
+    NameDialog* dialog;
+    int rc;
+    
+    dialog = new NameDialog("Reason", "");
+    if (user_name_completer == nullptr)
+        populate_reason_name_completer();
+    dialog->name_edit->setCompleter(reason_name_completer);
+    rc = dialog->exec();
+    const QString qstr_reason = dialog->name_edit->text();
+    delete dialog;
+    if (rc != QDialog::Accepted)
+        return;
+    if (qstr_reason.isEmpty())
+        return;
+    
+    dialog = new NameDialog("Subreddit", "");
+    dialog->name_edit->setCompleter(subreddit_name_completer);
+    rc = dialog->exec();
+    const QString qstr_subreddit = dialog->name_edit->text();
+    delete dialog;
+    if (rc != QDialog::Accepted)
+        return;
+    if (qstr_subreddit.isEmpty())
+        return;
+    
+    compsky::mysql::exec("DELETE x FROM ", tblname, "x, reason_matched a, subreddit b WHERE x.reason=a.id AND x.subreddit=b.id AND a.name=\"", qstr_reason, "\" AND b.name=\"", qstr_subreddit, "\"");
+}
+
 void MainTab::add_user_to(const char* tblname){
     bool ok;
-    NameDialog* dialog = new NameDialog(tblname, "");
+    
     if (user_name_completer == nullptr)
         populate_user_name_completer();
+    
+    NameDialog* dialog = new NameDialog(tblname, "");
     dialog->name_edit->setCompleter(user_name_completer);
-    if (dialog->exec() != QDialog::Accepted)
-        return;
+    const auto rc = dialog->exec();
     const QString qstr = dialog->name_edit->text();
+    delete dialog;
+    
+    if (rc != QDialog::Accepted)
+        return;
     if (qstr.isEmpty())
         return;
     
@@ -195,13 +296,18 @@ void MainTab::add_user_to(const char* tblname){
 
 void MainTab::rm_user_from(const char* tblname){
     bool ok;
-    NameDialog* dialog = new NameDialog(tblname, "");
+    
     if (user_name_completer == nullptr)
         populate_user_name_completer();
+    
+    NameDialog* dialog = new NameDialog(tblname, "");
     dialog->name_edit->setCompleter(user_name_completer);
-    if (dialog->exec() != QDialog::Accepted)
-        return;
+    const auto rc = dialog->exec();
     const QString qstr = dialog->name_edit->text();
+    delete dialog;
+    
+    if (rc != QDialog::Accepted)
+        return;
     if (qstr.isEmpty())
         return;
     
@@ -260,6 +366,15 @@ void MainTab::add_to_user_contents_bl(){
 
 void MainTab::rm_from_user_contents_bl(){
     this->rm_user_from("user_contents_bl");
+}
+
+
+void MainTab::add_to_reason_subreddit_bl(){
+    this->add_subreddit_to_reason("reason_subreddit_blacklist");
+}
+
+void MainTab::rm_from_reason_subreddit_bl(){
+    this->rm_subreddit_from_reason("reason_subreddit_blacklist");
 }
 
 

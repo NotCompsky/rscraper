@@ -20,7 +20,8 @@ class WlBlLabel : public QLabel {
   public:
     const char* tblname;
     const char* typ;
-    explicit WlBlLabel(const char* title,  const char* typ,  const char* tblname);
+    const char* typ_id_varname; // Most likely "id".
+    explicit WlBlLabel(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname);
 };
 
 
