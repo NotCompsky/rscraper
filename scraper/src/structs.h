@@ -5,6 +5,9 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#ifndef __RSCRAPER_STRUCTS_H__
+#define __RSCRAPER_STRUCTS_H__
+
 #include <inttypes.h> // for uint64_t
 
 struct cmnt_meta {
@@ -15,3 +18,5 @@ struct cmnt_meta {
     const uint64_t author_id;
     const uint64_t subreddit_id;
 };
+
+#endif
