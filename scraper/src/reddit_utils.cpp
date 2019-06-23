@@ -5,38 +5,32 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __MYRCU__
-#define __MYRCU__
+#include "reddit_utils.hpp"
 
-#include "rapidjson/document.h" // for rapidjson::Document
-
-
-namespace myrcu {
-    
-constexpr int REDDIT_REQUEST_DELAY = 1;
+#include "error_codes.hpp" // for myerr:*
 
 
-void handler(int n);
+namespace myru {
 
+unsigned long int id2n_lower(const char* str){
+    unsigned long int n = 0;
+    while (*str != 0){
+        n *= (10 + 26);
+        if (*str >= '0'  &&  *str <= '9')
+            n += *str - '0';
+        else
+            n += *str - 'a' + 10;
+        ++str;
+    }
+    return n;
+}
 
-void init_login(const char* fp);
-
-
-void login();
-
-
-void init(const char* fp);
-
-bool try_again(rapidjson::Document& d);
-
-void init_browser_curl();
-
-void get_user_moderated_subs(const char* username);
+int slashindx(const char* str){
+    int i = 0;
+    while (str[i] != '/')
+        ++i;
+    return i;
+}
 
 
 } // END namespace
-#endif
-
-/* To convert id to name
-curl 'https://oauth.reddit.com/api/info?id=tM_abcdef,tN_ghij' -H 'Authorization: bearer ...'
-*/
