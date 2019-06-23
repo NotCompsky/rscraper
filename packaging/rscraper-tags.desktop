@@ -2,8 +2,8 @@
 Name=RScraper Tag Manager
 Comment=GUI for managing RScraper tags
 Keywords=rscraper;cpp;qt5;reddit;
-Exec=rscraper-tags
-Icon=rscraper-tags.png
+Exec=rscraper-hub
+Icon=rscraper-hub.png
 Terminal=false
 Type=Application
 Categories=Internet;Utilities;Qt;

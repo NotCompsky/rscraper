@@ -37,7 +37,7 @@ endif()
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 
 
-set(CPACK_CREATE_DESKTOP_LINKS rscrape-cmnts rscrape-mods rscraper-tags)
+set(CPACK_CREATE_DESKTOP_LINKS rscrape-cmnts rscrape-mods rscraper-hub)
 set(CPACK_STRIP_FILES TRUE)
 
 if(APPLE OR NOT UNIX)
@@ -87,15 +87,15 @@ else()
 
     # Icon and app shortcut for Linux systems
     # Note: .desktop file must have same name as executable
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/rscraper-tags.desktop
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/rscraper-hub.desktop
         DESTINATION share/applications/
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
         )
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/rscraper-tags.png
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/rscraper-hub.png
         DESTINATION share/icons/hicolor/64x64/apps/
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
         )
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/rscraper-tags.png
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/rscraper-hub.png
         DESTINATION share/icons/gnome/64x64/apps/
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
         )

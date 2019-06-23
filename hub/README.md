@@ -1,3 +1,3 @@
 # Usage
 
-See [manual](../docs/rscraper-tags).
+See [manual](../docs/rscraper-hub).

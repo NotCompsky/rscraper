@@ -24,6 +24,7 @@ Prior to using the programs, the relevant environmental variables must be set.
 # SEE ALSO
 
 *rscrape-cmnts(1)*,
+*rscraper-hub(1)*
 *rscrape-mods(1)*,
 *rscraped-reason(1)*,
 *rscraped-tagged-subs(1)*,
@@ -34,4 +35,3 @@ Prior to using the programs, the relevant environmental variables must be set.
 *rscraper-init(1)*,
 *rscraper-str2id(1)*,
 *rscraper-tagger-server(1)*,
-*rscraper-tags(1)*

@@ -12,7 +12,7 @@ None.
 
 * libmysqlclient (GPLv2)
 
-## rscraper-tags
+## rscraper-hub
 
 * libmysqlclient (GPLv2)
 * Qt5Widgets (LGPLv3)

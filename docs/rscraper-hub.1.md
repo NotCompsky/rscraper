@@ -4,10 +4,10 @@
 
 # NAME
 
-rscraper-tags - Manage *rscraper(1)* tags.
+rscraper-hub - Manage *rscraper(1)* tags.
 
 # SYNOPSIS
-rscraper-tags
+rscraper-hub
 
 # SEE ALSO
 

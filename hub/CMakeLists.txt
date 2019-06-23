@@ -7,7 +7,7 @@ endif()
 find_package(Qt5Widgets)
 
 if(NOT Qt5Widgets_FOUND)
-    message(WARNING "Qt5::Widgets not found, so skipping compilation of rscraper-tags")
+    message(WARNING "Qt5::Widgets not found, so skipping compilation of rscraper-hub")
     return()
 endif()
 
@@ -30,7 +30,7 @@ message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 add_executable(
-    rscraper-tags
+    rscraper-hub
     
     "${SRC_DIR}/main.cpp"
     
@@ -45,16 +45,16 @@ add_executable(
     "${SRC_DIR}/rm_tag_btn.cpp"
     "${SRC_DIR}/wlbl_label.cpp"
 )
-set_property(TARGET rscraper-tags PROPERTY CXX_STANDARD 17)
-target_include_directories(rscraper-tags PRIVATE ${COMPSKY_INCLUDE_DIRS})
-target_link_libraries(rscraper-tags mysqlclient Qt5::Widgets compsky_asciify compsky_mysql)
+set_property(TARGET rscraper-hub PROPERTY CXX_STANDARD 17)
+target_include_directories(rscraper-hub PRIVATE ${COMPSKY_INCLUDE_DIRS})
+target_link_libraries(rscraper-hub mysqlclient Qt5::Widgets compsky_asciify compsky_mysql)
 
 install(
-    TARGETS rscraper-tags
+    TARGETS rscraper-hub
     RUNTIME DESTINATION bin
         COMPONENT bin
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    target_link_libraries(rscraper-tags secur32)
+    target_link_libraries(rscraper-hub secur32)
 endif()
