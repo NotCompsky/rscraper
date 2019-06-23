@@ -40,5 +40,10 @@ void WlBlReasonwiseLabel::display_subs_w_tag(){
         s += subreddit_name;
     }
     
-    QMessageBox::information(this, this->tblname, s, QMessageBox::Cancel);
+    QMessageBox* msgbox = new QMessageBox(this);
+    msgbox->setText(this->tblname);
+    msgbox->setWindowModality(Qt::NonModal);
+    msgbox->setInformativeText(s);
+    msgbox->setStandardButtons(QMessageBox::Cancel);
+    msgbox->exec();
 }

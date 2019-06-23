@@ -31,13 +31,18 @@ void WlBlLabel::display_subs_w_tag(){
     compsky::mysql::query(&RES1,  "SELECT b.name FROM ", this->tblname, " a, ", this->typ, " b WHERE a.", this->typ_id_varname, "=b.id");
     
     char* name;
-    QString s = this->text();
+    QString s = "";
     while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
         s += '\n';
         s += name;
     }
     
-    QMessageBox::information(this, this->tblname, s, QMessageBox::Cancel);
+    QMessageBox* msgbox = new QMessageBox(this);
+    msgbox->setText(this->text());
+    msgbox->setWindowModality(Qt::NonModal);
+    msgbox->setDetailedText(s);
+    msgbox->setStandardButtons(QMessageBox::Cancel);
+    msgbox->exec();
 }
 
 
