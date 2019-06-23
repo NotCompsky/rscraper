@@ -37,20 +37,6 @@ extern MYSQL_RES* RES;
 extern MYSQL_ROW ROW;
 
 
-void handler_1(int n){
-    void* arr[10];
-
-#ifdef DEBUG
-    size_t size = backtrace(arr, 10);
-    
-    fprintf(stderr, "E(%d):\n", n);
-    backtrace_symbols_fd(arr, size, STDERR_FILENO);
-#endif
-    
-    exit(n);
-}
-
-
 namespace filter_comment_body {
 
 
@@ -79,9 +65,6 @@ void populate_reason2name(){
         reason_name2id[reason_id] = name;
         SUBREDDIT_BLACKLISTS[reason_id].push_back(subreddit_id);
     } while(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, &name, &subreddit_id));
-    
-    for (auto i = 0;  i < reason_name2id.size();  ++i)
-        printf("%s\n", reason_name2id[i]);
 }
 
 void init(){
@@ -92,7 +75,7 @@ void init(){
     size_t f_sz = fs::file_size(fp);
     void* dummy = malloc(f_sz + 2); // 1 for blank at beginning, 1 for \0 at end
     if (dummy == nullptr)
-        handler_1(myerr::OUT_OF_MEMORY);
+        exit(myerr::OUT_OF_MEMORY);
     regexpr_str = (char*)dummy;
     
     FILE* f = fopen(fp, "rb");
@@ -103,8 +86,6 @@ void init(){
     
     compsky::regex::convert_named_groups(regexpr_str + 1,  regexpr_str,  reason_name2id,  groupindx2reason);
     // Add one to the first buffer (src) not second buffer (dst) to ensure it is never overwritten when writing dst
-    
-    printf("%s\n", regexpr_str);
     
     constexpr static const compsky::asciify::flag::ChangeBuffer chbuf;
     constexpr static const compsky::asciify::flag::Escape esc;

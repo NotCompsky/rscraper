@@ -7,20 +7,12 @@
 
 #include "filter_comment_body.hpp"
 
-
-#ifdef USE_BOOST_REGEX
-  #include <boost/regex.hpp> // for boost::
-#endif
-
 #include "filter_comment_body_regexp.hpp" // for regexpr_str, SUBREDDIT_BLACKLISTS
 
 
 namespace filter_comment_body {
 
 boost::basic_regex<char, boost::cpp_regex_traits<char>>* regexpr;
-
-namespace wl {
-// Whitelist
 
 #ifndef USE_BOOST_REGEX
 void init(){
@@ -54,5 +46,4 @@ unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len
 #endif
 
 
-}
 } // end namespace

@@ -63,11 +63,10 @@ size_t SQL__INSERT_INTO_SUBREDDIT_INDX;
 
 
 bool contains(uint64_t* list,  uint64_t item){
-    uint64_t* itr = list;
-    while(*itr != 0){
-        if (*itr == item)
+    while(*list != 0){
+        if (*list == item)
             return true;
-        ++itr;
+        ++list;
     }
     return false;
 }
@@ -170,7 +169,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
         return;
     
     
-    if ((reason_matched = filter_comment_body::wl::match(metadata, body, strlen(body)))){
+    if ((reason_matched = filter_comment_body::match(metadata, body, strlen(body)))){
         return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw);
     }
     // if filter_comment_body::bl: return;
