@@ -5,23 +5,18 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __WLBL_LABEL_H__
-#define __WLBL_LABEL_H__
+#ifndef __WLBL_REASONWISE_LABEL_H__
+#define __WLBL_REASONWISE_LABEL_H__
 
-#include <QLabel>
-#include <QMouseEvent>
+#include "wlbl_label.hpp"
 
-class WlBlLabel : public QLabel {
+
+class WlBlReasonwiseLabel : public WlBlLabel {
     Q_OBJECT
-  private:
-    virtual void display_subs_w_tag();
-  private Q_SLOTS:
-    void mousePressEvent(QMouseEvent* e);
   public:
-    const char* tblname;
-    const char* typ;
-    const char* typ_id_varname; // Most likely "id".
-    explicit WlBlLabel(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname);
+    explicit WlBlReasonwiseLabel(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname);
+  private:
+    void display_subs_w_tag() override;
 };
 
 

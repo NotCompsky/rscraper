@@ -45,6 +45,7 @@ add_executable(
     "${SRC_DIR}/rm_sub2tag_btn.cpp"
     "${SRC_DIR}/rm_tag_btn.cpp"
     "${SRC_DIR}/wlbl_label.cpp"
+    "${SRC_DIR}/wlbl_reasonwise_label.cpp"
 )
 set_property(TARGET rscraper-hub PROPERTY CXX_STANDARD 17)
 target_include_directories(rscraper-hub PRIVATE ${COMPSKY_INCLUDE_DIRS})

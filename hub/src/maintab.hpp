@@ -24,7 +24,7 @@ class MainTab : public QWidget{
   public Q_SLOTS:
     void add_category();
   private:
-    int add(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname,  MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row);
+    int add(MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row);
     
     void add_subreddit_to(const char* tblname);
     void rm_subreddit_from(const char* tblname);

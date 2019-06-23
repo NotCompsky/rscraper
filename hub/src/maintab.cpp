@@ -18,6 +18,7 @@
 #include "categorytab.hpp"
 #include "name_dialog.hpp"
 #include "wlbl_label.hpp"
+#include "wlbl_reasonwise_label.hpp"
 
 
 extern MYSQL_RES* RES1;
@@ -54,8 +55,7 @@ void populate_reason_name_completer(){
 }
 
 
-int MainTab::add(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname,  MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row){
-    l->addWidget(new WlBlLabel(title, typ, typ_id_varname, tblname),  row,  0);
+int MainTab::add(MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row){
     {
     QPushButton* btn1 = new QPushButton("+", this);
     connect(btn1, &QPushButton::clicked, this, f_add);
@@ -76,69 +76,54 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     int row = 0;
     
     
+    l->addWidget(new QLabel("Changes are only enacted the next time rscrape-cmnts starts"), row++, 0);
+    
+    
     QPushButton* add_tag_btn = new QPushButton("+Category", this);
     connect(add_tag_btn, SIGNAL(clicked()), this, SLOT(add_category()));
     l->addWidget(add_tag_btn, row++, 0);
     
     l->addWidget(new QLabel("Count comments in subreddits"), row++, 0);
+    l->addWidget(new WlBlLabel("Blacklist", "subreddit", "id", "subreddit_count_bl"),  row,  0);
     row = add(
-        "Blacklist",
-        "subreddit",
-        "id",
-        "subreddit_count_bl",
         &MainTab::add_to_subreddit_count_bl,
         &MainTab::rm_from_subreddit_count_bl,
         l,
         row
     );
     l->addWidget(new QLabel("Count comments by users"), row++, 0);
+    l->addWidget(new WlBlLabel("Blacklist", "user", "id", "user_count_bl"),  row,  0);
     row = add(
-        "Blacklist",
-        "user",
-        "id",
-        "user_count_bl",
         &MainTab::add_to_user_count_bl,
         &MainTab::rm_from_user_count_bl,
         l,
         row
     );
     l->addWidget(new QLabel("Record comment contents in subreddits"), row++, 0);
+    l->addWidget(new WlBlLabel("Whitelist", "subreddit", "id", "subreddit_contents_wl"),  row,  0);
     row = add(
-        "Whitelist",
-        "subreddit",
-        "id",
-        "subreddit_contents_wl",
         &MainTab::add_to_subreddit_contents_wl,
         &MainTab::rm_from_subreddit_contents_wl,
         l,
         row
     );
+    l->addWidget(new WlBlLabel("Blacklist", "subreddit", "id", "subreddit_contents_bl"),  row,  0);
     row = add(
-        "Blacklist",
-        "subreddit",
-        "id",
-        "subreddit_contents_bl",
         &MainTab::add_to_subreddit_contents_bl,
         &MainTab::rm_from_subreddit_contents_bl,
         l,
         row
     );
     l->addWidget(new QLabel("Record comment contents by users"), row++, 0);
+    l->addWidget(new WlBlLabel("Whitelist", "user", "id", "user_contents_wl"),  row,  0);
     row = add(
-        "Whitelist",
-        "user",
-        "id",
-        "user_contents_wl",
         &MainTab::add_to_user_contents_wl,
         &MainTab::rm_from_user_contents_wl,
         l,
         row
     );
+    l->addWidget(new WlBlLabel("Blacklist", "user", "id", "user_contents_bl"),  row,  0);
     row = add(
-        "Blacklist",
-        "user",
-        "id",
-        "user_contents_bl",
         &MainTab::add_to_user_contents_bl,
         &MainTab::rm_from_user_contents_bl,
         l,
@@ -147,21 +132,15 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     
     /* TODO: On right click, display reason vs subreddit, rather than just subreddit */
     l->addWidget(new QLabel("Comment content filters (on a per-reason basis)"), row++, 0);
+    l->addWidget(new WlBlReasonwiseLabel("Subreddit Whitelist", "subreddit", "subreddit", "reason_subreddit_whitelist"),  row,  0); // third argument is shorthand for subreddit_id
     row = add(
-        "Subreddit Whitelist",
-        "subreddit",
-        "subreddit", // shorthand for subreddit_id
-        "reason_subreddit_whitelist",
         &MainTab::add_to_reason_subreddit_wl,
         &MainTab::rm_from_reason_subreddit_wl,
         l,
         row
     );
+    l->addWidget(new WlBlReasonwiseLabel("Subreddit Blacklists", "subreddit", "subreddit", "reason_subreddit_blacklist"),  row,  0); // third argument is shorthand for subreddit_id
     row = add(
-        "Subreddit Blacklists",
-        "subreddit",
-        "subreddit", // shorthand for subreddit_id
-        "reason_subreddit_blacklist",
         &MainTab::add_to_reason_subreddit_bl,
         &MainTab::rm_from_reason_subreddit_bl,
         l,
