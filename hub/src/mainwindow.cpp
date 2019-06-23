@@ -6,7 +6,7 @@
  */
 
 
-#include "cltagswindow.h"
+#include "mainwindow.hpp"
 
 #include <QColorDialog>
 #include <QCompleter>
@@ -41,7 +41,7 @@ QStringList subreddit_names;
 QCompleter* subreddit_name_completer;
 
 
-ClTagsDialog::ClTagsDialog(QWidget* parent){
+MainWindow::MainWindow(QWidget* parent){
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
     
     QTabWidget* tabWidget = new QTabWidget;
@@ -91,6 +91,6 @@ ClTagsDialog::ClTagsDialog(QWidget* parent){
     setWindowTitle(tr("rscraper tag colour picker"));
 }
 
-ClTagsDialog::~ClTagsDialog(){
+MainWindow::~MainWindow(){
     compsky::mysql::exit_mysql();
 }

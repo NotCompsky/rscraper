@@ -25,10 +25,10 @@ struct tag2cl{
 
 
 
-class ClTagsDialog : public QDialog{
+class MainWindow : public QDialog{
     Q_OBJECT
   public:
-    ~ClTagsDialog();
-    explicit ClTagsDialog(QWidget* parent = 0);
+    ~MainWindow();
+    explicit MainWindow(QWidget* parent = 0);
 };
 #endif
