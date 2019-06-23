@@ -58,7 +58,7 @@ void TagNameLabel::rename_tag(){
 
 
 void TagNameLabel::display_subs_w_tag(){
-    compsky::mysql::query(&RES1,  "SELECT r.name FROM subreddit r JOIN (SELECT subreddit_id FROM subreddit2tag WHERE tag_id=",  this->tag_id,  ") A ON A.subreddit_id = r.id");
+    compsky::mysql::query(&RES1,  "SELECT r.name FROM subreddit r, subreddit2tag s WHERE s.subreddit_id=r.id AND  s.tag_id=",  this->tag_id,  " ORDER BY r.name");
     
     char* name;
     QString DISPLAY_TAGS_RES = "";
