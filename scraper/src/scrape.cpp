@@ -35,7 +35,7 @@ MYSQL_ROW ROW;
 
 namespace compsky {
     namespace asciify {
-        char* BUF = (char*)malloc(50000); // Max size of Reddit comments is 40000 characters, iirc.
+        char* BUF;
     }
 }
 
@@ -236,6 +236,11 @@ void process_all_comments_live(){
 }
 
 int main(const int argc, const char* argv[]){
+    void* dummy = malloc(81000); // Max size of Reddit comments is 40000 characters, iirc.
+    if (dummy == nullptr)
+        exit(myerr::OUT_OF_MEMORY);
+    compsky::asciify::BUF = (char*)dummy;
+    
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
     filter_comment_body::init();
     mycu::init();         // Init CURL
