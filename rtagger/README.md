@@ -15,6 +15,8 @@ If you wish to build the `xpi` from source, navigate to the `browser-addon` dire
 
 # Usage
 
+Only works on the old Reddit style - you can view Reddit with this by default in your preferences on Reddit.
+
 Requires a server running on the address and port number specified by your addon options or within the Greasemonkey script (default is `8080`).
 
 Usually this will be a local server instance, in which case you need to install the entire `rscraper` package yourself (see [root](..)). In the examples you can find both a [Python flask server](server.py) and a [Go server](src/rtagger.go), either of which should work.
