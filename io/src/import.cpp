@@ -98,7 +98,7 @@ int main(int argc,  const char** argv){
     /* No dependencies on other tables */
     
     if (argc == 0  ||  contains(argv, argc, "user.csv")){
-        f = fopen("user.csv", "r");
+        f = fopen("user.csv", "rb");
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO user (id,name) VALUES ";
         compsky::asciify::asciify(pre);
@@ -112,7 +112,7 @@ int main(int argc,  const char** argv){
     }
     
     if (argc == 0  ||  contains(argv, argc, "subreddit.csv")){
-        f = fopen("subreddit.csv", "r");
+        f = fopen("subreddit.csv", "rb");
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO subreddit (id,name) VALUES ";
         compsky::asciify::asciify(pre);
@@ -127,7 +127,7 @@ int main(int argc,  const char** argv){
     
     if (argc == 0  ||  contains(argv, argc, "tag.csv")){
         double r, g, b, a;
-        f = fopen("tag.csv", "r");
+        f = fopen("tag.csv", "rb");
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO tag (name, r, g, b, a) VALUES ";
         compsky::asciify::asciify(pre);
@@ -143,7 +143,7 @@ int main(int argc,  const char** argv){
     
     if (argc == 0  ||  contains(argv, argc, "category.csv")){
         double r, g, b, a;
-        f = fopen("category.csv", "r");
+        f = fopen("category.csv", "rb");
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO category (name) VALUES ";
         compsky::asciify::asciify(pre);
@@ -159,7 +159,7 @@ int main(int argc,  const char** argv){
     /* No dependencies on previous import data (i.e. just using absolute IDs) */
     
     if (argc == 0  ||  contains(argv, argc, "user2subreddit_cmnt_count.csv")){
-        f = fopen("user2subreddit_cmnt_count.csv", "r");
+        f = fopen("user2subreddit_cmnt_count.csv", "rb");
         compsky::asciify::BUF_INDX = 0;
         char* pre;
         char* post;
@@ -186,7 +186,7 @@ int main(int argc,  const char** argv){
     /* Name-to-name tables */
     
     if (argc == 0  ||  contains(argv, argc, "subreddit2tag.csv")){
-        f = fopen("subreddit2tag.csv", "r");
+        f = fopen("subreddit2tag.csv", "rb");
         while(fscanf(f, "%s\t%s", name1, name2) != EOF){
             compsky::mysql::exec("INSERT IGNORE INTO subreddit2tag (subreddit_id,tag_id) SELECT s.id,t.id FROM subreddit s, tag t WHERE s.name=\"", _f::esc, '"', name1, "\" AND t.name=\"", _f::esc, '"', name2, "\"");
         }
@@ -194,7 +194,7 @@ int main(int argc,  const char** argv){
     }
     
     if (argc == 0  ||  contains(argv, argc, "tag2category.csv")){
-        f = fopen("tag2category.csv", "r");
+        f = fopen("tag2category.csv", "rb");
         while(fscanf(f, "%s\t%s", name1, name2) != EOF)
             compsky::mysql::exec("INSERT IGNORE INTO tag2category (tag_id,category_id) SELECT t.id,c.id FROM tag t, category c WHERE t.name=\"", _f::esc, '"', name1, "\" AND c.name=\"", _f::esc, '"', name2, "\"");
         fclose(f);

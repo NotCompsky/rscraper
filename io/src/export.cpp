@@ -83,7 +83,7 @@ int main(int argc,  const char** argv){
     /* No dependencies on other tables */
     
     if (argc == 0  ||  contains(argv, argc, "user")){
-        f = fopen("user.csv", "w");
+        f = fopen("user.csv", "wb");
         if (categories_wl_size == 0)
             compsky::mysql::query_buffer(&RES, "SELECT id, name FROM user");
         else
@@ -94,7 +94,7 @@ int main(int argc,  const char** argv){
     }
     
     if (argc == 0  ||  contains(argv, argc, "subreddit")){
-        f = fopen("subreddit.csv", "w");
+        f = fopen("subreddit.csv", "wb");
         if (categories_wl_size == 0)
             compsky::mysql::query_buffer(&RES, "SELECT id, name FROM subreddit");
         else
@@ -106,7 +106,7 @@ int main(int argc,  const char** argv){
     
     if (argc == 0  ||  contains(argv, argc, "tag")){
         double r, g, b, a;
-        f = fopen("tag.csv", "w");
+        f = fopen("tag.csv", "wb");
         if (categories_wl_size == 0)
             compsky::mysql::query_buffer(&RES, "SELECT name, CONCAT_WS(',', r, g, b, a) FROM tag");
         else
@@ -118,7 +118,7 @@ int main(int argc,  const char** argv){
     }
     
     if (argc == 0  ||  contains(argv, argc, "category")){
-        f = fopen("category.csv", "w");
+        f = fopen("category.csv", "wb");
         if (categories_wl_size == 0)
             compsky::mysql::query_buffer(&RES, "SELECT name FROM category");
         else
@@ -131,7 +131,7 @@ int main(int argc,  const char** argv){
     /* No dependencies on previous import data (i.e. just using absolute IDs) */
     
     if (argc == 0  ||  contains(argv, argc, "user2subreddit_cmnt_count")){
-        f = fopen("user2subreddit_cmnt_count.csv", "w");
+        f = fopen("user2subreddit_cmnt_count.csv", "wb");
         if (categories_wl_size == 0)
             compsky::mysql::query_buffer(&RES, "SELECT user_id, subreddit_id, count FROM user2subreddit_cmnt_count");
         else
@@ -144,7 +144,7 @@ int main(int argc,  const char** argv){
     /* Name-to-name tables */
     
     if (argc == 0  ||  contains(argv, argc, "tag2category")){
-        f = fopen("tag2category.csv", "w");
+        f = fopen("tag2category.csv", "wb");
         if (categories_wl_size == 0)
             compsky::mysql::query_buffer(&RES, "SELECT B.name, C.name FROM tag2category A, tag B, category C WHERE B.id=A.tag_id AND C.id=A.category_id");
         else
@@ -155,7 +155,7 @@ int main(int argc,  const char** argv){
     }
     
     if (argc == 0  ||  contains(argv, argc, "subreddit2tag")){
-        f = fopen("subreddit2tag.csv", "w");
+        f = fopen("subreddit2tag.csv", "wb");
         if (categories_wl_size == 0)
             compsky::mysql::query_buffer(&RES, "SELECT B.name, C.name FROM subreddit2tag A, subreddit B, tag C WHERE B.id=A.subreddit_id AND C.id=A.tag_id");
         else

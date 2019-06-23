@@ -93,7 +93,7 @@ void init_login(const char* fp){
     char* PWD;
     char* KEY_AND_SECRET;
     
-    FILE* f = fopen(fp, "r");
+    FILE* f = fopen(fp, "rb");
     fread(compsky::asciify::BUF, 1, 9999, f);
     
     /*
