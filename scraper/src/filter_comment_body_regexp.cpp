@@ -52,7 +52,9 @@ void populate_reason2name(){
     int reason_id;
     char* name;
     uint64_t subreddit_id;
-    if(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, &name, &subreddit_id)){
+    constexpr static const compsky::mysql::flag::SizeOfAssigned f;
+    size_t name_sz;
+    if(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, f, &name_sz, &name, &subreddit_id)){
         // Initialise the vectors
         reason_name2id.reserve(reason_id);
         SUBREDDIT_BLACKLISTS.reserve(reason_id);
@@ -62,9 +64,13 @@ void populate_reason2name(){
         }
     }
     do {
-        reason_name2id[reason_id] = name;
+        char* dummy = (char*)malloc(name_sz);
+        if (dummy == nullptr)
+            exit(myerr::OUT_OF_MEMORY);
+        memcpy(dummy, name, name_sz);
+        reason_name2id[reason_id] = dummy;
         SUBREDDIT_BLACKLISTS[reason_id].push_back(subreddit_id);
-    } while(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, &name, &subreddit_id));
+    } while(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, f, &name_sz, &name, &subreddit_id));
 }
 
 void init(){
