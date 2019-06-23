@@ -5,6 +5,7 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#ifdef USE_BOOST_REGEX
 #ifndef __FILTER_COMMENT_BODY_REGEXP_INIT_H__
 #define __FILTER_COMMENT_BODY_REGEXP_INIT_H__
 
@@ -24,4 +25,5 @@ void init();
 }
 
 
+#endif
 #endif

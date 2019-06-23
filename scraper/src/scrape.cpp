@@ -22,9 +22,9 @@
 #include "redditcurl_utils.hpp" // for myrcu::*, rapidjson::*
 
 #include "filter_comment_body.hpp" // for filter_comment_body::*
+#include "filter_comment_body_regexp.hpp"
 #include "filter_user.hpp" // for filter_user::*
 #include "filter_subreddit.hpp" // for filter_subreddit::*
-#include "filter_comment_body_regexp.hpp" // for filter_comment_body::init
 
 #include <compsky/asciify/base.hpp>
 #include <compsky/mysql/query.hpp>

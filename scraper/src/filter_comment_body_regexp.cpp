@@ -13,6 +13,8 @@ If there are named groups in the regex that are not registered in the database, 
 It cannot end in a literal newline. If such is desired, use [\n]
 */
 
+#ifdef USE_BOOST_REGEX
+
 #include "filter_comment_body_regexp.hpp"
 
 #ifdef FS_EXPERIMENTAL
@@ -21,10 +23,6 @@ namespace fs = std::experimental::filesystem::v1;
 #else
 # include <filesystem>
 namespace fs = std::filesystem;
-#endif
-
-#ifdef DEBUG
-# include <execinfo.h> // for backtracing
 #endif
 
 #include <compsky/asciify/flags.hpp>
@@ -126,3 +124,4 @@ void init(){
 
 
 }
+#endif
