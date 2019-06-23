@@ -16,6 +16,7 @@ namespace filter_comment_body {
 
 extern std::vector<int> groupindx2reason;
 
+extern std::vector<std::vector<uint64_t>> SUBREDDIT_WHITELISTS;
 extern std::vector<std::vector<uint64_t>> SUBREDDIT_BLACKLISTS;
 
 void init();

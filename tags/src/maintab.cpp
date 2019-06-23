@@ -146,9 +146,19 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     );
     
     /* TODO: On right click, display reason vs subreddit, rather than just subreddit */
-    l->addWidget(new QLabel("Blacklists of comment contents per reason"), row++, 0);
+    l->addWidget(new QLabel("Comment content filters (on a per-reason basis)"), row++, 0);
     row = add(
-        "Subreddits",
+        "Subreddit Whitelist",
+        "subreddit",
+        "subreddit", // shorthand for subreddit_id
+        "reason_subreddit_whitelist",
+        &MainTab::add_to_reason_subreddit_wl,
+        &MainTab::rm_from_reason_subreddit_wl,
+        l,
+        row
+    );
+    row = add(
+        "Subreddit Blacklists",
         "subreddit",
         "subreddit", // shorthand for subreddit_id
         "reason_subreddit_blacklist",
@@ -366,6 +376,15 @@ void MainTab::add_to_user_contents_bl(){
 
 void MainTab::rm_from_user_contents_bl(){
     this->rm_user_from("user_contents_bl");
+}
+
+
+void MainTab::add_to_reason_subreddit_wl(){
+    this->add_subreddit_to_reason("reason_subreddit_whitelist");
+}
+
+void MainTab::rm_from_reason_subreddit_wl(){
+    this->rm_subreddit_from_reason("reason_subreddit_whitelist");
 }
 
 

@@ -126,6 +126,11 @@ CREATE TABLE IF NOT EXISTS reason_subreddit_blacklist (
     PRIMARY KEY `reason2subreddit` (reason, subreddit)
 );
 
+CREATE TABLE IF NOT EXISTS reason_subreddit_whitelist (
+    reason INT UNSIGNED NOT NULL,
+    subreddit BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY `reason2subreddit` (reason, subreddit)
+);
 
 
 INSERT IGNORE INTO reason_matched VALUES (name) ("None");

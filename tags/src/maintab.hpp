@@ -51,6 +51,9 @@ class MainTab : public QWidget{
     void add_to_user_contents_bl();
     void rm_from_user_contents_bl();
     
+    void add_to_reason_subreddit_wl();
+    void rm_from_reason_subreddit_wl();
+    
     void add_to_reason_subreddit_bl();
     void rm_from_reason_subreddit_bl();
     
