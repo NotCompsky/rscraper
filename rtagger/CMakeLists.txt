@@ -45,11 +45,11 @@ install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/rscraper-tagger-server.py" DESTINA
 install(
     TARGETS rscraper-tagger
     EXPORT RScraperTargets
-    RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+    RUNTIME DESTINATION bin
         COMPONENT bin
-    LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
+    LIBRARY DESTINATION shlib
         COMPONENT shlib
-    PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/rscraper"
+    PUBLIC_HEADER DESTINATION include/rscraper
         COMPONENT dev
 )
 

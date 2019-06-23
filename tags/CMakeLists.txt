@@ -51,7 +51,7 @@ target_link_libraries(rscraper-tags mysqlclient Qt5::Widgets compsky_asciify com
 
 install(
     TARGETS rscraper-tags
-    RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+    RUNTIME DESTINATION bin
         COMPONENT bin
 )
 

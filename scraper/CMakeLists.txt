@@ -109,6 +109,6 @@ endforeach(tgt)
 
 install(
     TARGETS ${MY_TARGETS}
-    RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+    RUNTIME DESTINATION bin
         COMPONENT bin
 )

@@ -18,6 +18,6 @@ set_property(TARGET rscraper-import PROPERTY CXX_STANDARD 17)
 
 install(
     TARGETS rscraper-export rscraper-import
-    RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+    RUNTIME DESTINATION bin
         COMPONENT bin
 )

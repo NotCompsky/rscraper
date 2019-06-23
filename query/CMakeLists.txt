@@ -28,6 +28,6 @@ endif()
 
 install(
     TARGETS rscraped-reason rscraped-tagged-subs
-    RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+    RUNTIME DESTINATION bin
         COMPONENT bin
 )
