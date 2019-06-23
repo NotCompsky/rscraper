@@ -50,7 +50,7 @@ if(NOT Boost_FOUND)
 endif()
 
 # Rename example files
-set(FILTER_SRCS "${SRC_DIR}/filter_comment_body_regexp.cpp" "${SRC_DIR}/filter_comment_body.cpp" "${SRC_DIR}/filter_subreddit.cpp" "${SRC_DIR}/filter_user.cpp" "${SRC_DIR}/filter_init.cpp")
+set(SRC_FILES "${SRC_DIR}/filter_comment_body_regexp.cpp" "${SRC_DIR}/filter_comment_body.cpp" "${SRC_DIR}/filter_subreddit.cpp" "${SRC_DIR}/filter_user.cpp" "${SRC_DIR}/filter_init.cpp" "${SRC_DIR}/curl_utils.cpp" "${SRC_DIR}/redditcurl_utils.cpp" "${SRC_DIR}/reddit_utils.cpp")
 
 set(BASE64_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/src/base64.c")
 
@@ -60,7 +60,7 @@ if("rscraper-init-scraper" IN_LIST MY_TARGETS)
 endif()
 
 if("rscrape-cmnts" IN_LIST MY_TARGETS)
-    add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${FILTER_SRCS})
+    add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${SRC_FILES})
     set_property(TARGET rscrape-cmnts PROPERTY CXX_STANDARD 17)
     if(${FS_EXPERIMENTAL})
         target_compile_definitions(rscrape-cmnts PRIVATE FS_EXPERIMENTAL=1)
@@ -81,7 +81,7 @@ if("rscrape-cmnts" IN_LIST MY_TARGETS)
     endif()
 endif()
 if("rscrape-mods" IN_LIST MY_TARGETS)
-    add_executable(rscrape-mods "${SRC_DIR}/getmods.cpp" "${BASE64_SRC}" ${FILTER_SRCS})
+    add_executable(rscrape-mods "${SRC_DIR}/getmods.cpp" "${BASE64_SRC}" ${SRC_FILES})
     set_property(TARGET rscrape-mods PROPERTY CXX_STANDARD 17)
     if(${FS_EXPERIMENTAL})
         target_compile_definitions(rscrape-mods PRIVATE FS_EXPERIMENTAL=1)
