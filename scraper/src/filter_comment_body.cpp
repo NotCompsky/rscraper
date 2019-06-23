@@ -35,13 +35,14 @@ unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len
     if (!boost::regex_search(str,  str + str_len,  what,  *regexpr))
         return 0;
     
-    for (auto reason_id = 0;  reason_id < what.size();  ++reason_id){
+    for (auto i = 0;  i < what.size();  ++i){
+        auto reason_id = groupindx2reason[i];
         if (SUBREDDIT_BLACKLISTS[reason_id].size() != 0  &&  contains(SUBREDDIT_BLACKLISTS[reason_id], metadata.subreddit_id))
             break; // Not return - might be later matches that are not blacklisted
         return reason_id;
     }
     
-    return 0;
+    return 1; // Unspecified reason (should match up with entry "Unknown" of ID 1 reason_matched table)
 }
 #endif
 

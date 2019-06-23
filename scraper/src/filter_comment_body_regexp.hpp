@@ -14,7 +14,7 @@
 
 namespace filter_comment_body {
 
-extern char* regexpr_str;
+extern std::vector<int> groupindx2reason;
 
 extern std::vector<std::vector<uint64_t>> SUBREDDIT_BLACKLISTS;
 
