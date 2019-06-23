@@ -9,15 +9,15 @@
 #ifndef __MYRU__
 #define __MYRU__
 
+#include <inttypes.h> // for uint64_t
+
 
 namespace myru {
 
 
 constexpr const int SUBREDDIT_NAME_MAX = 128; // Guess
 
-unsigned long int id2n_lower(const char* str);
-
-int slashindx(const char* str);
+uint64_t id2n_lower(const char* str);
 
 
 } // END namespace

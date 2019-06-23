@@ -12,8 +12,8 @@
 
 namespace myru {
 
-unsigned long int id2n_lower(const char* str){
-    unsigned long int n = 0;
+uint64_t id2n_lower(const char* str){
+    uint64_t n = 0;
     while (*str != 0){
         n *= (10 + 26);
         if (*str >= '0'  &&  *str <= '9')
@@ -23,13 +23,6 @@ unsigned long int id2n_lower(const char* str){
         ++str;
     }
     return n;
-}
-
-int slashindx(const char* str){
-    int i = 0;
-    while (str[i] != '/')
-        ++i;
-    return i;
 }
 
 

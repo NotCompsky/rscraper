@@ -16,6 +16,13 @@ constexpr static const char* API_SUBREDDIT_URL_PREFIX = "https://oauth.reddit.co
 constexpr static const char* PARAMS = "?limit=2048&sort=new&raw_json=1";
 constexpr static const size_t PARAMS_LEN = strlen_constexpr(PARAMS);
 
+int slashindx(const char* str){
+    int i = 0;
+    while (str[i] != '/')
+        ++i;
+    return i;
+}
+
 void process_submission_duplicates(const char* submission_id, const int submission_id_len){
     int i = 0;
     char api_url[strlen(API_DUPLICATES_URL_PREFIX) + submission_id_len + 1 + PARAMS_LEN + 1];
