@@ -58,26 +58,18 @@ constexpr const char* b =
     ") S on S.id = c.submission_id";
 #else
 constexpr const char* a = 
-    "SELECT r.name, D.submission_id, D.comment_id, D.created_at, D.content, D.reason "
-    "FROM subreddit r "
-    "JOIN ( "
-        "SELECT C.comment_id, C.created_at, C.content, C.submission_id, s.subreddit_id, C.reason "
-        "FROM submission s "
-        "JOIN ( "
-            "SELECT c.id as 'comment_id', c.content, c.submission_id, c.created_at, B.name as 'reason' "
-            "FROM comment c "
-            "JOIN ( "
-                "SELECT rm.id, rm.name "
-                "FROM reason_matched rm ";
+    "SELECT r.name, s.id, c.id, c.created_at, c.content, m.name "
+    "FROM subreddit r, submission s, comment c, reason_matched m "
+    "WHERE ";
 constexpr const char* a2 = 
-                "WHERE rm.name IN ('";
+    "m.name IN ('";
 
 constexpr const char* b2 = 
-                "')";
+                "') AND ";
 constexpr const char* b = 
-            ") B on B.id = c.reason_matched "
-        ") C on C.submission_id = s.id "
-    ") D on D.subreddit_id = r.id";
+    "c.reason_matched=m.id "
+    "AND s.id=c.submission_id "
+    "AND r.id=s.subreddit_id";
 #endif
 
 
