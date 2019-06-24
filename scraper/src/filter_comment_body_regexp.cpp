@@ -86,14 +86,14 @@ void init(){
         return;
     
     size_t f_sz = fs::file_size(fp);
-    void* dummy = malloc(f_sz + 1); // 1 for blank at beginning. \0 at end overwrites the trailing \n
+    void* dummy = malloc(f_sz + 2); // 1 for blank at beginning, 1 for terminating \0
     if (dummy == nullptr)
         exit(myerr::OUT_OF_MEMORY);
     char* regexpr_str = (char*)dummy;
     
     FILE* f = fopen(fp, "rb");
     fread(regexpr_str + 1,  1,  f_sz,  f);
-    regexpr_str[f_sz] = 0; // Overwriting trailing \n with \0
+    regexpr_str[f_sz + 1] = 0; // Ensure there is a terminating \0
     
     populate_reason2name();
     
