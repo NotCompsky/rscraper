@@ -17,7 +17,7 @@ class MainTab;
 typedef  void (MainTab::*MainTabMemberFnct)();
 
 
-class MainTab : public QWidget{
+class MainTab : public QWidget {
     Q_OBJECT
   public:
     explicit MainTab(QTabWidget* tab_widget,  QWidget* parent = 0);
@@ -25,6 +25,8 @@ class MainTab : public QWidget{
     void add_category();
   private:
     int add(MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row);
+    
+    void open_cmnt_body_re_editor();
     
     void add_subreddit_to(const char* tblname);
     void rm_subreddit_from(const char* tblname);

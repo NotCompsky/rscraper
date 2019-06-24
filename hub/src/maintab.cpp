@@ -13,10 +13,12 @@
 
 #include <QCompleter>
 #include <QLabel>
+#include <QMessageBox>
 #include <QPushButton>
 
 #include "categorytab.hpp"
 #include "name_dialog.hpp"
+#include "regex_editor.hpp"
 #include "wlbl_label.hpp"
 #include "wlbl_reasonwise_label.hpp"
 
@@ -77,6 +79,11 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     
     
     l->addWidget(new QLabel("Changes are only enacted the next time rscrape-cmnts starts"), row++, 0);
+    
+    
+    QPushButton* edit_cmnt_body_re_btn = new QPushButton("Edit Comment Body Regexp", this);
+    connect(edit_cmnt_body_re_btn, &QPushButton::clicked, this, &MainTab::open_cmnt_body_re_editor);
+    l->addWidget(edit_cmnt_body_re_btn, row++, 0);
     
     
     QPushButton* add_tag_btn = new QPushButton("+Category", this);
@@ -149,6 +156,17 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     
     
     setLayout(l);
+}
+
+void MainTab::open_cmnt_body_re_editor(){
+    QString qfp = getenv("RSCRAPER_REGEX_FILE");
+    if (qfp == nullptr){
+        QMessageBox::information(this, "Invalid Action", "RSCRAPER_REGEX_FILE must be set in order to use this regex", QMessageBox::Cancel);
+        return;
+    }
+    
+    RegexEditor* editor = new RegexEditor(qfp + ".human",  qfp,  this);
+    editor->exec();
 }
 
 void MainTab::add_category(){
