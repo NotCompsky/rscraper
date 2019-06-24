@@ -871,3 +871,15 @@ GROUP BY r.id
 ORDER BY c ASC
 ;
 
+# Users moderating both subreddits
+
+SELECT u.name
+FROM subreddit r1, subreddit r2, moderator m1, moderator m2, user u
+WHERE r1.id=m1.subreddit_id
+  AND r2.id=m2.subreddit_id
+  AND m1.user_id=u.id
+  AND u.id=m2.user_id
+  AND r1.name='AskReddit'
+  AND r2.name='cpp'
+;
+
