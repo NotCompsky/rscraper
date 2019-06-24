@@ -20,10 +20,11 @@ class RegexEditor : public QDialog {
     void test_regex();
     void save_to_file();
   private:
-    const QString to_final_format();
+    bool to_final_format(QString& buf);
+    void display_help();
     void load_file();
-    QFile f_human;
-    QFile f_raw;
+    QString f_human_fp;
+    QString f_raw_fp;
     QPlainTextEdit* text_editor;
 };
 
