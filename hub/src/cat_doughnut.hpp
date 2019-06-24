@@ -4,6 +4,9 @@
 #include <QDialog>
 
 
+class DonutBreakdownChart;
+
+
 class CatDoughnut : public QDialog {
     Q_OBJECT
   public:
@@ -12,6 +15,7 @@ class CatDoughnut : public QDialog {
   private:
     void init();
     bool is_initialised;
+    DonutBreakdownChart* chart;
 };
 
 

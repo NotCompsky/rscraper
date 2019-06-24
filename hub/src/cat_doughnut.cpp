@@ -8,6 +8,7 @@
 
 #include <QChartView>
 #include <QPieSeries>
+#include <QPieSlice>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QWindow>
@@ -15,6 +16,7 @@
 #include <compsky/mysql/query.hpp>
 
 #include "3rdparty/donutbreakdownchart.h"
+#include "3rdparty/mainslice.h"
 
 
 extern MYSQL_RES* RES1;
@@ -30,35 +32,37 @@ void CatDoughnut::show_chart(){
 }
 
 void CatDoughnut::init(){
-    compsky::mysql::query_buffer(&RES1,  "SELECT c.id, c.name, t.name, COUNT(u2scc.count) FROM category c, tag2category t2c, tag t, subreddit2tag s2t, user2subreddit_cmnt_count u2scc WHERE t2c.category_id=c.id AND t.id=t2c.tag_id AND t.id=s2t.tag_id AND s2t.subreddit_id=u2scc.subreddit_id GROUP BY c.id, c.name, t.name ORDER BY c.id");
+    compsky::mysql::query_buffer(&RES1,  "SELECT c.id, c.name, t.name, COUNT(u2scc.count), FLOOR(255*r) as r, FLOOR(255*g) as g, FLOOR(255*b) as b, FLOOR(255*a) as a FROM category c, tag2category t2c, tag t, subreddit2tag s2t, user2subreddit_cmnt_count u2scc WHERE t2c.category_id=c.id AND t.id=t2c.tag_id AND t.id=s2t.tag_id AND s2t.subreddit_id=u2scc.subreddit_id GROUP BY c.id, c.name, t.name, r, g, b, a ORDER BY c.id");
     uint64_t last_cat_id = 0;
     uint64_t cat_id, tag_count;
     char* cat_name;
     char* tag_name;
+    uint8_t r, g, b, a;
     QPieSeries* series = nullptr;
-    DonutBreakdownChart* chart = new DonutBreakdownChart();
-    int r = 255;
-    int g = 0;
-    int b = 0;
-    while(compsky::mysql::assign_next_row(RES1, &ROW1, &cat_id, &cat_name, &tag_name, &tag_count)){
+    this->chart = new DonutBreakdownChart();
+    int cat_r = 255;
+    int cat_g = 0;
+    int cat_b = 0;
+    while(compsky::mysql::assign_next_row(RES1, &ROW1, &cat_id, &cat_name, &tag_name, &tag_count, &r, &g, &b, &a)){
         if (cat_id != last_cat_id){
             if (series != nullptr){
-                chart->addBreakdownSeries(series, QColor(r, g, b, 255)); // TODO: Mix tag colours together to generate this colour, or allow the assignment of colours to categories themselves
-                std::tie(r, g, b) = std::make_tuple(g, b, r);
+                chart->addBreakdownSeries(series, QColor(cat_r, cat_g, cat_b, 255)); // TODO: Mix tag colours together to generate this colour, or allow the assignment of colours to categories themselves
+                std::tie(cat_r, cat_g, cat_b) = std::make_tuple(cat_g, cat_b, cat_r);
             }
             series = new QPieSeries();
             series->setName(cat_name);
             last_cat_id = cat_id;
         }
-        series->append(QString(tag_name), tag_count);
+        QPieSlice* slice = series->append(QString(tag_name), tag_count);
+        slice->setColor(QColor(r, g, b, a));
     }
-    chart->setAnimationOptions(QChart::AllAnimations);
-    chart->setTitle("Total comment count per tag category");
-    chart->legend()->setAlignment(Qt::AlignRight);
+    this->chart->setAnimationOptions(QChart::AllAnimations);
+    this->chart->setTitle("Total comment count per tag category");
+    this->chart->legend()->setAlignment(Qt::AlignRight);
     
     QVBoxLayout* l = new QVBoxLayout;
     
-    QChartView* chart_view = new QChartView(chart);
+    QChartView* chart_view = new QChartView(this->chart);
     chart_view->setRenderHint(QPainter::Antialiasing);
     l->addWidget(chart_view);
     
