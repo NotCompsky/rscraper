@@ -63,6 +63,7 @@ void CatDoughnut::init(){
     QVBoxLayout* l = new QVBoxLayout;
     
     QChartView* chart_view = new QChartView(this->chart);
+    chart_view->setRubberBand(QChartView::RectangleRubberBand);
     chart_view->setRenderHint(QPainter::Antialiasing);
     l->addWidget(chart_view);
     
