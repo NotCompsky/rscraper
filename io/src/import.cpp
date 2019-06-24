@@ -200,6 +200,30 @@ int main(int argc,  const char** argv){
         fclose(f);
     }
     
+    /* 3rd party tables */
+    
+    // Specifically for importing https://files.pushshift.io/reddit/subreddits/subreddits_basic.csv
+    if (argc == 0  ||  contains(argv, argc, "subreddits_basic.csv")){
+        f = fopen("subreddits_basic.csv", "rb");
+        compsky::asciify::BUF_INDX = 0;
+        constexpr static const char* pre = "INSERT IGNORE INTO subreddit2meta (id,subscribers,created_at) VALUES ";
+        compsky::asciify::asciify(pre);
+        char id_str[20];
+        char id_encoded[20];
+        char created_at_str[20];
+        char name[20];
+        char subscribers[20];
+        while(fscanf(f, "%[^,],%[^,],%[^,],%[^,],%[^,\n]\n", id_str, id_encoded, created_at_str, name, subscribers) != EOF){
+            if (subscribers[0] == 'N')
+                // == None
+                continue;
+            compsky::asciify::asciify("(", id_str, ',', subscribers, ',', created_at_str, "),");
+            compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 19 + 1 + 19 + 2);
+        }
+        if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
+            compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
+        fclose(f);
+    }
     
     compsky::mysql::exit_mysql();
 }

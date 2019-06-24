@@ -18,8 +18,8 @@ MYSQL_ROW ROW;
 
 namespace compsky {
     namespace asciify {
-        char* BUF = (char*)malloc(4096);
-        constexpr static const size_t BUF_SZ = 4096;
+        char* BUF = (char*)malloc(80000);
+        constexpr static const size_t BUF_SZ = 80000;
             
         void ensure_buf_can_fit(size_t n){
             if (BUF_INDX + n  >  BUF_SZ){
@@ -33,8 +33,8 @@ namespace compsky {
 
 #ifdef SUB2TAG
 constexpr const char* a = 
-    "SELECT S.name, S.id, c.id, c.created_at, c.content, '' as reason " // Dummy column '' to substitute for 'reason' column
-    "FROM comment c "
+    "SELECT S.name, S.id, c.id, c.created_at, c.content, u.name, '' as reason " // Dummy column '' to substitute for 'reason' column
+    "FROM comment c, user u "
     "JOIN ("
         "SELECT R.name, s.id "
         "FROM submission s "
@@ -55,11 +55,12 @@ constexpr const char* b2 =
             ") S2T on S2T.subreddit_id = r.id ";
 constexpr const char* b = 
         ") R on R.id = s.subreddit_id "
-    ") S on S.id = c.submission_id";
+    ") S on S.id = c.submission_id "
+    "WHERE u.id=c.user_id";
 #else
 constexpr const char* a = 
-    "SELECT r.name, s.id, c.id, c.created_at, c.content, m.name "
-    "FROM subreddit r, submission s, comment c, reason_matched m "
+    "SELECT r.name, s.id, c.id, c.created_at, c.content, u.name, m.name "
+    "FROM subreddit r, submission s, comment c, user u, reason_matched m "
     "WHERE ";
 constexpr const char* a2 = 
     "m.name IN ('";
@@ -69,7 +70,8 @@ constexpr const char* b2 =
 constexpr const char* b = 
     "c.reason_matched=m.id "
     "AND s.id=c.submission_id "
-    "AND r.id=s.subreddit_id";
+    "AND r.id=s.subreddit_id "
+    "AND u.id=c.user_id";
 #endif
 
 
