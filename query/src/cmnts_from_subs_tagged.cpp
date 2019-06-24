@@ -56,7 +56,7 @@ constexpr const char* b2 =
 constexpr const char* b = 
         ") R on R.id = s.subreddit_id "
     ") S on S.id = c.submission_id "
-    "WHERE u.id=c.user_id";
+    "WHERE u.id=c.author_id";
 #else
 constexpr const char* a = 
     "SELECT r.name, s.id, c.id, c.created_at, c.content, u.name, m.name "
@@ -71,7 +71,7 @@ constexpr const char* b =
     "c.reason_matched=m.id "
     "AND s.id=c.submission_id "
     "AND r.id=s.subreddit_id "
-    "AND u.id=c.user_id";
+    "AND u.id=c.author_id";
 #endif
 
 
@@ -115,10 +115,11 @@ int main(const int argc,  const char** argv){
     uint64_t cmnt_id;
     size_t body_sz;
     uint64_t t;
-    char* reason = "";
+    char* username;
+    char* reason;
     char dt_buf[200];
     struct tm* dt;
-    while (compsky::mysql::assign_next_row(RES, &ROW, &subname, &post_id, &cmnt_id, &t, f, &body_sz, &body, &reason)){
+    while (compsky::mysql::assign_next_row(RES, &ROW, &subname, &post_id, &cmnt_id, &t, f, &body_sz, &body, &username, &reason)){
         char post_id_str[10];
         char cmnt_id_str[10];
         id2str(post_id, post_id_str);
@@ -128,7 +129,7 @@ int main(const int argc,  const char** argv){
         dt = localtime(&tt);
         strftime(dt_buf, sizeof(dt_buf), "%Y %a %b %d %H:%M:%S", dt);
         
-        compsky::asciify::asciify("https://www.reddit.com/r/",  subname,  "/comments/",  post_id_str,  "/_/",  cmnt_id_str,  '\n',  dt_buf,  '\t',  reason,  '\n');
+        compsky::asciify::asciify("https://www.reddit.com/r/",  subname,  "/comments/",  post_id_str,  "/_/",  cmnt_id_str,  '\n',  dt_buf,  '\t',  reason,  "\tby /u/", username,  '\n');
         
         if (compsky::asciify::BUF_INDX + body_sz > compsky::asciify::BUF_SZ){
             fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX, stdout);
