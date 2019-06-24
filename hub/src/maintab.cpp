@@ -22,6 +22,8 @@
 #include "wlbl_label.hpp"
 #include "wlbl_reasonwise_label.hpp"
 
+#include "cat_doughnut.hpp"
+
 
 extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
@@ -79,6 +81,13 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     
     
     l->addWidget(new QLabel("Changes are only enacted the next time rscrape-cmnts starts"), row++, 0);
+    
+    
+    // TODO: Move scraper config rows to a different section
+    this->cat_doughnut = new CatDoughnut(this);
+    QPushButton* show_cat_doughnut_btn = new QPushButton("Eat Doughnut", this);
+    connect(show_cat_doughnut_btn, &QPushButton::clicked, this->cat_doughnut, &CatDoughnut::show_chart);
+    l->addWidget(show_cat_doughnut_btn, row++, 0);
     
     
     QPushButton* edit_cmnt_body_re_btn = new QPushButton("Edit Comment Body Regexp", this);

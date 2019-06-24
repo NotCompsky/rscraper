@@ -13,6 +13,8 @@
 #include <QWidget>
 
 
+class CatDoughnut;
+
 class MainTab;
 typedef  void (MainTab::*MainTabMemberFnct)();
 
@@ -60,6 +62,7 @@ class MainTab : public QWidget {
     void rm_from_reason_subreddit_bl();
     
     QTabWidget* tab_widget;
+    CatDoughnut* cat_doughnut;
 };
 
 #endif

@@ -4,10 +4,13 @@ if( EXISTS "${CMAKE_BINARY_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "Refusing to run in-source build.")
 endif()
 
-find_package(Qt5Widgets)
+find_package(Qt5 COMPONENTS Widgets Charts)
 
 if(NOT Qt5Widgets_FOUND)
     message(WARNING "Qt5::Widgets not found, so skipping compilation of rscraper-hub")
+    return()
+elseif(NOT Qt5Charts_FOUND)
+    message(WARNING "Qt5::Charts not found, so skipping compilation of rscraper-hub")
     return()
 endif()
 
@@ -36,21 +39,33 @@ add_executable(
     
     "${SRC_DIR}/mainwindow.cpp"
     
-    "${SRC_DIR}/clbtn.cpp"
+    # Main Tab
     "${SRC_DIR}/maintab.cpp"
-    "${SRC_DIR}/categorytab.cpp"
-    "${SRC_DIR}/tagnamelabel.cpp"
+    "${SRC_DIR}/wlbl_label.cpp"
+    "${SRC_DIR}/wlbl_reasonwise_label.cpp"
+    
+    # Utils
     "${SRC_DIR}/name_dialog.cpp"
-    "${SRC_DIR}/regex_editor.cpp"
+    
+    # 3rd party
+    "${SRC_DIR}/3rdparty/donutbreakdownchart.cpp"
+    "${SRC_DIR}/3rdparty/mainslice.cpp"
+    
+    # Tag Colour Picker tabs
+    "${SRC_DIR}/categorytab.cpp"
+    "${SRC_DIR}/clbtn.cpp"
+    "${SRC_DIR}/tagnamelabel.cpp"
     "${SRC_DIR}/add_sub2tag_btn.cpp"
     "${SRC_DIR}/rm_sub2tag_btn.cpp"
     "${SRC_DIR}/rm_tag_btn.cpp"
-    "${SRC_DIR}/wlbl_label.cpp"
-    "${SRC_DIR}/wlbl_reasonwise_label.cpp"
+    
+    "${SRC_DIR}/regex_editor.cpp"
+    
+    "${SRC_DIR}/cat_doughnut.cpp"
 )
 set_property(TARGET rscraper-hub PROPERTY CXX_STANDARD 17)
 target_include_directories(rscraper-hub PRIVATE ${COMPSKY_INCLUDE_DIRS})
-target_link_libraries(rscraper-hub mysqlclient Qt5::Widgets compsky_asciify compsky_mysql)
+target_link_libraries(rscraper-hub mysqlclient Qt5::Widgets Qt5::Charts compsky_asciify compsky_mysql)
 
 install(
     TARGETS rscraper-hub
