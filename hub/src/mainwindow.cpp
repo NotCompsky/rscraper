@@ -88,7 +88,7 @@ MainWindow::MainWindow(QWidget* parent){
     mainLayout->addWidget(buttonBox);
     setLayout(mainLayout);
     
-    setWindowTitle(tr("rscraper tag colour picker"));
+    setWindowTitle("RScraper Hub");
 }
 
 MainWindow::~MainWindow(){
