@@ -20,7 +20,7 @@ class RegexEditor : public QDialog {
     void test_regex();
     void save_to_file();
   private:
-    const char* to_final_format();
+    const QString to_final_format();
     void load_file();
     QFile f_human;
     QFile f_raw;

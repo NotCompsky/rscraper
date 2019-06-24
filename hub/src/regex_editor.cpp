@@ -42,63 +42,55 @@ void RegexEditor::load_file(){
     this->text_editor->setPlainText(this->f_human.readAll());
 }
 
-const char* RegexEditor::to_final_format(){
+const QString RegexEditor::to_final_format(){
     // WARNING: Does not currently support special encodings, i.e. non-ASCII characters are likely to be mangled.
     // TODO: Add utf8 support.
-    const QString q = this->text_editor->toPlainText();
-    const QByteArray b = q.toLocal8Bit();
-    const char* orig = b.data();
-    char* buf = (char*)malloc(b.size() + 1); // WARNING: QByteArray::size() is only an int
-    if (buf == nullptr){
-        QMessageBox::critical(this, "Memory Error",  "Cannot allocate memory",  QMessageBox::Cancel);
-        return "";
-    }
-    memcpy(buf, orig, b.size());
-    buf[b.size()] = 0;
+    QString q = this->text_editor->toPlainText();
+    QString buf; // Do not want to overwrite text_editor contents
+    buf.reserve(q.size());
+    auto j = 0;
     
-    char* const start = buf;
-    char* s = buf;
-    
-    while(*s != 0){
-        if (*s == '\\'){
+    for(auto i = 0;  i < q.size();  ){
+        QChar c = q.at(i);
+        if (c == QChar('\\')){
             // Recognised escapes: \n, \r, \t, \v
             // All others simply become the literal value of the next character
-            char c = *(++s);
-            if      (c == 0)
+            if (++i == q.size())
                 break;
-            else if (c == 'n') c = '\n';
-            else if (c == 'r') c = '\r';
-            else if (c == 't') c = '\t';
-            else if (c == 'v') c = '\v'; // Vertical tab
-            *(buf++) = c;
-            ++s;
+            QChar ch = q.at(i);
+            if      (ch == QChar('n')) ch = QChar('\n');
+            else if (ch == QChar('r')) ch = QChar('\r');
+            else if (ch == QChar('t')) ch = QChar('\t');
+            else if (ch == QChar('v')) ch = QChar('\v'); // Vertical tab
+            buf[j++] = ch;
+            ++i;
             continue;
         }
-        if (*s == '\n'){
-            ++s;
-            while((*s != 0)  &&  (*s == ' '  ||  *s == '\t'))
-                ++s;
+        if (c == QChar('\n')){
+            ++i;
+            while((i < q.size())  &&  (q.at(i) == QChar(' ')  ||  q.at(i) == QChar('\t')))
+                ++i;
             continue;
         }
-        if (*s == '#'){
-            ++s;
+        if (c == QChar('#')){
+            ++i;
             do {
                 // Remove all preceding unescaped whitespace
-                --buf;
-            } while ((*buf == ' '  ||  *buf == '\t')  &&  (*(buf-1) != '\\'));
-            ++buf;
-            while((*s != 0)  &&  (*s != '\n'))
-                ++s;
+                --j;
+            } while ((buf.at(j) == QChar(' ')  ||  buf.at(j) == QChar('\t'))  &&  (buf.at(j-1) != QChar('\\')));
+            ++j;
+            while((i < q.size())  &&  (q.at(i) != QChar('\n')))
+                ++i;
             continue;
         }
         
-        *(buf++) = *s;
+        buf[j++] = q.at(i);
         
-        ++s;
+        ++i;
     }
-    *buf = 0;
+    buf.resize(j);
     
-    return start;
+    return buf;
 }
 
 void RegexEditor::test_regex(){
@@ -114,7 +106,7 @@ void RegexEditor::save_to_file(){
     s_human << this->text_editor->toPlainText().toLocal8Bit();
     s_human.flush();
     QTextStream   s_raw(&this->f_raw);
-    s_raw   << this->to_final_format();
+    s_raw   << this->to_final_format().toLocal8Bit();
     s_raw.flush();
     
     this->close(); // Avoids issues with closing and reopening QFiles
