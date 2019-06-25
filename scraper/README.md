@@ -2,16 +2,6 @@
 
 See [the manuals](../docs) for usage information on each tool.
 
-# Building
-
-People using older versions of GCC may have to `-DFS_EXPERIMENTAL=1` to `#include <filesystem>`.
-
-The `src/filter_comment_body.*pp` files are meant to be edited to customise your build.
-
-The edits will not be applied until you rebuild and reinstall the package.
-
-# Usage
-
 In order to use the scraper, you need to have registered an app with reddit.com.
 
 To use regex matching against comment contents, set the `RSCRAPER_REGEX_FILE` environmental variable to the file path of a file containing the regex to use. Be careful not to include trailing newlines that aren't meant to be a part of your regex. The supported format is the `ECMAScript` syntax, as it uses `boost::regex`. However, named groups are supported on top of that. See [libcompsky](https://github.com/NotCompsky/libcompsky/tree/master/regex) for the specific details on these.
