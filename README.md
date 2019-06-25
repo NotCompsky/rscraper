@@ -6,7 +6,7 @@ See [scraper](scraper) directory for details.
 
 ## Browser Tagger
 
-See [rtagger](rtagger) directory for details.
+See [tagger](tagger) directory for details.
 
 ## Tag Manager
 

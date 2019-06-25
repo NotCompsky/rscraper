@@ -1,7 +1,7 @@
 package main
 
 /*
-#cgo LDFLAGS: -L${SRCDIR}/../../build/rtagger -lrscraper-tagger
+#cgo LDFLAGS: -L${SRCDIR}/../../build/tagger -lrscraper-tagger
 #cgo CFLAGS: -O3
 
 extern char* DST;

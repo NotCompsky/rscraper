@@ -99,7 +99,7 @@ else()
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
         RENAME copyright)
     # set package icon
-    set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/rtagger/browser-addon/icons/64.png")
+    set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/tagger/browser-addon/icons/64.png")
 endif()
 
 

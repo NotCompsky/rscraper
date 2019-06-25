@@ -19,7 +19,7 @@ Only works on the old Reddit style - you can view Reddit with this by default in
 
 Requires a server running on the address and port number specified by your addon options or within the Greasemonkey script (default is `8080`).
 
-Usually this will be a local server instance, in which case you need to install the entire `rscraper` package yourself (see [root](..)). In the examples you can find both a [Python flask server](server.py) and a [Go server](src/rtagger.go), either of which should work.
+Usually this will be a local server instance, in which case you need to install the entire `rscraper` package yourself (see [root](..)). In the examples you can find both a [Python flask server](server.py) and a [Go server](src/server.go), either of which should work.
 
 However, you can also set it up to use server of your choosing at any given url - although in that case you would need to edit the addon by hand (see `editing` section below). In that case, the addon or Greasemonkey script is all that you will need.
 

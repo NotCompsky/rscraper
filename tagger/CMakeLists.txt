@@ -20,18 +20,18 @@ endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-add_library(rscraper-tagger SHARED "${SRC_DIR}/rtagger.cpp")
+include_directories("${INC_DIR}")
+
+add_library(rscraper-tagger SHARED "${SRC_DIR}/tagger.cpp")
 target_link_libraries(rscraper-tagger mysqlclient compsky_asciify compsky_mysql)
 set_property(TARGET rscraper-tagger PROPERTY CXX_STANDARD 17)
 
-set_property(TARGET rscraper-tagger PROPERTY IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/rtagger/librscraper-tagger.so") # For librscraper-tagger.so for compiling Go
 
 
 
-
-add_custom_target(rscraper-tagger-server ALL)
+add_custom_target(rscraper-tagger-server ALL DEPENDS rscraper-tagger)
 add_custom_command(
     TARGET rscraper-tagger-server
     COMMAND
@@ -51,7 +51,7 @@ install(
 
 target_compile_definitions(rscraper-tagger PRIVATE ${MY_DEFINITIONS})
 
-set_target_properties(rscraper-tagger PROPERTIES PUBLIC_HEADER "${INC_DIR}/rtagger.hpp")
+set_target_properties(rscraper-tagger PROPERTIES PUBLIC_HEADER "${INC_DIR}/rscraper/tagger.hpp")
 
 
 install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/rscraper-tagger-server.py" DESTINATION bin)
@@ -60,6 +60,8 @@ install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/rscraper-tagger-server.py" DESTINA
 install(
     TARGETS rscraper-tagger
     EXPORT RScraperTargets
+    PUBLIC_HEADER DESTINATION
+        "${INSTALL_INCLUDE_DIR}/rscraper"
     LIBRARY DESTINATION shlib
         COMPONENT tagger
 )

@@ -89,7 +89,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 # Add sub-directories
 add_subdirectory(scraper)
 add_subdirectory(hub)
-add_subdirectory(rtagger)
+add_subdirectory(tagger)
 add_subdirectory(init)
 add_subdirectory(io)
 add_subdirectory(query)
