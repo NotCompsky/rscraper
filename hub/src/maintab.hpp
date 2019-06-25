@@ -33,8 +33,7 @@ class MainTab : public QWidget {
     void add_subreddit_to(const char* tblname);
     void rm_subreddit_from(const char* tblname);
     
-    void add_subreddit_to_reason(const char* tblname);
-    void rm_subreddit_from_reason(const char* tblname);
+    void add_subreddit_to_reason(const char* tblname,  const bool delete_from);
     
     void add_user_to(const char* tblname,  const bool delete_from);
     

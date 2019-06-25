@@ -240,7 +240,7 @@ void MainTab::rm_subreddit_from(const char* tblname){
     compsky::mysql::exec("DELETE a FROM ", tblname, " a, subreddit b WHERE a.id=b.id AND b.name=\"", qstr, "\"");
 }
 
-void MainTab::add_subreddit_to_reason(const char* tblname){
+void MainTab::add_subreddit_to_reason(const char* tblname,  const bool delete_from){
     bool ok;
     NameDialog* dialog;
     int rc;
@@ -273,43 +273,15 @@ void MainTab::add_subreddit_to_reason(const char* tblname){
     if (!subreddit_names.contains(qstr_subreddit))
         return notfound::subreddit(this, qstr_subreddit);
     
-    compsky::mysql::exec("INSERT IGNORE INTO ", tblname, " SELECT a.id,b.id FROM reason_matched a, subreddit b WHERE a.name=\"", qstr_reason, "\" AND b.name=\"", qstr_subreddit, "\"");
-}
-
-void MainTab::rm_subreddit_from_reason(const char* tblname){
-    bool ok;
-    NameDialog* dialog;
-    int rc;
-    
-    dialog = new NameDialog("Reason", "");
-    if (user_name_completer == nullptr)
-        populate_reason_name_completer();
-    dialog->name_edit->setCompleter(reason_name_completer);
-    rc = dialog->exec();
-    const QString qstr_reason = dialog->name_edit->text();
-    delete dialog;
-    if (rc != QDialog::Accepted)
-        return;
-    if (qstr_reason.isEmpty())
-        return;
-    
-    if (!reason_names.contains(qstr_reason))
-        return notfound::reason(this, qstr_reason);
-    
-    dialog = new NameDialog("Subreddit", "");
-    dialog->name_edit->setCompleter(subreddit_name_completer);
-    rc = dialog->exec();
-    const QString qstr_subreddit = dialog->name_edit->text();
-    delete dialog;
-    if (rc != QDialog::Accepted)
-        return;
-    if (qstr_subreddit.isEmpty())
-        return;
-    
-    if (!subreddit_names.contains(qstr_subreddit))
-        return notfound::subreddit(this, qstr_subreddit);
-    
-    compsky::mysql::exec("DELETE x FROM ", tblname, "x, reason_matched a, subreddit b WHERE x.reason=a.id AND x.subreddit=b.id AND a.name=\"", qstr_reason, "\" AND b.name=\"", qstr_subreddit, "\"");
+    compsky::mysql::exec(
+        (delete_from) ? "DELETE x FROM " : "INSERT IGNORE INTO ",
+        tblname,
+        (delete_from) ? " x, reason_matched a, subreddit b WHERE x.reason=a.id AND x.subreddit=b.id AND a.name=\"" : " SELECT a.id,b.id FROM reason_matched a, subreddit b WHERE a.name=\"",
+        qstr_reason,
+        "\" AND b.name=\"",
+        qstr_subreddit,
+        "\""
+    );
 }
 
 void MainTab::add_user_to(const char* tblname,  const bool delete_from){
@@ -415,20 +387,20 @@ void MainTab::rm_from_user_contents_bl(){
 
 
 void MainTab::add_to_reason_subreddit_wl(){
-    this->add_subreddit_to_reason("reason_subreddit_whitelist");
+    this->add_subreddit_to_reason("reason_subreddit_whitelist", false);
 }
 
 void MainTab::rm_from_reason_subreddit_wl(){
-    this->rm_subreddit_from_reason("reason_subreddit_whitelist");
+    this->add_subreddit_to_reason("reason_subreddit_whitelist", true);
 }
 
 
 void MainTab::add_to_reason_subreddit_bl(){
-    this->add_subreddit_to_reason("reason_subreddit_blacklist");
+    this->add_subreddit_to_reason("reason_subreddit_blacklist", false);
 }
 
 void MainTab::rm_from_reason_subreddit_bl(){
-    this->rm_subreddit_from_reason("reason_subreddit_blacklist");
+    this->add_subreddit_to_reason("reason_subreddit_blacklist", true);
 }
 
 
