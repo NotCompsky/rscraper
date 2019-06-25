@@ -11,7 +11,7 @@
 #include <QTimer>
 
 
-NameDialog::NameDialog(QString title,  QString str,  QWidget* parent) : QDialog(parent){
+NameDialog::NameDialog(QString title,  QString str,  QString checkbox_title,  QWidget* parent) : QDialog(parent){
     // If the functions are implemented in the header file you have to declare the definitions of the functions with inline to prevent having multiple definitions of the functions.
     this->btn_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     connect(this->btn_box, SIGNAL(accepted()), this, SLOT(accept()));
@@ -20,6 +20,10 @@ NameDialog::NameDialog(QString title,  QString str,  QWidget* parent) : QDialog(
     l->addWidget(this->btn_box);
     this->name_edit = new QLineEdit(str);
     l->addWidget(this->name_edit);
+    if (!checkbox_title.isEmpty()){
+        this->checkbox = new QCheckBox(checkbox_title,  this);
+        l->addWidget(this->checkbox);
+    }
     this->setLayout(l);
     this->setWindowTitle(title);
     QTimer::singleShot(0, this->name_edit, SLOT(setFocus())); // Set focus after NameDialog instance is visible

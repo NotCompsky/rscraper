@@ -20,12 +20,17 @@ extern QStringList subreddit_names;
 extern QCompleter* subreddit_name_completer;
 
 
-AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), QPushButton("+Subreddits", parent) {}
+AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  bool delete_from,  QWidget* parent)
+:
+    tag_id(id),
+    QPushButton(QString(delete_from?"-":"+") + "Subreddits",  parent),
+    delete_from(delete_from)
+{}
 
 void AddSub2TagBtn::add_subreddit(){
     bool ok;
     while(true){
-        NameDialog* namedialog = new NameDialog("Subreddit Name", "");
+        NameDialog* namedialog = new NameDialog("Subreddit Name", "", "Use SQL LIKE pattern matching");
         namedialog->name_edit->setCompleter(subreddit_name_completer);
         if (namedialog->exec() != QDialog::Accepted)
             return;
@@ -33,7 +38,9 @@ void AddSub2TagBtn::add_subreddit(){
         if (qstr.isEmpty())
             return;
         
-        if (!subreddit_names.contains(qstr))
+        const bool is_pattern = namedialog->checkbox->isChecked();
+        
+        if (!is_pattern  &&  !subreddit_names.contains(qstr))
             return notfound::subreddit(this, qstr);
         
         const QByteArray ba = qstr.toLocal8Bit();
@@ -41,7 +48,13 @@ void AddSub2TagBtn::add_subreddit(){
         
         // TODO: Add QCompleter for subreddit name
         
-        compsky::mysql::exec("INSERT IGNORE INTO subreddit2tag SELECT id,",  this->tag_id,  " FROM subreddit WHERE name=\"",  subreddit_name,  "\"");
+        compsky::mysql::exec(
+            (this->delete_from) ? "DELETE s2t FROM subreddit2tag s2t LEFT JOIN subreddit s ON s2t.subreddit_id=s.id WHERE tag_id=" : "INSERT IGNORE INTO subreddit2tag SELECT id,",
+            this->tag_id,
+            (this->delete_from) ? " AND s.name" : " FROM subreddit WHERE name",
+            (is_pattern)?" LIKE ":"=",
+            '"',  subreddit_name,  '"'
+        );
     }
 }
 

@@ -9,8 +9,6 @@
 
 #include <QGridLayout>
 
-#include "add_sub2tag_btn.hpp"
-#include "rm_sub2tag_btn.hpp"
 #include "clbtn.hpp"
 
 #include <compsky/mysql/query.hpp>

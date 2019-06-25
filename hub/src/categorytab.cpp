@@ -17,7 +17,6 @@
 #include <compsky/mysql/query.hpp>
 
 #include "add_sub2tag_btn.hpp"
-#include "rm_sub2tag_btn.hpp"
 #include "rm_tag_btn.hpp"
 #include "clbtn.hpp"
 #include "name_dialog.hpp"
@@ -51,8 +50,8 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* p
         ++this->row;
         this->l->addWidget(new TagNameLabel(id, name, this),  this->row,  0);
         this->l->addWidget(new SelectColourButton(id, r, g, b, a, this),  this->row,  1);
-        this->l->addWidget(new AddSub2TagBtn(id, this),  this->row,  2);
-        this->l->addWidget(new RmSub2TagBtn(id, this),   this->row,  3);
+        this->l->addWidget(new AddSub2TagBtn(id, false, this),  this->row,  2);
+        this->l->addWidget(new AddSub2TagBtn(id, true,  this),  this->row,  3);
         this->l->addWidget(new RmTagBtn(id, this),       this->row,  4);
     }
     }
@@ -95,8 +94,8 @@ void ClTagsTab::add_tag(){
     tagslist << tagstr;
     this->l->addWidget(new TagNameLabel(tag_id, tagstr, this),  this->row,  0);
     this->l->addWidget(new SelectColourButton(tag_id, 0, 0, 0, 0, this),  this->row,  1);
-    this->l->addWidget(new AddSub2TagBtn(tag_id, this),  this->row,  2);
-    this->l->addWidget(new RmSub2TagBtn(tag_id, this),   this->row,  3);
+    this->l->addWidget(new AddSub2TagBtn(tag_id, false, this),  this->row,  2);
+    this->l->addWidget(new AddSub2TagBtn(tag_id, true,  this),  this->row,  3);
     this->l->addWidget(new RmTagBtn(tag_id, this),       this->row,  4);
 }
 

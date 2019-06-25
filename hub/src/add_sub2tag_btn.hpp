@@ -16,9 +16,11 @@ class AddSub2TagBtn : public QPushButton{
     Q_OBJECT
   private Q_SLOTS:
     void mousePressEvent(QMouseEvent* e);
+  private:
+    const bool delete_from;
   public:
     const uint64_t tag_id;
-    explicit AddSub2TagBtn(const uint64_t id,  QWidget* parent);
+    explicit AddSub2TagBtn(const uint64_t id,  bool delete_from,  QWidget* parent);
   public Q_SLOTS:
     void add_subreddit();
 };

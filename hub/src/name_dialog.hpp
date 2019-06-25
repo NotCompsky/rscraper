@@ -8,6 +8,7 @@
 #ifndef __NAME_DIALOG_H__
 #define __NAME_DIALOG_H__
 
+#include <QCheckBox>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QLineEdit>
@@ -16,9 +17,10 @@
 
 class NameDialog : public QDialog {
   public:
-    explicit NameDialog(QString title,  QString str,  QWidget* parent = 0);
+    explicit NameDialog(QString title,  QString str,  QString checkbox_title = "",  QWidget* parent = 0);
     ~NameDialog();
     QLineEdit* name_edit;
+    QCheckBox* checkbox;
   private:
     QDialogButtonBox* btn_box;
     QVBoxLayout* l;

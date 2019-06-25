@@ -59,7 +59,6 @@ add_executable(
     "${SRC_DIR}/clbtn.cpp"
     "${SRC_DIR}/tagnamelabel.cpp"
     "${SRC_DIR}/add_sub2tag_btn.cpp"
-    "${SRC_DIR}/rm_sub2tag_btn.cpp"
     "${SRC_DIR}/rm_tag_btn.cpp"
     
     "${SRC_DIR}/regex_editor.cpp"
