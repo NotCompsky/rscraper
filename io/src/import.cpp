@@ -185,16 +185,16 @@ int main(int argc,  const char** argv){
     
     if (argc == 0  ||  contains(argv, argc, "subreddit2tag.csv")){
         f = fopen("subreddit2tag.csv", "rb");
-        while(fscanf(f, "%s\t%s", name1, name2) != EOF){
-            compsky::mysql::exec("INSERT IGNORE INTO subreddit2tag (subreddit_id,tag_id) SELECT s.id,t.id FROM subreddit s, tag t WHERE s.name=\"", _f::esc, '"', name1, "\" AND t.name=\"", _f::esc, '"', name2, "\"");
+        while(fscanf(f, "%s\t%s", str_a, str_b) != EOF){
+            compsky::mysql::exec("INSERT IGNORE INTO subreddit2tag (subreddit_id,tag_id) SELECT s.id,t.id FROM subreddit s, tag t WHERE s.name=\"", _f::esc, '"', str_a, "\" AND t.name=\"", _f::esc, '"', str_b, "\"");
         }
         fclose(f);
     }
     
     if (argc == 0  ||  contains(argv, argc, "tag2category.csv")){
         f = fopen("tag2category.csv", "rb");
-        while(fscanf(f, "%s\t%s", name1, name2) != EOF)
-            compsky::mysql::exec("INSERT IGNORE INTO tag2category (tag_id,category_id) SELECT t.id,c.id FROM tag t, category c WHERE t.name=\"", _f::esc, '"', name1, "\" AND c.name=\"", _f::esc, '"', name2, "\"");
+        while(fscanf(f, "%s\t%s", str_a, str_b) != EOF)
+            compsky::mysql::exec("INSERT IGNORE INTO tag2category (tag_id,category_id) SELECT t.id,c.id FROM tag t, category c WHERE t.name=\"", _f::esc, '"', str_a, "\" AND c.name=\"", _f::esc, '"', str_b, "\"");
         fclose(f);
     }
     
