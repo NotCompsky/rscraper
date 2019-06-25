@@ -202,7 +202,7 @@ void MainTab::add_category(){
 }
 
 
-void MainTab::add_subreddit_to(const char* tblname){
+void MainTab::add_subreddit_to(const char* tblname,  const bool delete_from){
     bool ok;
     NameDialog* dialog = new NameDialog(tblname, "");
     dialog->name_edit->setCompleter(subreddit_name_completer);
@@ -218,26 +218,13 @@ void MainTab::add_subreddit_to(const char* tblname){
     if (!subreddit_names.contains(qstr))
         return notfound::subreddit(this, qstr);
     
-    compsky::mysql::exec("INSERT IGNORE INTO ", tblname, " SELECT id FROM subreddit WHERE name=\"", qstr, "\"");
-}
-
-void MainTab::rm_subreddit_from(const char* tblname){
-    bool ok;
-    NameDialog* dialog = new NameDialog(tblname, "");
-    dialog->name_edit->setCompleter(subreddit_name_completer);
-    const auto rc = dialog->exec();
-    const QString qstr = dialog->name_edit->text();
-    delete dialog;
-    
-    if (rc != QDialog::Accepted)
-        return;
-    if (qstr.isEmpty())
-        return;
-    
-    if (!subreddit_names.contains(qstr))
-        return notfound::subreddit(this, qstr);
-    
-    compsky::mysql::exec("DELETE a FROM ", tblname, " a, subreddit b WHERE a.id=b.id AND b.name=\"", qstr, "\"");
+    compsky::mysql::exec(
+        (delete_from) ? "DELETE a FROM " : "INSERT IGNORE INTO ",
+        tblname,
+        (delete_from) ? " a, subreddit b WHERE a.id=b.id AND b.name=\"" : " SELECT id FROM subreddit WHERE name=\"",
+            qstr,
+        "\""
+    );
 }
 
 void MainTab::add_subreddit_to_reason(const char* tblname,  const bool delete_from){
@@ -333,16 +320,16 @@ void MainTab::add_user_to(const char* tblname,  const bool delete_from){
 
 
 void MainTab::add_to_subreddit_count_bl(){
-    this->add_subreddit_to("subreddit_count_bl");
+    this->add_subreddit_to("subreddit_count_bl", false);
 }
 
 void MainTab::rm_from_subreddit_count_bl(){
-    this->rm_subreddit_from("subreddit_count_bl");
+    this->add_subreddit_to("subreddit_count_bl", true);
 }
 
 
 void MainTab::add_to_user_count_bl(){
-    this->add_user_to("user_count_bl", true);
+    this->add_user_to("user_count_bl", false);
 }
 
 void MainTab::rm_from_user_count_bl(){
@@ -351,20 +338,20 @@ void MainTab::rm_from_user_count_bl(){
 
 
 void MainTab::add_to_subreddit_contents_wl(){
-    this->add_subreddit_to("subreddit_contents_wl");
+    this->add_subreddit_to("subreddit_contents_wl", false);
 }
 
 void MainTab::rm_from_subreddit_contents_wl(){
-    this->rm_subreddit_from("subreddit_contents_wl");
+    this->add_subreddit_to("subreddit_contents_wl", true);
 }
 
 
 void MainTab::add_to_subreddit_contents_bl(){
-    this->add_subreddit_to("subreddit_contents_bl");
+    this->add_subreddit_to("subreddit_contents_bl", false);
 }
 
 void MainTab::rm_from_subreddit_contents_bl(){
-    this->rm_subreddit_from("subreddit_contents_bl");
+    this->add_subreddit_to("subreddit_contents_bl", true);
 }
 
 
