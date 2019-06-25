@@ -62,6 +62,9 @@ set(CPACK_DEBIAN_SCRAPER_DEPENDS "libcompsky, ${WHICH_MYSQL}, ${WHICH_CURL}")
 set(CPACK_DEBIAN_TAGGER_DEPENDS "libcompsky, ${WHICH_MYSQL}")
 set(CPACK_DEBIAN_GUI_DEPENDS "libcompsky, ${WHICH_MYSQL}, libqt5charts5")
 
+include(CheckCXXSourceCompiles)
+check_cxx_source_compiles("#include <filesystem>" FS_NOT_EXPERIMENTAL)
+
 
 # BEGIN src: https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/How-to-create-a-ProjectConfig.cmake-file
 
