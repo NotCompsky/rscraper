@@ -16,6 +16,8 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+#include "id2str.hpp"
+
 #include "categorytab.hpp"
 #include "name_dialog.hpp"
 #include "notfound.hpp"
@@ -316,7 +318,7 @@ void MainTab::add_user_to(const char* tblname){
     if (user_name_completer == nullptr)
         populate_user_name_completer();
     
-    NameDialog* dialog = new NameDialog(tblname, "");
+    NameDialog* dialog = new NameDialog(tblname, "", "Is user ID (format id-t2_a1b2c3d)");
     dialog->name_edit->setCompleter(user_name_completer);
     const auto rc = dialog->exec();
     const QString qstr = dialog->name_edit->text();
@@ -326,6 +328,19 @@ void MainTab::add_user_to(const char* tblname){
         return;
     if (qstr.isEmpty())
         return;
+    
+    const bool is_id = dialog->checkbox->isChecked();
+    
+    if (is_id){
+        QByteArray ba = qstr.toLocal8Bit();
+        const char* s = ba.data();
+        if (s[0] != 'i'  ||  s[1] != 'd'  ||  s[2] != '-'  ||  s[3] != 't'  ||  s[4] != '2'  ||  s[5] != '_'){
+            QMessageBox::information(this, "Invalid Format", "User ID must be in format id-t2_<alphanumerics>", QMessageBox::Cancel);
+            return;
+        }
+        compsky::mysql::exec("INSERT IGNORE INTO ", tblname, " (id) VALUES (", str2id(s + 6), ")");
+        return;
+    }
     
     if (!user_names.contains(qstr))
         return notfound::user(this, qstr);

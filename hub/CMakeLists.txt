@@ -31,6 +31,9 @@ endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(UTILS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../utils/src")
+
+include_directories("${UTILS_SRC_DIR}")
 
 add_executable(
     rscraper-hub
@@ -45,6 +48,7 @@ add_executable(
     "${SRC_DIR}/wlbl_reasonwise_label.cpp"
     
     # Utils
+    "${UTILS_SRC_DIR}/id2str.cpp"
     "${SRC_DIR}/name_dialog.cpp"
     
     # Messages
