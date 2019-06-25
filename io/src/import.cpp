@@ -66,11 +66,11 @@ int main(int argc,  const char** argv){
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
     
     FILE* f;
-    uint64_t count, id, subreddit_id, tag_id, user_id, category_id;
-    char name1[1024];
-    char name2[1024];
-    
-    char buf[1024];
+    char str_a[1024];
+    char str_b[1024];
+    char uint64_a[20]; // 19 digits + 1 null byte
+    char uint64_b[20];
+    char uint64_c[20];
     
     ++argv;
     --argc;
@@ -102,8 +102,8 @@ int main(int argc,  const char** argv){
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO user (id,name) VALUES ";
         compsky::asciify::asciify(pre);
-        while(fscanf(f, "%lu\t%s", &id, name1) != EOF){
-            compsky::asciify::asciify('(', id, ',', '"', _f::esc, '"', name1, '"', ')', ',');
+        while(fscanf(f, "%s\t%s", uint64_a, str_a) != EOF){
+            compsky::asciify::asciify('(', uint64_a, ',', '"', _f::esc, '"', str_a, '"', ')', ',');
             compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 1 + 1 + 2*128 + 1 + 1 + 1);
         }
         if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
@@ -116,8 +116,8 @@ int main(int argc,  const char** argv){
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO subreddit (id,name) VALUES ";
         compsky::asciify::asciify(pre);
-        while(fscanf(f, "%lu\t%s", &id, name1) != EOF){
-            compsky::asciify::asciify('(', id, ',', '"', _f::esc, '"', name1, '"', ')', ',');
+        while(fscanf(f, "%s\t%s", uint64_a, str_a) != EOF){
+            compsky::asciify::asciify('(', uint64_a, ',', '"', _f::esc, '"', str_a, '"', ')', ',');
             compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 1 + 1 + 2*128 + 1 + 1 + 1);
         }
         if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
@@ -131,9 +131,9 @@ int main(int argc,  const char** argv){
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO tag (name, r, g, b, a) VALUES ";
         compsky::asciify::asciify(pre);
-        while(fscanf(f, "%s\t%s", name1, name2) != EOF){
-            // `name2` itself is of the format %lf,%lf,%lf,%lf
-            compsky::asciify::asciify("(\"", _f::esc, '"', name1, "\",", name2, "),");
+        while(fscanf(f, "%s\t%s", str_a, str_b) != EOF){
+            // `str_b` itself is of the format %lf,%lf,%lf,%lf
+            compsky::asciify::asciify("(\"", _f::esc, '"', str_a, "\",", str_b, "),");
             compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 2 + 4*7 + 2);
         }
         if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
@@ -147,8 +147,8 @@ int main(int argc,  const char** argv){
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO category (name) VALUES ";
         compsky::asciify::asciify(pre);
-        while(fscanf(f, "%s\n", name1) != EOF){
-            compsky::asciify::asciify("(\"", _f::esc, '"', name1, "\"),");
+        while(fscanf(f, "%s\n", str_a) != EOF){
+            compsky::asciify::asciify("(\"", _f::esc, '"', str_a, "\"),");
             compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3);
         }
         if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
@@ -174,8 +174,8 @@ int main(int argc,  const char** argv){
             post_strlen = 0;
         }
         compsky::asciify::asciify(pre);
-        while(fscanf(f, "%lu\t%lu\t%lu", &user_id, &subreddit_id, &count) != EOF){
-            compsky::asciify::asciify("(", user_id, ',', subreddit_id, ',', count, "),");
+        while(fscanf(f, "%s\t%s\t%s", uint64_a, uint64_b, uint64_c) != EOF){
+            compsky::asciify::asciify("(", uint64_a, ',', uint64_b, ',', uint64_c, "),");
             compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3,  post, post_strlen);
         }
         if (compsky::asciify::BUF_INDX != strlen(pre))
@@ -208,16 +208,12 @@ int main(int argc,  const char** argv){
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO subreddit2meta (id,subscribers,created_at) VALUES ";
         compsky::asciify::asciify(pre);
-        char id_str[20];
-        char id_encoded[20];
-        char created_at_str[20];
-        char name[20];
-        char subscribers[20];
-        while(fscanf(f, "%[^,],%[^,],%[^,],%[^,],%[^,\n]\n", id_str, id_encoded, created_at_str, name, subscribers) != EOF){
-            if (subscribers[0] == 'N')
+        while(fscanf(f, "%[^,],%[^,],%[^,],%[^,],%[^,\n]\n", uint64_a, uint64_b, uint64_c, str_a, str_b) != EOF){
+            // Note that str_b stores 'subscribers' column, so only needs 20 char
+            if (str_b[0] == 'N')
                 // == None
                 continue;
-            compsky::asciify::asciify("(", id_str, ',', subscribers, ',', created_at_str, "),");
+            compsky::asciify::asciify("(", uint64_a, ',', str_b, ',', uint64_c, "),");
             compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 19 + 1 + 19 + 2);
         }
         if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
