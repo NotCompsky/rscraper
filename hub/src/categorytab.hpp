@@ -21,7 +21,7 @@ class ClTagsTab : public QWidget{
   public Q_SLOTS:
     void add_tag();
     void rm_self();
-    uint64_t create_tag(QString& qs,  const char* s);
+    uint64_t create_tag(QString& qs);
   private:
     QGridLayout* l;
     QTabWidget* tab_widget;

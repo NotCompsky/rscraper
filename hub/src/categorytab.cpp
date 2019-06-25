@@ -63,9 +63,9 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* p
     setLayout(this->l);
 }
 
-uint64_t ClTagsTab::create_tag(QString& qs,  const char* s){
+uint64_t ClTagsTab::create_tag(QString& qs){
     constexpr static const compsky::asciify::flag::Escape f;
-    compsky::mysql::exec("INSERT INTO tag (name, r,g,b,a) VALUES (\"",  f,  '"',  s,  "\",0,0,0,0)");
+    compsky::mysql::exec("INSERT INTO tag (name, r,g,b,a) VALUES (\"",  f,  '"',  qs,  "\",0,0,0,0)");
     compsky::mysql::query_buffer(&RES1,  "SELECT LAST_INSERT_ID() as ''");
     uint64_t id = 0;
     while(compsky::mysql::assign_next_row(RES1, &ROW1, &id));
@@ -84,10 +84,7 @@ void ClTagsTab::add_tag(){
     if (tagstr.isEmpty())
         return;
     
-    QByteArray ba = tagstr.toLocal8Bit();
-    char* tag_str = ba.data();
-    
-    const uint64_t tag_id  =  (tagslist.contains(tagstr))  ?  tag_name2id[tagstr]  :  this->create_tag(tagstr, tag_str);
+    const uint64_t tag_id  =  (tagslist.contains(tagstr))  ?  tag_name2id[tagstr]  :  this->create_tag(tagstr);
     
     compsky::mysql::exec("INSERT INTO tag2category (category_id, tag_id) VALUES (",  this->cat_id,  ',',  tag_id,  ')');
     ++this->row;
