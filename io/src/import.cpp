@@ -18,7 +18,7 @@ MYSQL_ROW ROW;
 
 constexpr size_t strlen_constexpr(const char* s){
     // GCC strlen is constexpr; this is apparently a bug
-    return *s  ?  1 + strlen_constexpr(s + 1)  :  0;
+    return  *s  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
 
 
@@ -52,7 +52,7 @@ namespace _f {
     constexpr static const compsky::asciify::flag::Escape esc;
 }
 
-bool contains(const char** ls,  const int n,    const char* s){
+bool contains(const char** ls,  const int n,  const char* s){
     const size_t slen = strlen_constexpr(s);
     for (auto i = 0;  i < n;  ++i)
         if (strncmp(ls[i], s, slen) == 0)
