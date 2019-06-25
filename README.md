@@ -24,7 +24,13 @@ See [docs](docs)
 
 ## Ubuntu and other Debian-based systems
 
+Tested on Ubuntu 18.04 and 19.04.
+
 Install [libcompsky](https://github.com/NotCompsky/libcompsky)
+
+If you want to install `rscraper-gui`, install `libqt5widgets5`.
+
+If you wish to use your own local mysql instance, as is default, install `mysql-server` (or any other compatible server). In this case, you will want to populate your own database, so you will need either [rscraper-import](docs/rscraper-import.1.md) from `rscraper-utils` to import datasets, or [rscrape-cmnts](docs/rscrape-cmnts.1.md) from `rscraper-scraper` to scrape Reddit yourself.
 
 Now navigate to [the releases page](https://github.com/NotCompsky/rscraper/releases), download the `deb` file for each component (`man`, `utils`, `tagger`, etc) for your platform, and run:
 
