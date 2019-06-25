@@ -37,7 +37,16 @@ endif()
 set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
 SET(CPACK_RPM_COMPONENT_INSTALL     ON)
 SET(CPACK_DEB_COMPONENT_INSTALL     ON)
-set(CPACK_COMPONENTS_ALL utils man scraper tagger gui)
+set(CPACK_DEBIAN_ENABLE_COMPONENT_DEPENDS ON)
+
+
+if("${BUILD_PACKAGES}" STREQUAL "1")
+    set(CPACK_COMPONENTS_ALL utils man scraper tagger gui)
+    message(STATUS "Note: You can specify the packages to build with -DBUILD_PACKAGES=<package_name>")
+else()
+    set(CPACK_COMPONENTS_ALL ${BUILD_PACKAGES})
+endif()
+
 
 set(CPACK_COMPONENT_UTILS_DESCRIPTION
     "Utilities for interacting with the RScraper MySQL database")
@@ -53,11 +62,12 @@ set(CPACK_COMPONENT_GUI_DESCRIPTION
 if(NOT WHICH_CURL)
     message(FATAL_ERROR "Please specify the curl package to use with -DWHICH_CURL=...\nDiscover this with the command:  apt list --installed | grep libcurl")
 endif()
-set(CPACK_DEBIAN_UTILS_DEPENDS "libcompsky")
-set(CPACK_DEBIAN_MAN_DEPENDS "")
-set(CPACK_DEBIAN_SCRAPER_DEPENDS "libcompsky, ${WHICH_CURL}")
-set(CPACK_DEBIAN_TAGGER_DEPENDS "libcompsky")
-set(CPACK_DEBIAN_GUI_DEPENDS "libcompsky, libqt5charts5")
+
+set(CPACK_DEBIAN_UTILS_PACKAGE_DEPENDS "libcompsky")
+set(CPACK_DEBIAN_MAN_PACKAGE_DEPENDS "")
+set(CPACK_DEBIAN_SCRAPER_PACKAGE_DEPENDS "libcompsky, ${WHICH_CURL}")
+set(CPACK_DEBIAN_TAGGER_PACKAGE_DEPENDS "libcompsky")
+set(CPACK_DEBIAN_GUI_PACKAGE_DEPENDS "libcompsky, libqt5charts5")
 
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("#include <filesystem>" FS_NOT_EXPERIMENTAL)
