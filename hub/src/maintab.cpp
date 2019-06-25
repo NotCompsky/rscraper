@@ -353,6 +353,7 @@ void MainTab::add_user_to(const char* tblname,  const bool delete_from){
         (delete_from) ? "DELETE a FROM " : "INSERT IGNORE INTO ",
         tblname,
         (delete_from) ? "a, user b WHERE a.id=b.id AND b.name=\"" : " SELECT id FROM user WHERE name=\"",
+            // NOTE: No need to escape '"' in qstr - qstr must be a valid username, and valid usernames do not contain '"'
             qstr,
         "\""
     );
