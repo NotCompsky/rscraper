@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+'''
+A utility (that will likely not be maintained) for creating the 'comment body regexp', as an alternative to the regex editor in rscraper-hub (which will be maintained).
+
+It has been left here as it may be more useful to customise for verifying your regex - for instance, checking matches are what you expect.
+'''
+
 s = (
 "(?:^|[^a-zA-Z0-9_])(?:"
     "(?P<RScraper>"
