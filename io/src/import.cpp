@@ -8,10 +8,8 @@
 
 #include <stdio.h> // for fwrite
 #include <stdlib.h> // for malloc
-#include <iostream> // for std::cout
 
 #include <compsky/mysql/query.hpp>
-#include <compsky/asciify/print.hpp>
 
 
 MYSQL_RES* RES;
