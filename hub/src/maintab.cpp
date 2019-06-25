@@ -170,7 +170,7 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
 void MainTab::open_cmnt_body_re_editor(){
     QString qfp = getenv("RSCRAPER_REGEX_FILE");
     if (qfp == nullptr){
-        QMessageBox::information(this, "Invalid Action", "RSCRAPER_REGEX_FILE must be set in order to use this regex", QMessageBox::Cancel);
+        QMessageBox::information(this, "Invalid Action", "Environmental variable RSCRAPER_REGEX_FILE must be set to the file to save this regex to", QMessageBox::Cancel);
         return;
     }
     
