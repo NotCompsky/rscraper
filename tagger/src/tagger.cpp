@@ -143,7 +143,7 @@ void csv2cls(const char* csv){
     
     compsky::asciify::BUF_INDX = 0;
     
-    compsky::asciify::asciify(
+    constexpr static const char* stmt_pre = 
         "SELECT A.user_id, SUM(A.c), SUM(A.r), SUM(A.g), SUM(A.b), SUM(A.a), GROUP_CONCAT(A.string) "
         "FROM tag2category t2c "
         "JOIN ( "
@@ -159,8 +159,10 @@ void csv2cls(const char* csv){
                         "SELECT id, name "
                         "FROM subreddit "
                     ") S ON S.id = u2scc.subreddit_id "
-                    "WHERE u2scc.user_id IN ("
-    );
+                    "WHERE u2scc.user_id IN (";
+    
+    memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_pre,  strlen_constexpr(stmt_pre));
+    compsky::asciify::BUF_INDX += strlen_constexpr(stmt_pre);
     
     {
     size_t i = 6; // Skip first prefix
@@ -189,6 +191,13 @@ void csv2cls(const char* csv){
     }
     }
     goto_break:
+    
+    if (compsky::asciify::BUF_INDX == strlen_constexpr(stmt_pre)){
+        // No valid IDs were found
+        DST = "{}";
+        return;
+    }
+    
     --compsky::asciify::BUF_INDX; // Remove trailing comma
     
     {
@@ -202,7 +211,7 @@ void csv2cls(const char* csv){
     compsky::asciify::BUF_INDX += strlen_constexpr(stmt_post);
     }
     
-    printf("QRY: %s\n",  compsky::asciify::BUF,  compsky::asciify::BUF_INDX); // TMP
+    printf("QRY: %.*s\n",  compsky::asciify::BUF_INDX,  compsky::asciify::BUF); // TMP
     
     compsky::mysql::query_buffer(&RES, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
     
