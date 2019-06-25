@@ -62,7 +62,7 @@ install(
     EXPORT RScraperTargets
     PUBLIC_HEADER DESTINATION
         "${INSTALL_INCLUDE_DIR}/rscraper"
-    LIBRARY DESTINATION shlib
+    LIBRARY DESTINATION lib
         COMPONENT tagger
 )
 
