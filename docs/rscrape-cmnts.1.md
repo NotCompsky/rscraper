@@ -34,4 +34,4 @@ See [the example Python regex generator](../utils/comment_body_regexp.py).
 
 # SEE ALSO
 
-*rscrape-mods(1)*, *rscraper(1)*
+*rscraper(1)*

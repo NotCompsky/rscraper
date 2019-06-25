@@ -25,7 +25,6 @@ Prior to using the programs, the relevant environmental variables must be set.
 
 *rscrape-cmnts(1)*,
 *rscraper-hub(1)*
-*rscrape-mods(1)*,
 *rscraped-reason(1)*,
 *rscraped-tagged-subs(1)*,
 *rscraper-export(1)*,

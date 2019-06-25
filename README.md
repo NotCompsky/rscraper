@@ -32,6 +32,8 @@ If you want to install `rscraper-gui`, install `libqt5widgets5`.
 
 If you wish to use your own local mysql instance, as is default, install `mysql-server` (or any other compatible server). In this case, you will want to populate your own database, so you will need either [rscraper-import](docs/rscraper-import.1.md) from `rscraper-utils` to import datasets, or [rscrape-cmnts](docs/rscrape-cmnts.1.md) from `rscraper-scraper` to scrape Reddit yourself.
 
+Note: `rscraper-tagger` is for the server library and executables only. You do not need it if you only wish to use the `rtagger` addon (though you will then need to point it to some server elsewhere).
+
 Now navigate to [the releases page](https://github.com/NotCompsky/rscraper/releases), download the `deb` file for each component (`man`, `utils`, `tagger`, etc) for your platform, and run:
 
     sudo dpkg -i /path/to/RScraper-VERSION-ARCHITECTURE-COMPONENT.deb
@@ -51,7 +53,7 @@ Then run `sudo rscraper-init`. The answers for a default Ubuntu 18.04 setup are,
     root
     <LEAVE BLANK>
 
-Then, if you wish to use the scrapers - `rscrape-cmnts` or `rscrape-mods` - carry out the prerequisites [here](docs/rscraper-init-scraper.1.md) and then run `rscraper-init-scraper`.
+Then, if you wish to use the scrapers - `rscrape-cmnts` - carry out the prerequisites [here](docs/rscraper-init-scraper.1.md) and then run `rscraper-init-scraper`.
 
 #### Windows 10
 
@@ -75,7 +77,7 @@ Then run `sudo rscraper-init`. The default answers are, in order:
     root
     <ROOT PASSWORD>
 
-Then, if you wish to use the scrapers - `rscrape-cmnts` or `rscrape-mods` - carry out the prerequisites [here](docs/rscraper-init-scraper.1.md) and then run `rscraper-init-scraper`.
+Then, if you wish to use the scrapers - `rscrape-cmnts` - carry out the prerequisites [here](docs/rscraper-init-scraper.1.md) and then run `rscraper-init-scraper`.
 
 ### GUI
 
@@ -174,22 +176,15 @@ Navigate to `rscraper` root directory and run:
     make
     sudo make install
 
-#### rscrape-cmnts and rscrape-mods
+#### rscrape-cmnts
 
-I had a lot of fun trying to get `rscrape-cmnts` and `rscrape-mods` to build on MXE. If you get the `undefined reference to nettle_cnd_memcpy` error, run the following commands:
+I had a lot of fun trying to get `rscrape-cmnts` to build on MXE. If you get the `undefined reference to nettle_cnd_memcpy` error, run the following commands:
 
     cd scraper
     x86_64-w64-mingw32.static-g++ -O3 -DNDEBUG   -Wl,--whole-archive CMakeFiles/rscrape-cmnts.dir/objects.a -Wl,--no-whole-archive  -o rscrape-cmnts.exe -Wl,--out-implib,librscrape-cmnts.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles/rscrape-cmnts.dir/linklibs.rsp -Wl,-Bstatic -lcurl -Wl,-Bdynamic -Wl,-Bsymbolic-functions -Wl,--as-needed -lssh2 -lgnutls -lidn2 -lnettle -lhogweed -lgcrypt -lgpg-error -lunistring -liconv -lssl -lcrypto -lz -lws2_32 -lcrypt32 -lwldap32 -lgmp -lpthread
     
     cd ..
     
-    make
-    
-Wait for the (same) linking errors when building rscrape-mods
-    
-    cd scraper
-    x86_64-w64-mingw32.static-g++ -O3 -DNDEBUG   -Wl,--whole-archive CMakeFiles/rscrape-mods.dir/objects.a -Wl,--no-whole-archive  -o rscrape-mods.exe -Wl,--out-implib,librscrape-mods.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles/rscrape-mods.dir/linklibs.rsp -Wl,-Bstatic -lcurl -Wl,-Bdynamic -Wl,-Bsymbolic-functions -Wl,--as-needed -lssh2 -lgnutls -lidn2 -lnettle -lhogweed -lgcrypt -lgpg-error -lunistring -liconv -lssl -lcrypto -lz -lws2_32 -lcrypt32 -lwldap32 -lgmp -lpthread
-    cd ..
     make
 
 ## Possible Issues

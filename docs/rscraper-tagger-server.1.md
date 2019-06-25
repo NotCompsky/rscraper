@@ -23,4 +23,4 @@ rscraper-tagger-server.py [*OPTIONS*]
 
 # SEE ALSO
 
-*rscrape-mods(1)*, *rscraper(1)*
+*rscraper(1)*

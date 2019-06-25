@@ -8,7 +8,7 @@ rscraper-export - Export from the rscraper database in a format that can be impo
 
 # SYNOPSIS
 
-rscrape-mods [*OPTIONS*] [*TABLES*]
+rscraper-export [*OPTIONS*] [*TABLES*]
 
 # OPTIONS
 
