@@ -34,6 +34,35 @@ else()
     link_directories("${COMPSKY_LIB_DIRS}")
 endif()
 
+set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+SET(CPACK_RPM_COMPONENT_INSTALL     ON)
+SET(CPACK_DEB_COMPONENT_INSTALL     ON)
+set(CPACK_COMPONENTS_ALL utils man scraper tagger gui)
+
+set(CPACK_COMPONENT_UTILS_DESCRIPTION
+    "Utilities for interacting with the RScraper MySQL database")
+set(CPACK_COMPONENT_MAN_DESCRIPTION
+    "Man pages for all binaries")
+set(CPACK_COMPONENT_SCRAPER_DESCRIPTION
+    "Tools for scraping Reddit")
+set(CPACK_COMPONENT_TAGGER_DESCRIPTION
+    "Server for RTagger")
+set(CPACK_COMPONENT_GUI_DESCRIPTION
+    "Qt5-based GUI for managing the scraper and tagger")
+
+if(NOT WHICH_CURL)
+    message(FATAL_ERROR "Please specify the curl package to use with -DWHICH_CURL=...\nDiscover this with the command:  apt list --installed | grep libcurl")
+endif()
+if(NOT WHICH_MYSQL)
+    message(FATAL_ERROR "Please specify the mysql client package to use with -DWHICH_MYSQL=...\nDiscover this with the command:  apt list --installed | grep libmysql")
+endif()
+set(CPACK_DEBIAN_UTILS_DEPENDS "libcompsky, ${WHICH_MYSQL}")
+set(CPACK_DEBIAN_MAN_DEPENDS "")
+set(CPACK_DEBIAN_SCRAPER_DEPENDS "libcompsky, ${WHICH_MYSQL}, ${WHICH_CURL}")
+set(CPACK_DEBIAN_TAGGER_DEPENDS "libcompsky, ${WHICH_MYSQL}")
+set(CPACK_DEBIAN_GUI_DEPENDS "libcompsky, ${WHICH_MYSQL}, libqt5charts5")
+
+
 # BEGIN src: https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/How-to-create-a-ProjectConfig.cmake-file
 
 if(WIN32 AND NOT CYGWIN)
@@ -65,9 +94,6 @@ add_subdirectory(docs)
 if(BUILD_PACKAGES)
     add_subdirectory(packaging)
 endif()
-
-# Add all targets to the build-tree export set
-export(TARGETS rscraper-tagger FILE "${PROJECT_BINARY_DIR}/RScraperTargets.cmake")
 
 # Registers the build-tree with a global CMake-registry
 export(PACKAGE RScraper)

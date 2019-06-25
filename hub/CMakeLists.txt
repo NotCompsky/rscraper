@@ -70,7 +70,7 @@ target_link_libraries(rscraper-hub mysqlclient Qt5::Widgets Qt5::Charts compsky_
 install(
     TARGETS rscraper-hub
     RUNTIME DESTINATION bin
-        COMPONENT bin
+        COMPONENT gui
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")

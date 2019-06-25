@@ -29,5 +29,5 @@ endif()
 install(
     TARGETS rscraped-reason rscraped-tagged-subs
     RUNTIME DESTINATION bin
-        COMPONENT bin
+        COMPONENT utils
 )

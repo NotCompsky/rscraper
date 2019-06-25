@@ -26,5 +26,5 @@ add_executable(rscraper-str2id "${SRC_DIR}/id2str.c")
 install(
     TARGETS rscraper-init rscraper-id2str rscraper-str2id
     RUNTIME DESTINATION bin
-        COMPONENT bin
+        COMPONENT utils
 )

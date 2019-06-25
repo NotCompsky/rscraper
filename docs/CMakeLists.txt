@@ -27,4 +27,5 @@ add_custom_target(man ALL DEPENDS ${MAN_FILES})
 INSTALL(
     FILES ${MAN_FILES}
     DESTINATION "${CMAKE_INSTALL_PREFIX}/man/man1"
+    COMPONENT man
 )

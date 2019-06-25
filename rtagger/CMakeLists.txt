@@ -4,8 +4,6 @@ if( EXISTS "${CMAKE_BINARY_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "Refusing to run in-source build.")
 endif()
 
-include("${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/cmake/GolangSimple.cmake")
-
 FIND_PACKAGE(Compsky COMPONENTS asciify mysql REQUIRED)
 
 
@@ -28,13 +26,30 @@ add_library(rscraper-tagger SHARED "${SRC_DIR}/rtagger.cpp")
 target_link_libraries(rscraper-tagger mysqlclient compsky_asciify compsky_mysql)
 set_property(TARGET rscraper-tagger PROPERTY CXX_STANDARD 17)
 
-ADD_GO_INSTALLABLE_PROGRAM(rscraper-tagger-server "${SRC_DIR}/server.go")
+set_property(TARGET rscraper-tagger PROPERTY IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/rtagger/librscraper-tagger.so") # For librscraper-tagger.so for compiling Go
 
-foreach(tgt "rscraper-tagger")
-    foreach(dfn ${MY_DEFINITIONS})
-        target_compile_definitions("${tgt}" PRIVATE "${dfn}")
-    endforeach(dfn)
-endforeach(tgt)
+
+
+
+add_custom_target(rscraper-tagger-server ALL)
+add_custom_command(
+    TARGET rscraper-tagger-server
+    COMMAND
+        go build
+        -o "${CMAKE_CURRENT_BINARY_DIR}/rscraper-tagger-server"
+        "${SRC_DIR}/server.go"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+)
+install(
+    PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/rscraper-tagger-server"
+    DESTINATION bin
+        COMPONENT tagger
+)
+
+
+
+
+target_compile_definitions(rscraper-tagger PRIVATE ${MY_DEFINITIONS})
 
 set_target_properties(rscraper-tagger PROPERTIES PUBLIC_HEADER "${INC_DIR}/rtagger.hpp")
 
@@ -45,12 +60,8 @@ install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/rscraper-tagger-server.py" DESTINA
 install(
     TARGETS rscraper-tagger
     EXPORT RScraperTargets
-    RUNTIME DESTINATION bin
-        COMPONENT bin
     LIBRARY DESTINATION shlib
-        COMPONENT shlib
-    PUBLIC_HEADER DESTINATION include/rscraper
-        COMPONENT dev
+        COMPONENT tagger
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
