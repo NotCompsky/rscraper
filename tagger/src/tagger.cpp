@@ -36,6 +36,12 @@ namespace compsky {
 constexpr static const char* id_t2_ = "id-t2_";
 
 
+constexpr size_t strlen_constexpr(const char* s){
+    // GCC strlen is constexpr; this is apparently a bug
+    return (*s)  ?  1 + strlen_constexpr(s + 1)  :  0;
+}
+
+
 size_t id2str(uint64_t id_orig,  char* buf){
     size_t n_digits = 0;
     uint64_t id = id_orig;
@@ -73,7 +79,7 @@ size_t estimated_n_bytes(const char* csv){
     size_t i = 0;
     while (true){
         if (csv[i] == ','){
-            n += 2 + strlen("[\"SUBREDDITNAME\",\"rgba(255,255,255,1.0)\"],")*2; // 2 for "": minus ,  2 spaces for ["SUBREDDITNAME","rgba(255,255,255,1.0)"],
+            n += 2 + strlen_constexpr("[\"SUBREDDITNAME\",\"rgba(255,255,255,1.0)\"],")*2; // 2 for "": minus ,  2 spaces for ["SUBREDDITNAME","rgba(255,255,255,1.0)"],
         } else if (csv[i] == 0)
             return 1 + (n+5+11) + 1 + 1; // { ... }\0
         ++i;
@@ -81,7 +87,7 @@ size_t estimated_n_bytes(const char* csv){
     }
 }
 
-//static_assert(n_required_bytes("id-t2_foo,id-t2_bar") == strlen("{\"foo\":\"#123456\",\"bar\":\"#123456\"}") + 1);
+//static_assert(n_required_bytes("id-t2_foo,id-t2_bar") == strlen_constexpr("{\"foo\":\"#123456\",\"bar\":\"#123456\"}") + 1);
 
 extern "C"
 void init(){
@@ -192,8 +198,8 @@ void csv2cls(const char* csv){
             ") S2T ON S2T.tag_id = t.id "
         ") A ON t2c.tag_id = A.tag_id "
         "GROUP BY A.user_id, t2c.category_id";
-    memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_post,  strlen(stmt_post));
-    compsky::asciify::BUF_INDX += strlen(stmt_post);
+    memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_post,  strlen_constexpr(stmt_post));
+    compsky::asciify::BUF_INDX += strlen_constexpr(stmt_post);
     }
     
     printf("QRY: %s\n",  compsky::asciify::BUF,  compsky::asciify::BUF_INDX); // TMP
