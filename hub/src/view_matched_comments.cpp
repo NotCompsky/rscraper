@@ -20,16 +20,16 @@ extern QStringList tagslist;
 extern QCompleter* reason_name_completer;
 
 
-constexpr const char* subreddit_a1 = 
+constexpr const char* tag_a1 = 
     "SELECT S.name, S.id, c.id, c.created_at, c.content, u.name, '' as reason " // Dummy column '' to substitute for 'reason' column
-    "FROM comment c, user u "
+    "FROM user u, comment c "
     "JOIN ("
         "SELECT R.name, s.id "
         "FROM submission s "
         "JOIN ( "
             "SELECT r.id, r.name "
             "FROM subreddit r ";
-constexpr const char* subreddit_b1 = 
+constexpr const char* tag_b1 = 
             "JOIN ( "
                 "SELECT s2t.subreddit_id "
                 "FROM subreddit2tag s2t "
@@ -38,10 +38,10 @@ constexpr const char* subreddit_b1 =
                     "FROM tag t "
                     "WHERE t.name=\"";
 
-constexpr const char* subreddit_b2 = 
+constexpr const char* tag_b2 = 
                 "\") T on T.id = s2t.tag_id "
             ") S2T on S2T.subreddit_id = r.id ";
-constexpr const char* subreddit_a2 = 
+constexpr const char* tag_a2 = 
         ") R on R.id = s.subreddit_id "
     ") S on S.id = c.submission_id "
     "WHERE u.id=c.author_id";
@@ -119,14 +119,14 @@ void ViewMatchedComments::init(){
     
     if (!tag.isEmpty())
         if (!reason.isEmpty())
-            compsky::asciify::asciify(subreddit_a1, subreddit_b1, tag, subreddit_b2, subreddit_a2);
+            // TODO: Make different
+            compsky::asciify::asciify(tag_a1, tag_b1, tag, tag_b2, tag_a2);
         else
-            compsky::asciify::asciify(subreddit_a1, tag, subreddit_a2);
-    if (!reason.isEmpty())
+            compsky::asciify::asciify(tag_a1, tag_b1, tag, tag_b2, tag_a2);
+    else if (!reason.isEmpty())
         compsky::asciify::asciify(reason_a1, reason_b1, reason, reason_b2, reason_a2);
     else
-        // TODO: Clean up current contents
-        return;
+        compsky::asciify::asciify(reason_a1, reason_a2);
     
     compsky::mysql::query_buffer(&this->res1, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
     
