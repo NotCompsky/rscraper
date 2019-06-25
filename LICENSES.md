@@ -17,6 +17,6 @@ None.
 * libmysqlclient (GPLv2)
 * Qt5Widgets (LGPLv3)
 
-## rscrape-cmnts and rscrape-mods
+## rscrape-cmnts
 
-Not distributed as of yet.
+Not distributed in a static library as of yet.
