@@ -35,6 +35,7 @@ void CatDoughnut::init(){
     compsky::mysql::query_buffer(&RES1,  "SELECT c.id, c.name, t.name, COUNT(u2scc.count), FLOOR(255*r) as r, FLOOR(255*g) as g, FLOOR(255*b) as b, FLOOR(255*a) as a FROM category c, tag2category t2c, tag t, subreddit2tag s2t, user2subreddit_cmnt_count u2scc WHERE t2c.category_id=c.id AND t.id=t2c.tag_id AND t.id=s2t.tag_id AND s2t.subreddit_id=u2scc.subreddit_id GROUP BY c.id, c.name, t.name, r, g, b, a ORDER BY c.id");
     uint64_t last_cat_id = 0;
     uint64_t cat_id, tag_count;
+    // NOTE: A count of total (tagged) comments cannot be accurately done by summing tag_count, as comments in some subreddits may be counted multiple times.
     char* cat_name;
     char* tag_name;
     uint8_t r, g, b, a;
