@@ -13,10 +13,12 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 
+#include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
 
 #include "categorytab.hpp"
 #include "maintab.hpp"
+#include "name_dialog.hpp"
 
 #define DIGITS_IN_UINT64 19
 
@@ -40,13 +42,16 @@ QCompleter* tagcompleter;
 QStringList subreddit_names;
 QCompleter* subreddit_name_completer;
 
+constexpr static const compsky::asciify::flag::Escape f_esc;
+
 
 MainWindow::MainWindow(QWidget* parent){
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
     
-    QTabWidget* tabWidget = new QTabWidget;
+    this->tab_widget = new QTabWidget(this);
+    connect(this->tab_widget, &QTabWidget::tabBarDoubleClicked, this, &MainWindow::rename_category);
     
-    tabWidget->addTab(new MainTab(tabWidget), "__MAIN__");
+    this->tab_widget->addTab(new MainTab(this->tab_widget), "__MAIN__");
     
     tag_name2id.clear();
     compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM tag");
@@ -65,7 +70,7 @@ MainWindow::MainWindow(QWidget* parent){
     uint64_t id;
     char* name;
     while (compsky::mysql::assign_next_row(RES1, &ROW1, &id, &name)){
-        tabWidget->addTab(new ClTagsTab(id, tabWidget), tr(name));
+        this->tab_widget->addTab(new ClTagsTab(id, this->tab_widget), tr(name));
     }
     }
     
@@ -84,7 +89,7 @@ MainWindow::MainWindow(QWidget* parent){
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
     
     QVBoxLayout* mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(tabWidget);
+    mainLayout->addWidget(this->tab_widget);
     mainLayout->addWidget(buttonBox);
     setLayout(mainLayout);
     
@@ -93,4 +98,24 @@ MainWindow::MainWindow(QWidget* parent){
 
 MainWindow::~MainWindow(){
     compsky::mysql::exit_mysql();
+}
+
+void MainWindow::rename_category(int indx){
+    if (indx == 0)
+        // Only category tabs can be renamed
+        return;
+    
+    NameDialog* dialog = new NameDialog("Rename Category", this->tab_widget->tabText(indx));
+    dialog->name_edit->setCompleter(tagcompleter);
+    if (dialog->exec() != QDialog::Accepted)
+        return;
+    QString qstr = dialog->name_edit->text();
+    if (qstr.isEmpty())
+        return;
+    
+    this->tab_widget->setTabText(indx, qstr);
+    
+    const uint64_t cat_id = static_cast<ClTagsTab*>(this->tab_widget->widget(indx))->cat_id;
+    
+    compsky::mysql::exec("UPDATE category SET name=\"", f_esc, '"', qstr, "\" WHERE id=", cat_id);
 }

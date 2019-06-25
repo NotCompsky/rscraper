@@ -30,5 +30,9 @@ class MainWindow : public QDialog{
   public:
     ~MainWindow();
     explicit MainWindow(QWidget* parent = 0);
+  private Q_SLOTS:
+    void rename_category(int indx);
+  private:
+    QTabWidget* tab_widget;
 };
 #endif
