@@ -8,6 +8,7 @@
 #include "rm_sub2tag_btn.hpp"
 
 #include "name_dialog.hpp"
+#include "notfound.hpp"
 
 #include <compsky/mysql/query.hpp>
 
@@ -15,6 +16,7 @@
 extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
+extern QStringList subreddit_names;
 extern QCompleter* subreddit_name_completer;
 
 
@@ -30,6 +32,9 @@ void RmSub2TagBtn::rm_subreddit(){
         const QString qstr = namedialog->name_edit->text();
         if (qstr.isEmpty())
             return;
+        
+        if (!subreddit_names.contains(qstr))
+            return notfound::subreddit(this, qstr);
         
         const QByteArray ba = qstr.toLocal8Bit();
         const char* subreddit_name = ba.data();

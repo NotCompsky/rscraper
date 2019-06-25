@@ -47,6 +47,9 @@ add_executable(
     # Utils
     "${SRC_DIR}/name_dialog.cpp"
     
+    # Messages
+    "${SRC_DIR}/notfound.cpp"
+    
     # 3rd party
     "${SRC_DIR}/3rdparty/donutbreakdownchart.cpp"
     "${SRC_DIR}/3rdparty/mainslice.cpp"

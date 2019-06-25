@@ -18,6 +18,7 @@
 
 #include "categorytab.hpp"
 #include "name_dialog.hpp"
+#include "notfound.hpp"
 #include "regex_editor.hpp"
 #include "wlbl_label.hpp"
 #include "wlbl_reasonwise_label.hpp"
@@ -28,6 +29,7 @@
 extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
+extern QStringList subreddit_names;
 extern QCompleter* subreddit_name_completer;
 QStringList user_names;
 QCompleter* user_name_completer = nullptr;
@@ -211,6 +213,9 @@ void MainTab::add_subreddit_to(const char* tblname){
     if (qstr.isEmpty())
         return;
     
+    if (!subreddit_names.contains(qstr))
+        return notfound::subreddit(this, qstr);
+    
     compsky::mysql::exec("INSERT IGNORE INTO ", tblname, " SELECT id FROM subreddit WHERE name=\"", qstr, "\"");
 }
 
@@ -226,6 +231,9 @@ void MainTab::rm_subreddit_from(const char* tblname){
         return;
     if (qstr.isEmpty())
         return;
+    
+    if (!subreddit_names.contains(qstr))
+        return notfound::subreddit(this, qstr);
     
     compsky::mysql::exec("DELETE a FROM ", tblname, " a, subreddit b WHERE a.id=b.id AND b.name=\"", qstr, "\"");
 }
@@ -247,6 +255,9 @@ void MainTab::add_subreddit_to_reason(const char* tblname){
     if (qstr_reason.isEmpty())
         return;
     
+    if (!reason_names.contains(qstr_reason))
+        return notfound::reason(this, qstr_reason);
+    
     dialog = new NameDialog("Subreddit", "");
     dialog->name_edit->setCompleter(subreddit_name_completer);
     rc = dialog->exec();
@@ -256,6 +267,9 @@ void MainTab::add_subreddit_to_reason(const char* tblname){
         return;
     if (qstr_subreddit.isEmpty())
         return;
+    
+    if (!subreddit_names.contains(qstr_subreddit))
+        return notfound::subreddit(this, qstr_subreddit);
     
     compsky::mysql::exec("INSERT IGNORE INTO ", tblname, " SELECT a.id,b.id FROM reason_matched a, subreddit b WHERE a.name=\"", qstr_reason, "\" AND b.name=\"", qstr_subreddit, "\"");
 }
@@ -277,6 +291,9 @@ void MainTab::rm_subreddit_from_reason(const char* tblname){
     if (qstr_reason.isEmpty())
         return;
     
+    if (!reason_names.contains(qstr_reason))
+        return notfound::reason(this, qstr_reason);
+    
     dialog = new NameDialog("Subreddit", "");
     dialog->name_edit->setCompleter(subreddit_name_completer);
     rc = dialog->exec();
@@ -286,6 +303,9 @@ void MainTab::rm_subreddit_from_reason(const char* tblname){
         return;
     if (qstr_subreddit.isEmpty())
         return;
+    
+    if (!subreddit_names.contains(qstr_subreddit))
+        return notfound::subreddit(this, qstr_subreddit);
     
     compsky::mysql::exec("DELETE x FROM ", tblname, "x, reason_matched a, subreddit b WHERE x.reason=a.id AND x.subreddit=b.id AND a.name=\"", qstr_reason, "\" AND b.name=\"", qstr_subreddit, "\"");
 }
@@ -307,6 +327,9 @@ void MainTab::add_user_to(const char* tblname){
     if (qstr.isEmpty())
         return;
     
+    if (!user_names.contains(qstr))
+        return notfound::user(this, qstr);
+    
     compsky::mysql::exec("INSERT IGNORE INTO ", tblname, " SELECT id FROM user WHERE name=\"", qstr, "\"");
 }
 
@@ -326,6 +349,9 @@ void MainTab::rm_user_from(const char* tblname){
         return;
     if (qstr.isEmpty())
         return;
+    
+    if (!user_names.contains(qstr))
+        return notfound::user(this, qstr);
     
     compsky::mysql::exec("DELETE a FROM ", tblname, " a, user b WHERE a.id=b.id AND b.name=\"", qstr, "\"");
 }
