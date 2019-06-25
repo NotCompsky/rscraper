@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS reason_subreddit_whitelist (
 );
 
 
-INSERT IGNORE INTO reason_matched VALUES (name) ("None");
-INSERT IGNORE INTO reason_matched VALUES (name) ("Unknown");
+INSERT IGNORE INTO reason_matched (id, name) VALUES (0, "None");
+INSERT IGNORE INTO reason_matched (id, name) VALUES (1, "Unknown");
 
 )====="
