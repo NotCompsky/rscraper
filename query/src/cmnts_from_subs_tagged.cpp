@@ -36,7 +36,7 @@ namespace compsky {
 #ifdef SUB2TAG
 constexpr const char* a = 
     "SELECT S.name, S.id, c.id, c.created_at, c.content, u.name, '' as reason " // Dummy column '' to substitute for 'reason' column
-    "FROM comment c, user u "
+    "FROM user u, comment c "
     "JOIN ("
         "SELECT R.name, s.id "
         "FROM submission s "
