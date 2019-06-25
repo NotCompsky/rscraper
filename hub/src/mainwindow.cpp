@@ -19,6 +19,7 @@
 #include "categorytab.hpp"
 #include "maintab.hpp"
 #include "name_dialog.hpp"
+#include "view_matched_comments.hpp"
 
 #define DIGITS_IN_UINT64 19
 
@@ -52,6 +53,8 @@ MainWindow::MainWindow(QWidget* parent){
     connect(this->tab_widget, &QTabWidget::tabBarDoubleClicked, this, &MainWindow::rename_category);
     
     this->tab_widget->addTab(new MainTab(this->tab_widget), "__MAIN__");
+    
+    this->tab_widget->addTab(new ViewMatchedComments(this->tab_widget), "__CMNTS__");
     
     tag_name2id.clear();
     compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM tag");

@@ -36,7 +36,7 @@ extern QCompleter* subreddit_name_completer;
 QStringList user_names;
 QCompleter* user_name_completer = nullptr;
 QStringList reason_names;
-QCompleter* reason_name_completer = nullptr;
+QCompleter* reason_name_completer;
 
 
 namespace _f {
@@ -82,6 +82,9 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     QGridLayout* l = new QGridLayout;
     
     int row = 0;
+    
+    
+    populate_reason_name_completer();
     
     
     l->addWidget(new QLabel("Changes are only enacted the next time rscrape-cmnts starts"), row++, 0);
@@ -233,8 +236,6 @@ void MainTab::add_subreddit_to_reason(const char* tblname,  const bool delete_fr
     int rc;
     
     dialog = new NameDialog("Reason", "");
-    if (user_name_completer == nullptr)
-        populate_reason_name_completer();
     dialog->name_edit->setCompleter(reason_name_completer);
     rc = dialog->exec();
     const QString qstr_reason = dialog->name_edit->text();

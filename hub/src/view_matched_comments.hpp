@@ -1,0 +1,42 @@
+/*
+ * rscraper Copyright (C) 2019 Adam Gray
+ * This program is licensed with GPLv3.0 and comes with absolutely no warranty.
+ * This code may be copied, modified, distributed etc. with accordance to the GPLv3.0 license (a copy of which is in the root project directory) under the following conditions:
+ *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
+ */
+
+#ifndef __VIEW_MATCHED_COMMENTS_H__
+#define __VIEW_MATCHED_COMMENTS_H__
+
+#include <QLabel>
+#include <QPlainTextEdit>
+#include <QLineEdit>
+#include <QWidget>
+
+#include <compsky/mysql/query.hpp>
+
+
+class ViewMatchedComments : public QWidget {
+    Q_OBJECT
+  public:
+    explicit ViewMatchedComments(QWidget* parent);
+    ~ViewMatchedComments();
+  private:
+    void next();
+    void init();
+    QLineEdit* tagname_input;
+    QLineEdit* reasonname_input;
+    QPlainTextEdit* textarea;
+    QLabel* subname;
+    QLabel* username;
+    QLabel* reasonname;
+    QLabel* datetime;
+    char post_id_str[10];
+    char cmnt_id_str[10];
+    char dt_buf[200];
+    MYSQL_RES* res1;
+    MYSQL_ROW row1;
+};
+
+
+#endif

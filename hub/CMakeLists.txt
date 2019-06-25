@@ -47,6 +47,8 @@ add_executable(
     "${SRC_DIR}/wlbl_label.cpp"
     "${SRC_DIR}/wlbl_reasonwise_label.cpp"
     
+    "${SRC_DIR}/view_matched_comments.cpp"
+    
     # Utils
     "${UTILS_SRC_DIR}/id2str.cpp"
     "${SRC_DIR}/name_dialog.cpp"
