@@ -28,7 +28,7 @@ WlBlLabel::WlBlLabel(const char* name,  const char* typ,  const char* typ_id_var
 
 
 void WlBlLabel::display_subs_w_tag(){
-    compsky::mysql::query(&RES1,  "SELECT b.name FROM ", this->tblname, " a, ", this->typ, " b WHERE a.", this->typ_id_varname, "=b.id");
+    compsky::mysql::query(&RES1,  "SELECT IFNULL(b.name, CONCAT('<ID>', a.id)) FROM ", this->tblname, " a LEFT JOIN ", this->typ, " b ON a.", this->typ_id_varname, "=b.id");
     
     char* name;
     QString s = "";
