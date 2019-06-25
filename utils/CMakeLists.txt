@@ -4,20 +4,19 @@ if( EXISTS "${CMAKE_BINARY_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "Refusing to run in-source build.")
 endif()
 
-find_package(Compsky REQUIRED asciify mysql)
-
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 
-add_executable(rscraper-init "${SRC_DIR}/init.cpp")
-target_include_directories(rscraper-init PRIVATE ${COMPSKY_INCLUDE_DIRS})
-target_link_libraries(rscraper-init compsky_mysql_create_config compsky_asciify)
-set_property(TARGET rscraper-init PROPERTY CXX_STANDARD 17)
+add_executable(rscraper-id2str "${SRC_DIR}/id2str.c")
+target_compile_definitions(rscraper-id2str PRIVATE TOSTR)
+
+
+add_executable(rscraper-str2id "${SRC_DIR}/id2str.c")
 
 
 
 install(
-    TARGETS rscraper-init
+    TARGETS rscraper-id2str rscraper-str2id
     RUNTIME DESTINATION bin
         COMPONENT utils
 )
