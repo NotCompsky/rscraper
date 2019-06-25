@@ -109,7 +109,6 @@ void MainWindow::rename_category(int indx){
         return;
     
     NameDialog* dialog = new NameDialog("Rename Category", this->tab_widget->tabText(indx));
-    dialog->name_edit->setCompleter(tagcompleter);
     if (dialog->exec() != QDialog::Accepted)
         return;
     QString qstr = dialog->name_edit->text();
