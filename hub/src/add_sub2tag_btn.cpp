@@ -7,6 +7,8 @@
 
 #include "add_sub2tag_btn.hpp"
 
+#include <QCompleter>
+
 #include "name_dialog.hpp"
 #include "notfound.hpp"
 
@@ -31,7 +33,19 @@ void AddSub2TagBtn::add_subreddit(){
     bool ok;
     while(true){
         NameDialog* namedialog = new NameDialog("Subreddit Name", "", "Use SQL LIKE pattern matching");
-        namedialog->name_edit->setCompleter(subreddit_name_completer);
+        
+        if (!this->delete_from)
+            namedialog->name_edit->setCompleter(subreddit_name_completer);
+        else {
+            QStringList tag_subreddits_names;
+            compsky::mysql::query(&RES1, "SELECT name FROM subreddit s, subreddit2tag s2t WHERE s2t.subreddit_id=s.id AND s2t.tag_id=", this->tag_id);
+            char* name;
+            while(compsky::mysql::assign_next_row(RES1, &ROW1, &name))
+                tag_subreddits_names << name;
+            QCompleter* tag_subreddits_names_completer = new QCompleter(tag_subreddits_names, namedialog);
+            namedialog->name_edit->setCompleter(tag_subreddits_names_completer);
+        }
+        
         if (namedialog->exec() != QDialog::Accepted)
             return;
         const QString qstr = namedialog->name_edit->text();
