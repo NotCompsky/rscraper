@@ -36,7 +36,9 @@ Note: `rscraper-tagger` is for the server library and executables only. You do n
 
 Now navigate to [the releases page](https://github.com/NotCompsky/rscraper/releases), download the `deb` file for each component (`man`, `utils`, `tagger`, etc) for your platform, and run:
 
-    sudo dpkg -i /path/to/RScraper-VERSION-ARCHITECTURE-COMPONENT.deb
+    sudo apt install /path/to/RScraper-VERSION-ARCHITECTURE-COMPONENT.deb
+
+Replace `apt install` with `dpkg -i` if there are any issues.
 
 Then create a directory to house your config files. I'd suggest:
 
