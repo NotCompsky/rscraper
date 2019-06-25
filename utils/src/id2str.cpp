@@ -5,8 +5,10 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#include "id2str.hpp"
 
 #include <stdio.h> // for printf
+
 
 size_t id2str(uint64_t id_orig,  char* buf){
     size_t n_digits = 0;
@@ -53,10 +55,11 @@ uint64_t myatoi(const char* str){
     return n;
 }
 
+#if defined(ID2STR_EXE) || defined(STR2ID_EXE)
 int main(const int argc,  const char** argv){
     char str[19 + 1];
     for (auto j = 1;  j < argc;  ++j){
-#ifdef TOSTR
+#ifdef ID2STR_EXE
         str[id2str(myatoi(argv[j]), str)] = 0;
         printf("%s\n", str);
 #else
@@ -65,3 +68,4 @@ int main(const int argc,  const char** argv){
 #endif
     }
 }
+#endif

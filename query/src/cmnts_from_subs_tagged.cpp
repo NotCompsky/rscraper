@@ -12,6 +12,8 @@
 #include <compsky/mysql/mysql.hpp>
 #include <compsky/mysql/query.hpp>
 
+#include "id2str.hpp" // for id2str
+
 
 MYSQL_RES* RES;
 MYSQL_ROW ROW;
@@ -75,22 +77,6 @@ constexpr const char* b =
 #endif
 
 
-void id2str(unsigned long int id_orig,  char* buf){
-    int n_digits = 0;
-    unsigned long int id = id_orig;
-    while (id != 0){
-        ++n_digits;
-        id /= 36;
-    }
-    const int n = n_digits;
-    while (id_orig != 0){ // Note that a subreddit id should never be 0
-        char digit = id_orig % 36;
-        buf[--n_digits] = digit + ((digit<10) ? '0' : 'a' - 10);
-        id_orig /= 36;
-    }
-    buf[n] = 0;
-}
-
 int main(const int argc,  const char** argv){
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
     
@@ -122,8 +108,8 @@ int main(const int argc,  const char** argv){
     while (compsky::mysql::assign_next_row(RES, &ROW, &subname, &post_id, &cmnt_id, &t, f, &body_sz, &body, &username, &reason)){
         char post_id_str[10];
         char cmnt_id_str[10];
-        id2str(post_id, post_id_str);
-        id2str(cmnt_id, cmnt_id_str);
+        post_id_str[id2str(post_id, post_id_str)] = 0;
+        cmnt_id_str[id2str(cmnt_id, cmnt_id_str)] = 0;
         
         const time_t tt = t;
         dt = localtime(&tt);

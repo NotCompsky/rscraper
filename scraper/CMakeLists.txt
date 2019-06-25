@@ -43,14 +43,16 @@ if("${MY_TARGETS} " STREQUAL " ")
 endif()
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(ID2STR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../utils/src")
 
+include_directories("${ID2STR_DIR}")
 
 if(NOT Boost_FOUND)
     message(WARNING "boost::regex not found, so there will be no regex matching in the examples")
 endif()
 
 # Rename example files
-set(SRC_FILES "${SRC_DIR}/filter_comment_body_regexp.cpp" "${SRC_DIR}/filter_comment_body.cpp" "${SRC_DIR}/filter_subreddit.cpp" "${SRC_DIR}/filter_user.cpp" "${SRC_DIR}/filter_init.cpp" "${SRC_DIR}/curl_utils.cpp" "${SRC_DIR}/redditcurl_utils.cpp" "${SRC_DIR}/reddit_utils.cpp")
+set(SRC_FILES "${SRC_DIR}/filter_comment_body_regexp.cpp" "${SRC_DIR}/filter_comment_body.cpp" "${SRC_DIR}/filter_subreddit.cpp" "${SRC_DIR}/filter_user.cpp" "${SRC_DIR}/filter_init.cpp" "${SRC_DIR}/curl_utils.cpp" "${SRC_DIR}/redditcurl_utils.cpp")
 
 set(BASE64_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/src/base64.c")
 
@@ -60,7 +62,7 @@ if("rscraper-init-scraper" IN_LIST MY_TARGETS)
 endif()
 
 if("rscrape-cmnts" IN_LIST MY_TARGETS)
-    add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${SRC_FILES})
+    add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${SRC_FILES} "${ID2STR_DIR}/id2str.cpp")
     set_property(TARGET rscrape-cmnts PROPERTY CXX_STANDARD 17)
     if(NOT FS_NOT_EXPERIMENTAL)
         target_compile_definitions(rscrape-cmnts PRIVATE FS_EXPERIMENTAL=1)

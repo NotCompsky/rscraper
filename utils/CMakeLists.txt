@@ -7,12 +7,12 @@ endif()
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 
-add_executable(rscraper-id2str "${SRC_DIR}/id2str.c")
-target_compile_definitions(rscraper-id2str PRIVATE TOSTR)
+add_executable(rscraper-id2str "${SRC_DIR}/id2str.cpp")
+target_compile_definitions(rscraper-id2str PRIVATE ID2STR_EXE)
 
 
-add_executable(rscraper-str2id "${SRC_DIR}/id2str.c")
-
+add_executable(rscraper-str2id "${SRC_DIR}/id2str.cpp")
+target_compile_definitions(rscraper-str2id PRIVATE STR2ID_EXE)
 
 
 install(

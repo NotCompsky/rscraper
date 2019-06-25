@@ -8,16 +8,18 @@ find_package(Compsky REQUIRED asciify mysql)
 
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(ID2STR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../utils/src")
 
+include_directories("${ID2STR_DIR}") # for id2str.h
 
-add_executable(rscraped-reason   "${SRC_DIR}/cmnts_from_subs_tagged.cpp")
+add_executable(rscraped-reason   "${SRC_DIR}/cmnts_from_subs_tagged.cpp" "${ID2STR_DIR}/id2str.cpp")
 set_property(TARGET rscraped-reason PROPERTY CXX_STANDARD 17)
 target_link_libraries(rscraped-reason mysqlclient compsky_asciify compsky_mysql)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     target_link_libraries(rscraped-reason z secur32 ssl crypto crypt32 ws2_32)
 endif()
 
-add_executable(rscraped-tagged-subs "${SRC_DIR}/cmnts_from_subs_tagged.cpp")
+add_executable(rscraped-tagged-subs "${SRC_DIR}/cmnts_from_subs_tagged.cpp" "${ID2STR_DIR}/id2str.cpp")
 set_property(TARGET rscraped-tagged-subs PROPERTY CXX_STANDARD 17)
 target_link_libraries(rscraped-tagged-subs mysqlclient compsky_asciify compsky_mysql)
 target_compile_definitions(rscraped-tagged-subs PRIVATE SUB2TAG)

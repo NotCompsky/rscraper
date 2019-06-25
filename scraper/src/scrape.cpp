@@ -17,7 +17,7 @@
 
 #include "error_codes.hpp" // for myerr:*
 
-#include "reddit_utils.hpp" // for myru::*
+#include "id2str.hpp" // for str2id
 #include "curl_utils.hpp" // for mycu::*
 #include "redditcurl_utils.hpp" // for myrcu::*, rapidjson::*
 
@@ -98,7 +98,7 @@ void process_this_comment(rapidjson::Value& cmnt,  uint64_t author_id,  const ch
     
     compsky::mysql::exec("INSERT IGNORE INTO user (id, name) VALUES (",  author_id,  ",'",  author_name,  "')");
     
-    uint64_t parent_id = myru::id2n_lower(cmnt["data"]["parent_id"].GetString() + 3);
+    uint64_t parent_id = str2id(cmnt["data"]["parent_id"].GetString() + 3);
     uint64_t submission_id;
     
     if (cmnt["data"]["parent_id"].GetString()[1] == '3'){
@@ -106,7 +106,7 @@ void process_this_comment(rapidjson::Value& cmnt,  uint64_t author_id,  const ch
         submission_id = parent_id;
         parent_id = 0;
     } else {
-        submission_id = myru::id2n_lower(cmnt["data"]["link_id"].GetString() + 3);
+        submission_id = str2id(cmnt["data"]["link_id"].GetString() + 3);
     }
     
     const char* cmnt_content = cmnt["data"]["body"].GetString();
@@ -139,8 +139,8 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
     const char* subreddit_name  = cmnt["data"]["subreddit"].GetString();
     const char* author_name     = cmnt["data"]["author"].GetString();
     
-    const uint64_t author_id = myru::id2n_lower(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
-    const uint64_t subreddit_id = myru::id2n_lower(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
+    const uint64_t author_id = str2id(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
+    const uint64_t subreddit_id = str2id(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
     const bool is_submission_nsfw = cmnt["data"]["over_18"].GetBool();
     const uint8_t is_subreddit_nsfw = (is_submission_nsfw) ? 2 : 0; // 0 for certainly SFW, 1 for certainly NSFW. 2 for unknown.
     
@@ -189,7 +189,7 @@ uint64_t process_live_replies(rapidjson::Value& replies, const uint64_t last_pro
     SQL__INSERT_INTO_SUBREDDIT_INDX = strlen_constexpr(SQL__INSERT_INTO_SUBREDDIT_STR);
     
     for (rapidjson::Value::ValueIterator itr = replies["data"]["children"].Begin();  itr != replies["data"]["children"].End();  ++itr){
-        cmnt_id = myru::id2n_lower((*itr)["data"]["id"].GetString()); // No "t1_" prefix
+        cmnt_id = str2id((*itr)["data"]["id"].GetString()); // No "t1_" prefix
         if (cmnt_id <= last_processed_cmnt_id)
             // Not '==' since it is possible for comments to have been deleted between calls
             break;
@@ -214,7 +214,7 @@ uint64_t process_live_replies(rapidjson::Value& replies, const uint64_t last_pro
         compsky::mysql::exec_buffer(SQL__INSERT_INTO_SUBREDDIT, SQL__INSERT_INTO_SUBREDDIT_INDX);
     }
     
-    return myru::id2n_lower(replies["data"]["children"][0]["data"]["id"].GetString());
+    return str2id(replies["data"]["children"][0]["data"]["id"].GetString());
 }
 
 void process_all_comments_live(){
