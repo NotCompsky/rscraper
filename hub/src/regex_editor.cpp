@@ -21,6 +21,8 @@
 
 #include <compsky/regex/named_groups.hpp>
 
+#include "msgbox.hpp"
+
 
 static const QString help_text = 
     "Supports boost::regex Perl syntax, with Python named groups (?P<name>).\n"
@@ -201,11 +203,7 @@ void RegexEditor::test_regex(){
         }
     }
     
-    QMessageBox* msgbox = new QMessageBox(this);
-    msgbox->setText("                                                            Success                                                            "); // 60 spaces either side to force wider prompt
-    // TODO: Subclass QMessageBox and override showEvent to create larger prompts
-    msgbox->setWindowModality(Qt::NonModal);
-    msgbox->setDetailedText(report);
+    MsgBox* msgbox = new MsgBox(this, "Success", report, 720);
     msgbox->exec();
 }
 

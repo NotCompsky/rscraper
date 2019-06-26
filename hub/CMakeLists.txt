@@ -55,6 +55,8 @@ add_executable(
     "${UTILS_SRC_DIR}/id2str.cpp"
     "${SRC_DIR}/name_dialog.cpp"
     
+    "${SRC_DIR}/msgbox.cpp"
+    
     # Messages
     "${SRC_DIR}/notfound.cpp"
     
