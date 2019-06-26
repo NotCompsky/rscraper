@@ -13,6 +13,7 @@
 
 #include <QLabel>
 #include <QMessageBox>
+#include <QProcess>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QStringRef>
@@ -168,24 +169,44 @@ void RegexEditor::test_regex(){
         return;
     }
     
-    QString report = "Valid regex\n";
+    QString report = "";
     
+    bool try_exrex = true;
     report += "\nCapture Groups:";
     for (auto i = 1;  i < groupindx2reason.size();  ++i){
         report += "\n";
         report += QString::number(i);
         report += "\t";
         report += reason_name2id[groupindx2reason[i]];
-        report += "\n\t";
         const int group_source_strlen = (uintptr_t)(group_ends[i]) - (uintptr_t)(group_starts[i]) - 1;
         const QString group_source = QString::fromLocal8Bit(group_starts[i],  group_source_strlen);
         if (group_source_strlen > 20){
             report += QString::fromLocal8Bit(group_starts[i], 20);
             report += "...";
         } else report += group_source;
+        
+        if (try_exrex){
+            QProcess exrex;
+            QString output;
+            
+            exrex.start("exrex.py",  {"-r", "-m", "1", group_source});
+            
+            if (!(try_exrex = exrex.waitForFinished()))
+                continue;
+            
+            report += "\neg:\t";
+            report += exrex.readAllStandardOutput();
+            
+            exrex.close();
+        }
     }
     
-    QMessageBox::information(this, "Report", report);
+    QMessageBox* msgbox = new QMessageBox(this);
+    msgbox->setText("                                                            Success                                                            "); // 60 spaces either side to force wider prompt
+    // TODO: Subclass QMessageBox and override showEvent to create larger prompts
+    msgbox->setWindowModality(Qt::NonModal);
+    msgbox->setDetailedText(report);
+    msgbox->exec();
 }
 
 void RegexEditor::save_to_file(){
