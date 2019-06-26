@@ -18,7 +18,7 @@ NameDialog::NameDialog(QString title,  QString str,  QString checkbox_title,  QW
     connect(this->btn_box, SIGNAL(rejected()), this, SLOT(reject()));
     l = new QVBoxLayout;
     l->addWidget(this->btn_box);
-    this->name_edit = new QLineEdit(str);
+    this->name_edit = new QLineEdit(str, this);
     l->addWidget(this->name_edit);
     if (!checkbox_title.isEmpty()){
         this->checkbox = new QCheckBox(checkbox_title,  this);
