@@ -67,7 +67,7 @@ constexpr const char* reason_a2 =
 
 
 ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res1(0), is_ascending(false) {
-    QVBoxLayout* l = new QVBoxLayout(this);
+    QVBoxLayout* l = new QVBoxLayout;
     
     l->addWidget(new QLabel("Tag Name:", this));
     this->tagname_input = new QLineEdit(this);
@@ -86,7 +86,7 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res
     QRadioButton* desc  = new QRadioButton("Descending");
     connect(asc,  &QRadioButton::toggled, this, &ViewMatchedComments::toggle_order_btns);
     desc->setChecked(true);
-    QHBoxLayout* box = new QHBoxLayout(this);
+    QHBoxLayout* box = new QHBoxLayout;
     box->addWidget(asc);
     box->addWidget(desc);
     box->addStretch(1);
@@ -106,11 +106,13 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res
     this->username  = new QLabel(this);
     this->reasonname = new QLabel(this);
     this->datetime  = new QLabel(this);
-    
+    this->permalink = new QLineEdit(this);
+    this->permalink->setReadOnly(true);
     l->addWidget(this->subname);
     l->addWidget(this->username);
     l->addWidget(this->reasonname);
     l->addWidget(this->datetime);
+    l->addWidget(this->permalink);
     
     this->textarea = new QPlainTextEdit(this);
     this->textarea->setReadOnly(true);
@@ -172,6 +174,8 @@ void ViewMatchedComments::next(){
         post_id_str[id2str(post_id, post_id_str)] = 0;
         cmnt_id_str[id2str(cmnt_id, cmnt_id_str)] = 0;
         
+        this->permalink->setText(QString("https://www.reddit.com/r/" + QString(subname) + QString("/comments/") + QString(post_id_str) + QString("/_/") + QString(cmnt_id_str)));
+        
         const time_t tt = t;
         dt = localtime(&tt);
         strftime(dt_buf, sizeof(dt_buf), "%Y %a %b %d %H:%M:%S", dt);
@@ -180,6 +184,8 @@ void ViewMatchedComments::next(){
         this->username->setText(username);
         this->reasonname->setText(reason);
         this->datetime->setText(dt_buf);
+        
+        
         
         this->textarea->setPlainText(body);
     }

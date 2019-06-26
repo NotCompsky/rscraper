@@ -32,6 +32,7 @@ class ViewMatchedComments : public QWidget {
     QLabel* username;
     QLabel* reasonname;
     QLabel* datetime;
+    QLineEdit* permalink;
     char post_id_str[10];
     char cmnt_id_str[10];
     char dt_buf[200];
