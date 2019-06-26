@@ -131,6 +131,8 @@ void MainWindow::rename_category(int indx){
     if (qstr.isEmpty())
         return;
     
+    delete dialog;
+    
     this->tab_widget->setTabText(indx, qstr);
     
     const uint64_t cat_id = static_cast<ClTagsTab*>(this->tab_widget->widget(indx))->cat_id;
