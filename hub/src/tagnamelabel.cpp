@@ -35,7 +35,7 @@ TagNameLabel::TagNameLabel(const uint64_t tag_id,  QString& qname,  QWidget* par
 
 void TagNameLabel::rename_tag(){
     bool ok;
-    NameDialog* tagdialog = new NameDialog("Rename Tag", "");
+    NameDialog* tagdialog = new NameDialog("Rename Tag", this->text());
     QCompleter* tagcompleter = new QCompleter(tagslist);
     tagdialog->name_edit->setCompleter(tagcompleter);
     if (tagdialog->exec() != QDialog::Accepted)
