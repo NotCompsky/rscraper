@@ -10,8 +10,11 @@
 #include <ctime> // for strftime, localtime, time_t
 
 #include <QCompleter>
+#include <QGroupBox>
+#include <QHBoxLayout>
 #include <QPushButton>
 #include <QStringList>
+#include <QRadioButton>
 #include <QVBoxLayout>
 
 #include "id2str.hpp"
@@ -63,7 +66,7 @@ constexpr const char* reason_a2 =
     "AND u.id=c.author_id";
 
 
-ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res1(0) {
+ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res1(0), is_ascending(false) {
     QVBoxLayout* l = new QVBoxLayout(this);
     
     l->addWidget(new QLabel("Tag Name:", this));
@@ -76,6 +79,20 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res
     this->reasonname_input = new QLineEdit(this);
     this->reasonname_input->setCompleter(reason_name_completer);
     l->addWidget(this->reasonname_input);
+    
+    {
+    QGroupBox* group_box = new QGroupBox("Order By Date:");
+    QRadioButton* asc   = new QRadioButton("Ascending");
+    QRadioButton* desc  = new QRadioButton("Descending");
+    connect(asc,  &QRadioButton::toggled, this, &ViewMatchedComments::toggle_order_btns);
+    desc->setChecked(true);
+    QHBoxLayout* box = new QHBoxLayout(this);
+    box->addWidget(asc);
+    box->addWidget(desc);
+    box->addStretch(1);
+    group_box->setLayout(box);
+    l->addWidget(group_box);
+    }
     
     QPushButton* next_btn = new QPushButton("Query", this);
     l->addWidget(next_btn);
@@ -129,6 +146,9 @@ void ViewMatchedComments::init(){
     else
         compsky::asciify::asciify(reason_a1, reason_a2);
     
+    compsky::asciify::asciify(" ORDER BY c.created_at ");
+    compsky::asciify::asciify((this->is_ascending) ? "asc" : "desc");
+    
     compsky::mysql::query_buffer(&this->res1, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
     
     this->next();
@@ -163,4 +183,9 @@ void ViewMatchedComments::next(){
         
         this->textarea->setPlainText(body);
     }
+}
+#include <QMessageBox>
+void ViewMatchedComments::toggle_order_btns(){
+    this->is_ascending = !this->is_ascending;
+    QMessageBox::information(this, "is_ascending",  (this->is_ascending) ? "true" : "false", QMessageBox::Cancel);
 }

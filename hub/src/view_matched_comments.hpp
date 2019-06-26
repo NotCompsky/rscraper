@@ -24,6 +24,7 @@ class ViewMatchedComments : public QWidget {
   private:
     void next();
     void init();
+    void toggle_order_btns();
     QLineEdit* tagname_input;
     QLineEdit* reasonname_input;
     QPlainTextEdit* textarea;
@@ -36,6 +37,7 @@ class ViewMatchedComments : public QWidget {
     char dt_buf[200];
     MYSQL_RES* res1;
     MYSQL_ROW row1;
+    bool is_ascending;
 };
 
 
