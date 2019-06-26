@@ -148,8 +148,10 @@ void RegexEditor::test_regex(){
     
     std::vector<char*> reason_name2id;
     std::vector<int> groupindx2reason;
+    std::vector<char*> group_starts;
+    std::vector<char*> group_ends;
     
-    char* regexpr_str_end = compsky::regex::convert_named_groups(s + 1,  s,  reason_name2id,  groupindx2reason);
+    char* regexpr_str_end = compsky::regex::convert_named_groups(s + 1,  s,  reason_name2id,  groupindx2reason, group_starts, group_ends);
     // Add one to the first buffer (src) not second buffer (dst) to ensure it is never overwritten when writing dst
     
     if (*(regexpr_str_end - 1) == '\n')
@@ -174,6 +176,13 @@ void RegexEditor::test_regex(){
         report += QString::number(i);
         report += "\t";
         report += reason_name2id[groupindx2reason[i]];
+        report += "\n\t";
+        const int group_source_strlen = (uintptr_t)(group_ends[i]) - (uintptr_t)(group_starts[i]) - 1;
+        const QString group_source = QString::fromLocal8Bit(group_starts[i],  group_source_strlen);
+        if (group_source_strlen > 20){
+            report += QString::fromLocal8Bit(group_starts[i], 20);
+            report += "...";
+        } else report += group_source;
     }
     
     QMessageBox::information(this, "Report", report);
