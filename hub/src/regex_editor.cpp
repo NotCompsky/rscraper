@@ -180,6 +180,7 @@ void RegexEditor::test_regex(){
         report += QString::number(i);
         report += "\t";
         report += reason_name2id[groupindx2reason[i]];
+        report += "\n\t";
         const int group_source_strlen = (uintptr_t)(group_ends[i]) - (uintptr_t)(group_starts[i]) - 1;
         const QString group_source = QString::fromLocal8Bit(group_starts[i],  group_source_strlen);
         if (group_source_strlen > 20){
