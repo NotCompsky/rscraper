@@ -8,9 +8,9 @@ See [scraper](scraper) directory for details.
 
 See [tagger](tagger) directory for details.
 
-## Tag Manager
+## Hub
 
-See [tags](tags) directory for details.
+See [hub](hub) directory for details.
 
 ## SQL Query Programs
 
