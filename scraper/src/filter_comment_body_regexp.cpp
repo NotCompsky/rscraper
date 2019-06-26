@@ -117,7 +117,7 @@ void init(){
     
     compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Ignore trailing comma
     
-    regexpr = new boost::basic_regex<char, boost::cpp_regex_traits<char>>(regexpr_str, boost::regex::perl);
+    regexpr = new boost::basic_regex<char, boost::cpp_regex_traits<char>>(regexpr_str,  boost::regex::perl | boost::regex::optimize);
     
     free(regexpr_str);
 }
