@@ -83,6 +83,7 @@ void ClTagsTab::add_tag(){
     if (tagdialog->exec() != QDialog::Accepted)
         return;
     QString tagstr = tagdialog->name_edit->text();
+    delete tagdialog;
     if (tagstr.isEmpty())
         return;
     
