@@ -207,7 +207,7 @@ void ViewMatchedComments::next(){
         
         
         this->textarea->setPlainText(body);
-    }
+    } else this->res1 = nullptr;
 }
 #include <QMessageBox>
 void ViewMatchedComments::toggle_order_btns(){
