@@ -69,16 +69,27 @@ constexpr const char* reason_a2 =
 ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res1(0), is_ascending(false) {
     QVBoxLayout* l = new QVBoxLayout;
     
-    l->addWidget(new QLabel("Tag Name:", this));
+    
+    {
+    QHBoxLayout* box = new QHBoxLayout;
+    box->addWidget(new QLabel("Tag Name:", this));
     this->tagname_input = new QLineEdit(this);
     QCompleter* tagcompleter = new QCompleter(tagslist);
     this->tagname_input->setCompleter(tagcompleter);
-    l->addWidget(this->tagname_input);
+    box->addWidget(this->tagname_input);
+    l->addLayout(box);
+    }
     
-    l->addWidget(new QLabel("Reason Matched:", this));
+    
+    {
+    QHBoxLayout* box = new QHBoxLayout;
+    box->addWidget(new QLabel("Reason Matched:", this));
     this->reasonname_input = new QLineEdit(this);
     this->reasonname_input->setCompleter(reason_name_completer);
-    l->addWidget(this->reasonname_input);
+    box->addWidget(this->reasonname_input);
+    l->addLayout(box);
+    }
+    
     
     {
     QGroupBox* group_box = new QGroupBox("Order By Date:");
@@ -91,16 +102,24 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res
     box->addWidget(desc);
     box->addStretch(1);
     group_box->setLayout(box);
-    l->addWidget(group_box);
+    box->addWidget(group_box);
+    l->addLayout(box);
     }
     
+    
+    {
+    QHBoxLayout* box = new QHBoxLayout;
     QPushButton* next_btn = new QPushButton("Query", this);
-    l->addWidget(next_btn);
+    box->addWidget(next_btn);
     connect(next_btn, &QPushButton::clicked, this, &ViewMatchedComments::init);
     
     QPushButton* init_btn = new QPushButton("Next", this);
-    l->addWidget(init_btn);
+    box->addWidget(init_btn);
     connect(init_btn, &QPushButton::clicked, this, &ViewMatchedComments::next);
+    
+    l->addLayout(box);
+    }
+    
     
     this->subname   = new QLabel(this);
     this->username  = new QLabel(this);
