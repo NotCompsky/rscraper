@@ -204,6 +204,7 @@ void MainTab::add_category(){
     const QString cat_qstr = catdialog->name_edit->text();
     if (cat_qstr.isEmpty())
         return;
+    delete catdialog;
     
     compsky::mysql::exec("INSERT INTO category (name) VALUES (\"", _f::esc, '"', cat_qstr, "\")");
     
@@ -222,14 +223,13 @@ void MainTab::add_subreddit_to(const char* tblname,  const bool delete_from){
     dialog->name_edit->setCompleter(subreddit_name_completer);
     const auto rc = dialog->exec();
     const QString qstr = dialog->name_edit->text();
+    const bool is_pattern = dialog->checkbox->isChecked();
     delete dialog;
     
     if (rc != QDialog::Accepted)
         return;
     if (qstr.isEmpty())
         return;
-    
-    const bool is_pattern = dialog->checkbox->isChecked();
     
     if (!is_pattern  &&  !subreddit_names.contains(qstr))
         return notfound::subreddit(this, qstr);
@@ -296,14 +296,13 @@ void MainTab::add_user_to(const char* tblname,  const bool delete_from){
     dialog->name_edit->setCompleter(user_name_completer);
     const auto rc = dialog->exec();
     const QString qstr = dialog->name_edit->text();
+    const bool is_id = dialog->checkbox->isChecked();
     delete dialog;
     
     if (rc != QDialog::Accepted)
         return;
     if (qstr.isEmpty())
         return;
-    
-    const bool is_id = dialog->checkbox->isChecked();
     
     if (is_id){
         QByteArray ba = qstr.toLocal8Bit();
