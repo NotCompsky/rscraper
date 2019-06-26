@@ -207,7 +207,7 @@ void MainTab::add_category(){
 
 void MainTab::add_subreddit_to(const char* tblname,  const bool delete_from){
     bool ok;
-    NameDialog* dialog = new NameDialog(tblname, "");
+    NameDialog* dialog = new NameDialog(tblname, "", "Use SQL LIKE pattern matching");
     dialog->name_edit->setCompleter(subreddit_name_completer);
     const auto rc = dialog->exec();
     const QString qstr = dialog->name_edit->text();
@@ -218,13 +218,16 @@ void MainTab::add_subreddit_to(const char* tblname,  const bool delete_from){
     if (qstr.isEmpty())
         return;
     
-    if (!subreddit_names.contains(qstr))
+    const bool is_pattern = dialog->checkbox->isChecked();
+    
+    if (!is_pattern  &&  !subreddit_names.contains(qstr))
         return notfound::subreddit(this, qstr);
     
     compsky::mysql::exec(
         (delete_from) ? "DELETE a FROM " : "INSERT IGNORE INTO ",
         tblname,
-        (delete_from) ? " a, subreddit b WHERE a.id=b.id AND b.name=\"" : " SELECT id FROM subreddit WHERE name=\"",
+        (delete_from) ? " a, subreddit b WHERE a.id=b.id AND b.name=\"" : " SELECT id FROM subreddit WHERE name",
+        (is_pattern) ? " LIKE \"" : "=\"",
             qstr,
         "\""
     );
