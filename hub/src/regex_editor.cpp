@@ -149,7 +149,7 @@ void RegexEditor::test_regex(){
     QByteArray ba = buf.toLocal8Bit();
     char* const s = ba.data();
     
-    std::vector<char*> reason_name2id;
+    std::vector<char*> reason_name2id = {"None", "Unspecified"};
     std::vector<int> groupindx2reason;
     std::vector<char*> group_starts;
     std::vector<char*> group_ends;
