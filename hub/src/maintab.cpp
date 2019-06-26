@@ -21,7 +21,9 @@
 #include "categorytab.hpp"
 #include "name_dialog.hpp"
 #include "notfound.hpp"
-#include "regex_editor.hpp"
+#ifdef USE_BOOST_REGEX
+# include "regex_editor.hpp"
+#endif
 #include "wlbl_label.hpp"
 #include "wlbl_reasonwise_label.hpp"
 
@@ -103,10 +105,11 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     ++row;
     }
     
+  #ifdef USE_BOOST_REGEX
     QPushButton* edit_cmnt_body_re_btn = new QPushButton("Edit Comment Body Regexp", this);
     connect(edit_cmnt_body_re_btn, &QPushButton::clicked, this, &MainTab::open_cmnt_body_re_editor);
     l->addWidget(edit_cmnt_body_re_btn, row++, 0);
-    
+  #endif
     
     QPushButton* add_tag_btn = new QPushButton("+Category", this);
     connect(add_tag_btn, SIGNAL(clicked()), this, SLOT(add_category()));
@@ -180,6 +183,7 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     setLayout(l);
 }
 
+#ifdef USE_BOOST_REGEX
 void MainTab::open_cmnt_body_re_editor(){
     QString qfp = getenv("RSCRAPER_REGEX_FILE");
     if (qfp == nullptr){
@@ -190,6 +194,7 @@ void MainTab::open_cmnt_body_re_editor(){
     RegexEditor* editor = new RegexEditor(qfp + ".human",  qfp,  this);
     editor->exec();
 }
+#endif
 
 void MainTab::add_category(){
     bool ok;

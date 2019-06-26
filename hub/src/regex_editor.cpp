@@ -5,7 +5,11 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#ifdef USE_BOOST_REGEX
+
 #include "regex_editor.hpp"
+
+#include <boost/regex.hpp>
 
 #include <QLabel>
 #include <QMessageBox>
@@ -13,6 +17,8 @@
 #include <QRegularExpression>
 #include <QStringRef>
 #include <QVBoxLayout>
+
+#include <compsky/regex/named_groups.hpp>
 
 
 static const QString help_text = 
@@ -68,12 +74,11 @@ int get_line_n(QString& s,  int end){
     return n;
 }
 
-bool RegexEditor::to_final_format(QString& buf){ // Use seperate buffer to avoid overwriting text_editor contents
+bool RegexEditor::to_final_format(QString& buf,  int j){ // Use seperate buffer to avoid overwriting text_editor contents
     // WARNING: Does not currently support special encodings, i.e. non-ASCII characters are likely to be mangled.
     // TODO: Add utf8 support.
     QString q = this->text_editor->toPlainText();
-    buf.reserve(q.size());
-    auto j = 0;
+    buf.reserve(q.size() + j);
     
     for(auto i = 0;  i < q.size();  ){
         QChar c = q.at(i);
@@ -134,7 +139,42 @@ bool RegexEditor::to_final_format(QString& buf){ // Use seperate buffer to avoid
 }
 
 void RegexEditor::test_regex(){
+    QString buf = "_"; // Dummy character to create space for 1 char at beginning
+    if (!this->to_final_format(buf, 1))
+        return;
     
+    QByteArray ba = buf.toLocal8Bit();
+    char* const s = ba.data();
+    
+    std::vector<char*> reason_name2id;
+    std::vector<int> groupindx2reason;
+    
+    char* regexpr_str_end = compsky::regex::convert_named_groups(s + 1,  s,  reason_name2id,  groupindx2reason);
+    // Add one to the first buffer (src) not second buffer (dst) to ensure it is never overwritten when writing dst
+    
+    if (*(regexpr_str_end - 1) == '\n')
+        // Very confused what is happening here, but it seems that some files have \n appended to them by fread, while others do not.
+        // A small test file containing only `(?P<test>a)` written in `vim` is given a trailing \n by fread
+        // while a larger file containing newlines elsewhere but not at the end is not given a trailing \n by fread
+        *(regexpr_str_end - 1) = 0;
+    else *regexpr_str_end = 0;
+    
+    try {
+        boost::basic_regex<char, boost::cpp_regex_traits<char>> test(s,  boost::regex::perl | boost::regex::optimize);
+    } catch (boost::regex_error& e){
+        QMessageBox::critical(this,  "Bad Regex",  e.what());
+        return;
+    }
+    
+    QString report = "Valid regex\n";
+    
+    report += "\nReasons:";
+    for (auto i = 0;  i < reason_name2id.size();  ++i){
+        report += "\n\t";
+        report += reason_name2id[i];
+    }
+    
+    QMessageBox::information(this, "Report", report);
 }
 
 void RegexEditor::save_to_file(){
@@ -160,3 +200,5 @@ void RegexEditor::save_to_file(){
     
     this->close(); // Avoids issues with closing and reopening QFiles
 }
+
+#endif
