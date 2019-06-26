@@ -19,6 +19,7 @@
 #include "add_sub2tag_btn.hpp"
 #include "rm_tag_btn.hpp"
 #include "clbtn.hpp"
+#include "mv_tag_btn.hpp"
 #include "name_dialog.hpp"
 #include "tagnamelabel.hpp"
 
@@ -53,6 +54,7 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* p
         this->l->addWidget(new AddSub2TagBtn(id, false, this),  this->row,  2);
         this->l->addWidget(new AddSub2TagBtn(id, true,  this),  this->row,  3);
         this->l->addWidget(new RmTagBtn(id, this),       this->row,  4);
+        this->l->addWidget(new MvTagBtn(id, this), this->row, 5);
     }
     }
     
@@ -94,6 +96,7 @@ void ClTagsTab::add_tag(){
     this->l->addWidget(new AddSub2TagBtn(tag_id, false, this),  this->row,  2);
     this->l->addWidget(new AddSub2TagBtn(tag_id, true,  this),  this->row,  3);
     this->l->addWidget(new RmTagBtn(tag_id, this),       this->row,  4);
+    this->l->addWidget(new MvTagBtn(tag_id, this), this->row, 5);
 }
 
 void ClTagsTab::rm_self(){

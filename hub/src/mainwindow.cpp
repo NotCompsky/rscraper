@@ -43,6 +43,7 @@ QStringList tagslist;
 QCompleter* tagcompleter;
 QStringList subreddit_names;
 QCompleter* subreddit_name_completer;
+QStringList category_names;
 
 constexpr static const compsky::asciify::flag::Escape f_esc;
 
@@ -75,6 +76,7 @@ MainWindow::MainWindow(QWidget* parent){
     char* name;
     while (compsky::mysql::assign_next_row(RES1, &ROW1, &id, &name)){
         this->insert_category(id, name);
+        category_names << name;
     }
     }
     
@@ -111,6 +113,8 @@ void MainWindow::insert_category(const uint64_t id,  const char* name){
     scroll_area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scroll_area->setWidgetResizable(true);
     scroll_area->setWidget(tab);
+    
+    category_names << name;
     
     this->tab_widget->addTab(scroll_area, name);
 }
