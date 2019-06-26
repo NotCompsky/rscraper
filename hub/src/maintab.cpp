@@ -187,7 +187,7 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
 void MainTab::open_cmnt_body_re_editor(){
     QString qfp = getenv("RSCRAPER_REGEX_FILE");
     if (qfp == nullptr){
-        QMessageBox::information(this, "Invalid Action", "Environmental variable RSCRAPER_REGEX_FILE must be set to the file to save this regex to", QMessageBox::Cancel);
+        QMessageBox::information(this, "Invalid Action", "Environmental variable RSCRAPER_REGEX_FILE must be set to the file to save this regex to");
         return;
     }
     
@@ -309,7 +309,7 @@ void MainTab::add_user_to(const char* tblname,  const bool delete_from){
         QByteArray ba = qstr.toLocal8Bit();
         const char* s = ba.data();
         if (s[0] != 'i'  ||  s[1] != 'd'  ||  s[2] != '-'  ||  s[3] != 't'  ||  s[4] != '2'  ||  s[5] != '_'){
-            QMessageBox::information(this, "Invalid Format", "User ID must be in format id-t2_<alphanumerics>", QMessageBox::Cancel);
+            QMessageBox::information(this, "Invalid Format", "User ID must be in format id-t2_<alphanumerics>");
             return;
         }
         compsky::mysql::exec(

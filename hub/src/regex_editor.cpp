@@ -55,13 +55,13 @@ RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidg
 }
 
 void RegexEditor::display_help(){
-    QMessageBox::information(this,  "Help",  help_text,  QMessageBox::Cancel);
+    QMessageBox::information(this,  "Help",  help_text);
 }
 
 void RegexEditor::load_file(){
     QFile f_human(this->f_human_fp);
     if (!f_human.open(QFile::ReadOnly | QFile::Text)){
-        QMessageBox::critical(this, "FS Error",  "Cannot read: " + this->f_human_fp,  QMessageBox::Cancel);
+        QMessageBox::critical(this, "FS Error",  "Cannot read: " + this->f_human_fp);
         this->text_editor->setReadOnly(true);
         return;
     }
@@ -105,7 +105,6 @@ bool RegexEditor::to_final_format(QString& buf,  int j){ // Use seperate buffer 
                 msgbox->setWindowModality(Qt::NonModal);
                 constexpr static const int ctx = 10;
                 msgbox->setDetailedText(QStringRef(&q,  (i >= ctx) ? i - ctx : 0,  (i + ctx < q.size()) ? i + ctx : q.size() - 1).toString());
-                msgbox->setStandardButtons(QMessageBox::Cancel);
                 msgbox->exec();
                 return false;
             }
@@ -214,7 +213,7 @@ void RegexEditor::save_to_file(){
     
     QFile f_raw(this->f_raw_fp);
     if (!f_raw.open(QFile::WriteOnly | QFile::Text)){
-        QMessageBox::critical(this, "FS Error",  "Cannot write to: " + this->f_raw_fp + "\n" + f_raw.errorString(),  QMessageBox::Cancel);
+        QMessageBox::critical(this, "FS Error",  "Cannot write to: " + this->f_raw_fp + "\n" + f_raw.errorString());
         return;
     }
     f_raw.write(buf.toLocal8Bit());
@@ -222,7 +221,7 @@ void RegexEditor::save_to_file(){
     
     QFile f_human(this->f_human_fp);
     if (!f_human.open(QFile::WriteOnly | QFile::Text)){
-        QMessageBox::critical(this, "FS Error",  "Cannot write to: " + this->f_human_fp + "\n" + f_human.errorString(),  QMessageBox::Cancel);
+        QMessageBox::critical(this, "FS Error",  "Cannot write to: " + this->f_human_fp + "\n" + f_human.errorString());
         return;
     }
     f_human.write(this->text_editor->toPlainText().toLocal8Bit());

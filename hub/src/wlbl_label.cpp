@@ -41,7 +41,6 @@ void WlBlLabel::display_subs_w_tag(){
     msgbox->setText(this->text());
     msgbox->setWindowModality(Qt::NonModal);
     msgbox->setDetailedText(s);
-    msgbox->setStandardButtons(QMessageBox::Cancel);
     msgbox->exec();
 }
 

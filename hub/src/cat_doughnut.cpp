@@ -28,7 +28,7 @@ CatDoughnut::CatDoughnut(QWidget* parent) : QDialog(parent), is_initialised(fals
 
 void CatDoughnut::show_chart(){
     if (!is_initialised){
-        QMessageBox::information(this, "Uninitialised", "Bake chart first (allow ~1 minute)", QMessageBox::Cancel);
+        QMessageBox::information(this, "Uninitialised", "Bake chart first (allow ~1 minute)");
         return;
     }
     this->show();

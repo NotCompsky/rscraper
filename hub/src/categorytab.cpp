@@ -107,7 +107,7 @@ void ClTagsTab::rm_self(){
         s += name;
     }
     if (tag_id != 0){
-        QMessageBox::information(this, tr("Error"), s, QMessageBox::Cancel);
+        QMessageBox::information(this, tr("Error"), s);
         return;
     }
     compsky::mysql::exec("DELETE FROM category WHERE id=", this->cat_id);

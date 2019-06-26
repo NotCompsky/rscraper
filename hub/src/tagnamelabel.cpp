@@ -71,7 +71,6 @@ void TagNameLabel::display_subs_w_tag(){
     msgbox->setText("Tagged Subreddits");
     msgbox->setWindowModality(Qt::NonModal);
     msgbox->setDetailedText(DISPLAY_TAGS_RES);
-    msgbox->setStandardButtons(QMessageBox::Cancel);
     msgbox->exec();
 }
 

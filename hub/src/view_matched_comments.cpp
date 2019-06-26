@@ -193,5 +193,5 @@ void ViewMatchedComments::next(){
 #include <QMessageBox>
 void ViewMatchedComments::toggle_order_btns(){
     this->is_ascending = !this->is_ascending;
-    QMessageBox::information(this, "is_ascending",  (this->is_ascending) ? "true" : "false", QMessageBox::Cancel);
+    QMessageBox::information(this, "is_ascending",  (this->is_ascending) ? "true" : "false");
 }

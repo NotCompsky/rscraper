@@ -44,6 +44,5 @@ void WlBlReasonwiseLabel::display_subs_w_tag(){
     msgbox->setText(this->tblname);
     msgbox->setWindowModality(Qt::NonModal);
     msgbox->setInformativeText(s);
-    msgbox->setStandardButtons(QMessageBox::Cancel);
     msgbox->exec();
 }
