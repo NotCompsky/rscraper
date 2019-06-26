@@ -104,7 +104,7 @@ MainWindow::~MainWindow(){
 }
 
 void MainWindow::rename_category(int indx){
-    if (indx == 0)
+    if (indx < 2)
         // Only category tabs can be renamed
         return;
     
