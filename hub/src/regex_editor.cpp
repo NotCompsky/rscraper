@@ -168,10 +168,12 @@ void RegexEditor::test_regex(){
     
     QString report = "Valid regex\n";
     
-    report += "\nReasons:";
-    for (auto i = 0;  i < reason_name2id.size();  ++i){
-        report += "\n\t";
-        report += reason_name2id[i];
+    report += "\nCapture Groups:";
+    for (auto i = 1;  i < groupindx2reason.size();  ++i){
+        report += "\n";
+        report += QString::number(i);
+        report += "\t";
+        report += reason_name2id[groupindx2reason[i]];
     }
     
     QMessageBox::information(this, "Report", report);
