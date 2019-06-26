@@ -164,7 +164,7 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     
     /* TODO: On right click, display reason vs subreddit, rather than just subreddit */
     l->addWidget(new QLabel("Comment content filters (on a per-reason basis)"), row++, 0);
-    l->addWidget(new WlBlReasonwiseLabel("Subreddit Whitelist", "subreddit", "subreddit", "reason_subreddit_whitelist"),  row,  0); // third argument is shorthand for subreddit_id
+    l->addWidget(new WlBlReasonwiseLabel("Subreddit Whitelists", "subreddit", "subreddit", "reason_subreddit_whitelist"),  row,  0); // third argument is shorthand for subreddit_id
     row = add(
         &MainTab::add_to_reason_subreddit_wl,
         &MainTab::rm_from_reason_subreddit_wl,
@@ -262,17 +262,18 @@ void MainTab::add_subreddit_to_reason(const char* tblname,  const bool delete_fr
     if (!reason_names.contains(qstr_reason))
         return notfound::reason(this, qstr_reason);
     
-    dialog = new NameDialog("Subreddit", "");
+    dialog = new NameDialog("Subreddit", "", "Use SQL LIKE pattern matching");
     dialog->name_edit->setCompleter(subreddit_name_completer);
     rc = dialog->exec();
     const QString qstr_subreddit = dialog->name_edit->text();
+    const bool is_pattern = dialog->checkbox->isChecked();
     delete dialog;
     if (rc != QDialog::Accepted)
         return;
     if (qstr_subreddit.isEmpty())
         return;
     
-    if (!subreddit_names.contains(qstr_subreddit))
+    if (!is_pattern  &&  !subreddit_names.contains(qstr_subreddit))
         return notfound::subreddit(this, qstr_subreddit);
     
     compsky::mysql::exec(
@@ -280,9 +281,11 @@ void MainTab::add_subreddit_to_reason(const char* tblname,  const bool delete_fr
         tblname,
         (delete_from) ? " x, reason_matched a, subreddit b WHERE x.reason=a.id AND x.subreddit=b.id AND a.name=\"" : " SELECT a.id,b.id FROM reason_matched a, subreddit b WHERE a.name=\"",
         qstr_reason,
-        "\" AND b.name=\"",
+        "\" AND b.name",
+        (is_pattern) ? " LIKE " : "=",
+        '"',
         qstr_subreddit,
-        "\""
+        '"'
     );
 }
 
