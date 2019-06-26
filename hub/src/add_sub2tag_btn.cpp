@@ -57,17 +57,12 @@ void AddSub2TagBtn::add_subreddit(){
         if (!is_pattern  &&  !subreddit_names.contains(qstr))
             return notfound::subreddit(this, qstr);
         
-        const QByteArray ba = qstr.toLocal8Bit();
-        const char* subreddit_name = ba.data();
-        
-        // TODO: Add QCompleter for subreddit name
-        
         compsky::mysql::exec(
             (this->delete_from) ? "DELETE s2t FROM subreddit2tag s2t LEFT JOIN subreddit s ON s2t.subreddit_id=s.id WHERE tag_id=" : "INSERT IGNORE INTO subreddit2tag SELECT id,",
             this->tag_id,
             (this->delete_from) ? " AND s.name" : " FROM subreddit WHERE name",
             (is_pattern)?" LIKE ":"=",
-            '"',  subreddit_name,  '"'
+            '"',  qstr,  '"'
         );
     }
 }
