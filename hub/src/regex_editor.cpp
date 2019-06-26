@@ -100,11 +100,12 @@ bool RegexEditor::to_final_format(QString& buf,  int j){ // Use seperate buffer 
             else if (ch == QChar('\t'));
             else if (ch == QChar(' '));
             else {
-                QMessageBox* msgbox = new QMessageBox(this);
-                msgbox->setText("Unrecognised escape sequence: \\" + QString(ch) + " at line " + QString::number(get_line_n(q, i)));
-                msgbox->setWindowModality(Qt::NonModal);
                 constexpr static const int ctx = 10;
-                msgbox->setDetailedText(QStringRef(&q,  (i >= ctx) ? i - ctx : 0,  (i + ctx < q.size()) ? i + ctx : q.size() - 1).toString());
+                MsgBox* msgbox = new MsgBox(
+                    this,  
+                    "Unrecognised escape sequence: \\" + QString(ch) + " at line " + QString::number(get_line_n(q, i)),
+                    QStringRef(&q,  (i >= ctx) ? i - ctx : 0,  (i + ctx < q.size()) ? i + ctx : q.size() - 1).toString()
+                );
                 msgbox->exec();
                 return false;
             }

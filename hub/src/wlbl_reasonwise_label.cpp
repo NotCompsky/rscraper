@@ -7,9 +7,9 @@
 
 #include "wlbl_reasonwise_label.hpp"
 
-#include <QMessageBox>
-
 #include <compsky/mysql/query.hpp>
+
+#include "msgbox.hpp"
 
 
 extern MYSQL_RES* RES1;
@@ -40,9 +40,6 @@ void WlBlReasonwiseLabel::display_subs_w_tag(){
         s += subreddit_name;
     }
     
-    QMessageBox* msgbox = new QMessageBox(this);
-    msgbox->setText(this->tblname);
-    msgbox->setWindowModality(Qt::NonModal);
-    msgbox->setInformativeText(s);
+    MsgBox* msgbox = new MsgBox(this, this->tblname, s);
     msgbox->exec();
 }

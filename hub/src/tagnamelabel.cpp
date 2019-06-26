@@ -8,12 +8,12 @@
 #include "tagnamelabel.hpp"
 
 #include <QCompleter>
-#include <QMessageBox>
 
 #include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
 
 #include "name_dialog.hpp"
+#include "msgbox.hpp"
 
 
 extern QStringList tagslist;
@@ -67,10 +67,7 @@ void TagNameLabel::display_subs_w_tag(){
         DISPLAY_TAGS_RES += '\n';
     }
     
-    QMessageBox* msgbox = new QMessageBox(this);
-    msgbox->setText("Tagged Subreddits");
-    msgbox->setWindowModality(Qt::NonModal);
-    msgbox->setDetailedText(DISPLAY_TAGS_RES);
+    MsgBox* msgbox = new MsgBox(this,  "Tagged Subreddits",  DISPLAY_TAGS_RES);
     msgbox->exec();
 }
 

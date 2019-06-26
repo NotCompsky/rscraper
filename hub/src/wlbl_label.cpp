@@ -11,6 +11,8 @@
 
 #include <compsky/mysql/query.hpp>
 
+#include "msgbox.hpp"
+
 
 extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
@@ -37,10 +39,7 @@ void WlBlLabel::display_subs_w_tag(){
         s += name;
     }
     
-    QMessageBox* msgbox = new QMessageBox(this);
-    msgbox->setText(this->text());
-    msgbox->setWindowModality(Qt::NonModal);
-    msgbox->setDetailedText(s);
+    MsgBox* msgbox = new MsgBox(this, this->text(), s);
     msgbox->exec();
 }
 
