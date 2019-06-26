@@ -66,6 +66,7 @@ add_executable(
     
     # Tag Colour Picker tabs
     "${SRC_DIR}/categorytab.cpp"
+    "${SRC_DIR}/io_tab.cpp"
     "${SRC_DIR}/clbtn.cpp"
     "${SRC_DIR}/tagnamelabel.cpp"
     "${SRC_DIR}/add_sub2tag_btn.cpp"

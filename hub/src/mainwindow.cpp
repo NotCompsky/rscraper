@@ -18,6 +18,7 @@
 #include <compsky/mysql/query.hpp>
 
 #include "categorytab.hpp"
+#include "io_tab.hpp"
 #include "maintab.hpp"
 #include "name_dialog.hpp"
 #include "view_matched_comments.hpp"
@@ -54,9 +55,9 @@ MainWindow::MainWindow(QWidget* parent){
     this->tab_widget = new QTabWidget(this);
     connect(this->tab_widget, &QTabWidget::tabBarDoubleClicked, this, &MainWindow::rename_category);
     
-    this->tab_widget->addTab(new MainTab(this->tab_widget), "__MAIN__");
-    
+    this->tab_widget->addTab(new MainTab(this->tab_widget),             "__MAIN__");
     this->tab_widget->addTab(new ViewMatchedComments(this->tab_widget), "__CMNTS__");
+    this->tab_widget->addTab(new IOTab(this->tab_widget),               "__IO__");
     
     tag_name2id.clear();
     compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM tag");
@@ -120,7 +121,7 @@ void MainWindow::insert_category(const uint64_t id,  const char* name){
 }
 
 void MainWindow::rename_category(int indx){
-    if (indx < 2)
+    if (indx < 3)
         // Only category tabs can be renamed
         return;
     
