@@ -18,7 +18,14 @@ extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
 
-RmTagBtn::RmTagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), QPushButton("Delete", parent) {}
+RmTagBtn::RmTagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), QPushButton("Delete", parent) {
+    QPalette palette = this->palette();
+    palette.setColor(QPalette::Button, QColor(Qt::red));
+    this->setAutoFillBackground(true);
+    this->setPalette(palette);
+    this->setFlat(true);
+    this->update();
+}
 
 void RmTagBtn::rm_tag(){
     compsky::mysql::exec("DELETE FROM subreddit2tag WHERE tag_id=", this->tag_id);
