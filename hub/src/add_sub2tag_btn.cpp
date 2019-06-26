@@ -46,13 +46,15 @@ void AddSub2TagBtn::add_subreddit(){
             namedialog->name_edit->setCompleter(tag_subreddits_names_completer);
         }
         
+        int rc = namedialog->exec();
         const bool is_pattern = namedialog->checkbox->isChecked();
+        const QString qstr = namedialog->name_edit->text();
         
         delete namedialog;
         
-        if (namedialog->exec() != QDialog::Accepted)
+        if (rc != QDialog::Accepted)
             return;
-        const QString qstr = namedialog->name_edit->text();
+        
         if (qstr.isEmpty())
             return;
         
