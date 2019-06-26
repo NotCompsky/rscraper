@@ -8,6 +8,9 @@
 #include "id2str.hpp"
 
 #include <stdio.h> // for printf
+#ifdef DEBUG
+# include <stdlib.h> // for exit
+#endif
 
 
 size_t id2str(uint64_t id_orig,  char* buf){
