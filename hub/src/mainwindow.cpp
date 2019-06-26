@@ -11,6 +11,7 @@
 #include <QColorDialog>
 #include <QCompleter>
 #include <QMessageBox>
+#include <QScrollArea>
 #include <QVBoxLayout>
 
 #include <compsky/asciify/flags.hpp>
@@ -73,7 +74,7 @@ MainWindow::MainWindow(QWidget* parent){
     uint64_t id;
     char* name;
     while (compsky::mysql::assign_next_row(RES1, &ROW1, &id, &name)){
-        this->tab_widget->addTab(new ClTagsTab(id, this->tab_widget), tr(name));
+        this->insert_category(id, name);
     }
     }
     
@@ -101,6 +102,17 @@ MainWindow::MainWindow(QWidget* parent){
 
 MainWindow::~MainWindow(){
     compsky::mysql::exit_mysql();
+}
+
+void MainWindow::insert_category(const uint64_t id,  const char* name){
+    ClTagsTab* tab = new ClTagsTab(id, this->tab_widget);
+    
+    QScrollArea* scroll_area = new QScrollArea(this);
+    scroll_area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    scroll_area->setWidgetResizable(true);
+    scroll_area->setWidget(tab);
+    
+    this->tab_widget->addTab(scroll_area, name);
 }
 
 void MainWindow::rename_category(int indx){

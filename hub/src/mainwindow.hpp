@@ -34,5 +34,6 @@ class MainWindow : public QDialog{
     void rename_category(int indx);
   private:
     QTabWidget* tab_widget;
+    void insert_category(const uint64_t id,  const char* name);
 };
 #endif
