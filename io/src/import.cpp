@@ -100,7 +100,7 @@ int main(int argc,  const char** argv){
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO user (id,name) VALUES ";
         compsky::asciify::asciify(pre);
-        while(fscanf(f, "%s\t%s", uint64_a, str_a) != EOF){
+        while(fscanf(f, "%[^,\n]\t%[^,\n]", uint64_a, str_a) != EOF){
             compsky::asciify::asciify('(', uint64_a, ',', '"', _f::esc, '"', str_a, '"', ')', ',');
             compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 1 + 1 + 2*128 + 1 + 1 + 1);
         }
@@ -114,7 +114,7 @@ int main(int argc,  const char** argv){
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO subreddit (id,name) VALUES ";
         compsky::asciify::asciify(pre);
-        while(fscanf(f, "%s\t%s", uint64_a, str_a) != EOF){
+        while(fscanf(f, "%[^,\n]\t%[^,\n]", uint64_a, str_a) != EOF){
             compsky::asciify::asciify('(', uint64_a, ',', '"', _f::esc, '"', str_a, '"', ')', ',');
             compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 1 + 1 + 2*128 + 1 + 1 + 1);
         }
@@ -129,7 +129,7 @@ int main(int argc,  const char** argv){
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO tag (name, r, g, b, a) VALUES ";
         compsky::asciify::asciify(pre);
-        while(fscanf(f, "%s\t%s", str_a, str_b) != EOF){
+        while(fscanf(f, "%[^,\n]\t%[^,\n]", str_a, str_b) != EOF){
             // `str_b` itself is of the format %lf,%lf,%lf,%lf
             compsky::asciify::asciify("(\"", _f::esc, '"', str_a, "\",", str_b, "),");
             compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 2 + 4*7 + 2);
@@ -145,7 +145,7 @@ int main(int argc,  const char** argv){
         compsky::asciify::BUF_INDX = 0;
         constexpr static const char* pre = "INSERT IGNORE INTO category (name) VALUES ";
         compsky::asciify::asciify(pre);
-        while(fscanf(f, "%s\n", str_a) != EOF){
+        while(fscanf(f, "%[^,\n]\n", str_a) != EOF){
             compsky::asciify::asciify("(\"", _f::esc, '"', str_a, "\"),");
             compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3);
         }
@@ -172,7 +172,7 @@ int main(int argc,  const char** argv){
             post_strlen = 0;
         }
         compsky::asciify::asciify(pre);
-        while(fscanf(f, "%s\t%s\t%s", uint64_a, uint64_b, uint64_c) != EOF){
+        while(fscanf(f, "%[^,\n]\t%[^,\n]\t%[^,\n]", uint64_a, uint64_b, uint64_c) != EOF){
             compsky::asciify::asciify("(", uint64_a, ',', uint64_b, ',', uint64_c, "),");
             compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3,  post, post_strlen);
         }
@@ -185,7 +185,7 @@ int main(int argc,  const char** argv){
     
     if (argc == 0  ||  contains(argv, argc, "subreddit2tag.csv")){
         f = fopen("subreddit2tag.csv", "rb");
-        while(fscanf(f, "%s\t%s", str_a, str_b) != EOF){
+        while(fscanf(f, "%[^,\n]\t%[^,\n]", str_a, str_b) != EOF){
             compsky::mysql::exec("INSERT IGNORE INTO subreddit2tag (subreddit_id,tag_id) SELECT s.id,t.id FROM subreddit s, tag t WHERE s.name=\"", _f::esc, '"', str_a, "\" AND t.name=\"", _f::esc, '"', str_b, "\"");
         }
         fclose(f);
@@ -193,7 +193,7 @@ int main(int argc,  const char** argv){
     
     if (argc == 0  ||  contains(argv, argc, "tag2category.csv")){
         f = fopen("tag2category.csv", "rb");
-        while(fscanf(f, "%s\t%s", str_a, str_b) != EOF)
+        while(fscanf(f, "%[^,\n]\t%[^,\n]", str_a, str_b) != EOF)
             compsky::mysql::exec("INSERT IGNORE INTO tag2category (tag_id,category_id) SELECT t.id,c.id FROM tag t, category c WHERE t.name=\"", _f::esc, '"', str_a, "\" AND c.name=\"", _f::esc, '"', str_b, "\"");
         fclose(f);
     }
