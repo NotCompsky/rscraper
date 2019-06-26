@@ -40,6 +40,6 @@ void WlBlReasonwiseLabel::display_subs_w_tag(){
         s += subreddit_name;
     }
     
-    MsgBox* msgbox = new MsgBox(this, this->tblname, s);
+    MsgBox* msgbox = new MsgBox(this, this->tblname, s, 720);
     msgbox->exec();
 }
