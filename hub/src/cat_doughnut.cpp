@@ -7,6 +7,7 @@
 #include <tuple>
 
 #include <QChartView>
+#include <QMessageBox>
 #include <QPieSeries>
 #include <QPieSlice>
 #include <QPushButton>
@@ -26,12 +27,15 @@ extern MYSQL_ROW ROW1;
 CatDoughnut::CatDoughnut(QWidget* parent) : QDialog(parent), is_initialised(false) {}
 
 void CatDoughnut::show_chart(){
-    if (!is_initialised)
-        this->init();
+    if (!is_initialised){
+        QMessageBox::information(this, "Uninitialised", "Bake chart first (allow ~1 minute)", QMessageBox::Cancel);
+        return;
+    }
     this->show();
 }
 
 void CatDoughnut::init(){
+    // TODO: Use worker thread for this
     compsky::mysql::query_buffer(&RES1,  "SELECT c.id, c.name, t.name, COUNT(u2scc.count), FLOOR(255*r) as r, FLOOR(255*g) as g, FLOOR(255*b) as b, FLOOR(255*a) as a FROM category c, tag2category t2c, tag t, subreddit2tag s2t, user2subreddit_cmnt_count u2scc WHERE t2c.category_id=c.id AND t.id=t2c.tag_id AND t.id=s2t.tag_id AND s2t.subreddit_id=u2scc.subreddit_id GROUP BY c.id, c.name, t.name, r, g, b, a ORDER BY c.id");
     uint64_t last_cat_id = 0;
     uint64_t cat_id, tag_count;

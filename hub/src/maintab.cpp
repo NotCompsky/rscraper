@@ -91,11 +91,17 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     
     
     // TODO: Move scraper config rows to a different section
+    {
+    l->addWidget(new QLabel("Doughnut"), row, 0);
     this->cat_doughnut = new CatDoughnut(this);
-    QPushButton* show_cat_doughnut_btn = new QPushButton("Eat Doughnut", this);
+    QPushButton* bake_cat_doughnut_btn = new QPushButton("Bake", this);
+    connect(bake_cat_doughnut_btn, &QPushButton::clicked, this->cat_doughnut, &CatDoughnut::init);
+    l->addWidget(bake_cat_doughnut_btn, row, 1);
+    QPushButton* show_cat_doughnut_btn = new QPushButton("Eat", this);
     connect(show_cat_doughnut_btn, &QPushButton::clicked, this->cat_doughnut, &CatDoughnut::show_chart);
-    l->addWidget(show_cat_doughnut_btn, row++, 0);
-    
+    l->addWidget(show_cat_doughnut_btn, row, 2);
+    ++row;
+    }
     
     QPushButton* edit_cmnt_body_re_btn = new QPushButton("Edit Comment Body Regexp", this);
     connect(edit_cmnt_body_re_btn, &QPushButton::clicked, this, &MainTab::open_cmnt_body_re_editor);

@@ -12,8 +12,8 @@ class CatDoughnut : public QDialog {
   public:
     explicit CatDoughnut(QWidget* parent);
     void show_chart();
-  private:
     void init();
+  private:
     bool is_initialised;
     DonutBreakdownChart* chart;
 };
