@@ -70,6 +70,7 @@ bool contains(const char** ls,  const int n,  const char* s){
 }
 
 void import_user_table(FILE* f){
+    printf("Importing user table\n");
     compsky::asciify::BUF_INDX = 0;
     constexpr static const char* pre = "INSERT IGNORE INTO user (id,name) VALUES ";
     compsky::asciify::asciify(pre);
@@ -80,9 +81,11 @@ void import_user_table(FILE* f){
     if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
         compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
     fclose(f);
+    printf("  Completed\n");
 }
 
 void import_subreddit_table(FILE* f){
+    printf("Importing subreddit table\n");
     compsky::asciify::BUF_INDX = 0;
     constexpr static const char* pre = "INSERT IGNORE INTO subreddit (id,name) VALUES ";
     compsky::asciify::asciify(pre);
@@ -93,9 +96,11 @@ void import_subreddit_table(FILE* f){
     if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
         compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
     fclose(f);
+    printf("  Completed\n");
 }
 
 void import_tag_table(FILE* f){
+    printf("Importing tag table\n");
     compsky::asciify::BUF_INDX = 0;
     constexpr static const char* pre = "INSERT IGNORE INTO tag (name, r, g, b, a) VALUES ";
     compsky::asciify::asciify(pre);
@@ -107,9 +112,11 @@ void import_tag_table(FILE* f){
     if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
         compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
     fclose(f);
+    printf("  Completed\n");
 }
 
 void import_category_table(FILE* f){
+    printf("Importing category table\n");
     compsky::asciify::BUF_INDX = 0;
     constexpr static const char* pre = "INSERT IGNORE INTO category (name) VALUES ";
     compsky::asciify::asciify(pre);
@@ -120,9 +127,11 @@ void import_category_table(FILE* f){
     if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
         compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
     fclose(f);
+    printf("  Completed\n");
 }
 
 void import_u2scc_table(FILE* f){
+    printf("Importing user2subreddit_cmnt_count table\n");
     compsky::asciify::BUF_INDX = 0;
     char* pre;
     char* post;
@@ -144,9 +153,11 @@ void import_u2scc_table(FILE* f){
     if (compsky::asciify::BUF_INDX != strlen(pre))
         compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
     fclose(f);
+    printf("  Completed\n");
 }
 
 void import_subreddit2tag_table(FILE* f){
+    printf("Importing subreddit2tag table\n");
     compsky::asciify::BUF_INDX = 0;
     constexpr static const char* pre = "INSERT IGNORE INTO subreddit2tag (subreddit_id,tag_id) SELECT s.id,t.id FROM subreddit s, tag t WHERE ";
     compsky::asciify::asciify(pre);
@@ -158,15 +169,19 @@ void import_subreddit2tag_table(FILE* f){
     if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
         compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 4);
     fclose(f);
+    printf("  Completed\n");
 }
 
 void import_tag2category_table(FILE* f){
+    printf("Importing tag2category table\n");
     while(fscanf(f, "%[^\t\n]\t%[^\n]\n", str_a, str_b) != EOF)
         compsky::mysql::exec("INSERT IGNORE INTO tag2category (tag_id,category_id) SELECT t.id,c.id FROM tag t, category c WHERE t.name=\"", _f::esc, '"', str_a, "\" AND c.name=\"", _f::esc, '"', str_b, "\"");
     fclose(f);
+    printf("  Completed\n");
 }
 
 void import_subredditsbasic_table(FILE* f){
+    printf("Importing subreddit2meta table (from subreddits_basic.csv)\n");
     compsky::asciify::BUF_INDX = 0;
     constexpr static const char* pre = "INSERT IGNORE INTO subreddit2meta (id,subscribers,created_at) VALUES ";
     compsky::asciify::asciify(pre);
@@ -181,6 +196,7 @@ void import_subredditsbasic_table(FILE* f){
     if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
         compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
     fclose(f);
+    printf("  Completed\n");
 }
 
 int main(int argc,  const char** argv){
