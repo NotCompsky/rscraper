@@ -1,5 +1,7 @@
 # Installing
 
+Install [libcompsky](https://github.com/NotCompsky/libcompsky).
+
 Navigate to the [releases](releases) page.
 
 Download the `deb` files for the packages you wish to install. This guide will assume you have installed the `init`, `io`, and `gui` packages.

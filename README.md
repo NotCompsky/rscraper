@@ -8,7 +8,7 @@ Note: `rscraper-tagger` is for the server library and executables only. You do n
 
 See [hub usage guide](guides/hub.md) for detailed instructions on using `rscraper-hub`.
 
-See `docs` directory for more generic instructions on using the other programs.
+See [man](man) directory for more generic instructions on using the other programs.
 
 # Installing
 

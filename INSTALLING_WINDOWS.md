@@ -18,4 +18,4 @@ Then run `sudo rscraper-init`. The default answers are, in order:
     root
     <ROOT PASSWORD>
 
-Then, if you wish to use the scrapers - `rscrape-cmnts` - carry out the prerequisites [here](docs/rscraper-init-scraper.1.md) and then run `rscraper-init-scraper`.
+Then, if you wish to use the scrapers - `rscrape-cmnts` - carry out the prerequisites [here](man/rscraper-init-scraper.1.md) and then run `rscraper-init-scraper`.

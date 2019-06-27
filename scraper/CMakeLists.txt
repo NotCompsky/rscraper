@@ -28,7 +28,6 @@ endif()
 
 
 if(WIN32)
-    include("${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/cmake/FindMYSQL.cmake")
     include_directories("${MYSQL_INCLUDE_DIR}")
     link_directories("${MYSQL_LIBRARIES}")
 endif()

@@ -1,6 +1,6 @@
 # Usage
 
-See [the manuals](../docs) for usage information on each tool.
+See [the manuals](../man) for usage information on each tool.
 
 In order to use the scraper, you need to have registered an app with reddit.com.
 

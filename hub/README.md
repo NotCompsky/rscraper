@@ -4,4 +4,4 @@ Download the source code of [mainslice.h](https://doc.qt.io/archives/qt-5.11/qtc
 
 # Usage
 
-See [manual](../docs/rscraper-hub).
+See [guide](../guide/hub.md) and [manual](../man/rscraper-hub).
