@@ -102,8 +102,7 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res
     box->addWidget(desc);
     box->addStretch(1);
     group_box->setLayout(box);
-    box->addWidget(group_box);
-    l->addLayout(box);
+    l->addWidget(group_box);
     }
     
     
@@ -209,8 +208,7 @@ void ViewMatchedComments::next(){
         this->textarea->setPlainText(body);
     } else this->res1 = nullptr;
 }
-#include <QMessageBox>
+
 void ViewMatchedComments::toggle_order_btns(){
     this->is_ascending = !this->is_ascending;
-    QMessageBox::information(this, "is_ascending",  (this->is_ascending) ? "true" : "false");
 }
