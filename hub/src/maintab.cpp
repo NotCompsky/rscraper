@@ -220,7 +220,24 @@ void MainTab::add_category(){
 void MainTab::add_subreddit_to(const char* tblname,  const bool delete_from){
     bool ok;
     NameDialog* dialog = new NameDialog(tblname, "", "Use SQL LIKE pattern matching");
-    dialog->name_edit->setCompleter(subreddit_name_completer);
+    if (!delete_from)
+        dialog->name_edit->setCompleter(subreddit_name_completer);
+    else {
+        QStringList tbl_user_names;
+        compsky::mysql::query(&RES1, "SELECT s.name, t.id FROM subreddit s RIGHT JOIN ", tblname, " t ON s.id=t.id");
+        char* name;
+        uint64_t id;
+        char buf[20];
+        while(compsky::mysql::assign_next_row(RES1, &ROW1, &name, &id)){
+            if (name != nullptr)
+                tbl_user_names << name;
+            else {
+                buf[id2str(id, buf)] = 0;
+                tbl_user_names << QString("id-t3_") + buf;
+            }
+        }
+        dialog->name_edit->setCompleter(new QCompleter(tbl_user_names));
+    }
     const auto rc = dialog->exec();
     const QString qstr = dialog->name_edit->text();
     const bool is_pattern = dialog->checkbox->isChecked();
