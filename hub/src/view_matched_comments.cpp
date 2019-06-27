@@ -149,6 +149,9 @@ ViewMatchedComments::~ViewMatchedComments(){
 }
 
 void ViewMatchedComments::init(){
+    if (this->res1 != nullptr)
+        mysql_free_result(this->res1);
+    
     const QString tag    = this->tagname_input->text();
     const QString reason = this->reasonname_input->text();
     
