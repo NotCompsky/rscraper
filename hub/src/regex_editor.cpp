@@ -204,6 +204,9 @@ void RegexEditor::test_regex(){
         }
     }
     
+    if (!try_exrex)
+        report += "\n\nTo see example strings that match each group regex, pip install exrex";
+    
     MsgBox* msgbox = new MsgBox(this, "Success", report, 720);
     msgbox->exec();
 }
