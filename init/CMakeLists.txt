@@ -19,5 +19,5 @@ set_property(TARGET rscraper-init PROPERTY CXX_STANDARD 17)
 install(
     TARGETS rscraper-init
     RUNTIME DESTINATION bin
-        COMPONENT utils
+        COMPONENT init
 )

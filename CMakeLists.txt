@@ -34,40 +34,50 @@ else()
     link_directories("${COMPSKY_LIB_DIRS}")
 endif()
 
-set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
-SET(CPACK_RPM_COMPONENT_INSTALL     ON)
-SET(CPACK_DEB_COMPONENT_INSTALL     ON)
-set(CPACK_DEBIAN_ENABLE_COMPONENT_DEPENDS ON)
+
+if(BUILD_PACKAGES)
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+    SET(CPACK_RPM_COMPONENT_INSTALL     ON)
+    SET(CPACK_DEB_COMPONENT_INSTALL     ON)
+    set(CPACK_DEBIAN_ENABLE_COMPONENT_DEPENDS ON)
 
 
-if("${BUILD_PACKAGES}" STREQUAL "1")
-    set(CPACK_COMPONENTS_ALL utils man scraper tagger gui)
-    message(STATUS "Note: You can specify the packages to build with -DBUILD_PACKAGES=<package_name>")
-else()
-    set(CPACK_COMPONENTS_ALL ${BUILD_PACKAGES})
+    if("${BUILD_PACKAGES}" STREQUAL "1")
+        set(CPACK_COMPONENTS_ALL utils init io man scraper tagger gui)
+        message(STATUS "Note: You can specify the packages to build with -DBUILD_PACKAGES=<package_name>")
+    else()
+        set(CPACK_COMPONENTS_ALL ${BUILD_PACKAGES})
+    endif()
+
+
+    set(CPACK_COMPONENT_UTILS_DESCRIPTION
+        "Slightly useful utilities for rscraper")
+    set(CPACK_COMPONENT_INIT_DESCRIPTION
+        "Utility for initialising the database necessary for all rscraper packages")
+    set(CPACK_COMPONENT_IO_DESCRIPTION
+        "Utility for importing to and exporting from the RScraper database")
+    set(CPACK_COMPONENT_MAN_DESCRIPTION
+        "Man pages for all binaries")
+    set(CPACK_COMPONENT_SCRAPER_DESCRIPTION
+        "Tools for scraping Reddit")
+    set(CPACK_COMPONENT_TAGGER_DESCRIPTION
+        "Server for RTagger")
+    set(CPACK_COMPONENT_GUI_DESCRIPTION
+        "Qt5-based GUI for managing the scraper and tagger")
+
+    if(NOT WHICH_CURL)
+        message(FATAL_ERROR "Please specify the curl package to use with -DWHICH_CURL=...\nDiscover this with the command:  apt list --installed | grep libcurl")
+    endif()
+    if(NOT WHICH_BOOST_REGEX)
+        message(FATAL_ERROR "Please specify the curl package to use with -DWHICH_BOOST_REGEX=...\nDiscover this with the command:  apt list --installed | grep libboost-regex")
+    endif()
+
+    set(CPACK_DEBIAN_UTILS_PACKAGE_DEPENDS "libcompsky")
+    set(CPACK_DEBIAN_MAN_PACKAGE_DEPENDS "")
+    set(CPACK_DEBIAN_SCRAPER_PACKAGE_DEPENDS "libcompsky, ${WHICH_CURL}, ${WHICH_BOOST_REGEX}")
+    set(CPACK_DEBIAN_TAGGER_PACKAGE_DEPENDS "libcompsky")
+    set(CPACK_DEBIAN_GUI_PACKAGE_DEPENDS "libcompsky, libqt5widgets5, libqt5charts5, ${WHICH_BOOST_REGEX}")
 endif()
-
-
-set(CPACK_COMPONENT_UTILS_DESCRIPTION
-    "Utilities for interacting with the RScraper MySQL database")
-set(CPACK_COMPONENT_MAN_DESCRIPTION
-    "Man pages for all binaries")
-set(CPACK_COMPONENT_SCRAPER_DESCRIPTION
-    "Tools for scraping Reddit")
-set(CPACK_COMPONENT_TAGGER_DESCRIPTION
-    "Server for RTagger")
-set(CPACK_COMPONENT_GUI_DESCRIPTION
-    "Qt5-based GUI for managing the scraper and tagger")
-
-if(NOT WHICH_CURL)
-    message(FATAL_ERROR "Please specify the curl package to use with -DWHICH_CURL=...\nDiscover this with the command:  apt list --installed | grep libcurl")
-endif()
-
-set(CPACK_DEBIAN_UTILS_PACKAGE_DEPENDS "libcompsky")
-set(CPACK_DEBIAN_MAN_PACKAGE_DEPENDS "")
-set(CPACK_DEBIAN_SCRAPER_PACKAGE_DEPENDS "libcompsky, ${WHICH_CURL}")
-set(CPACK_DEBIAN_TAGGER_PACKAGE_DEPENDS "libcompsky")
-set(CPACK_DEBIAN_GUI_PACKAGE_DEPENDS "libcompsky, libqt5charts5")
 
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("#include <filesystem>" FS_NOT_EXPERIMENTAL)
@@ -100,7 +110,6 @@ add_subdirectory(tagger)
 add_subdirectory(init)
 add_subdirectory(utils)
 add_subdirectory(io)
-add_subdirectory(query)
 add_subdirectory(docs)
 if(BUILD_PACKAGES)
     add_subdirectory(packaging)
