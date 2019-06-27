@@ -5,28 +5,23 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __CATEGORYTAB_H__
-#define __CATEGORYTAB_H__
+#ifndef __BTN_WITH_ID_H__
+#define __BTN_WITH_ID_H__
 
-#include <QGridLayout>
-#include <QTabWidget>
-#include <QWidget>
+#include <QMouseEvent>
+#include <QPushButton>
+#include <QString>
 
 
-class ClTagsTab : public QWidget{
+class BtnWithID : public QPushButton {
     Q_OBJECT
+  private Q_SLOTS:
+    void mousePressEvent(QMouseEvent* e);
   public:
-    explicit ClTagsTab(const uint64_t id,  QTabWidget* tab_widget,  QWidget* parent = 0);
-    const uint64_t cat_id;
-  public Q_SLOTS:
-    void add_tag();
-    void rm_self();
-    uint64_t create_tag(QString& qs);
-  private:
-    void display_tag_stats(const int tag_id);
-    QGridLayout* l;
-    QTabWidget* tab_widget;
-    int row;
+    explicit BtnWithID(const QString& title,  const uint64_t id,  QWidget* parent);
+    const uint64_t id;
+  Q_SIGNALS:
+    void left_clicked(const int id);
 };
 
 #endif

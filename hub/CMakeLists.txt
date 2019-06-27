@@ -44,8 +44,10 @@ add_executable(
     
     "${SRC_DIR}/mainwindow.cpp"
     
-    # Main Tab
-    "${SRC_DIR}/maintab.cpp"
+    # Other Tabs
+    "${SRC_DIR}/main_tab.cpp"
+    
+    "${SRC_DIR}/scraper_tab.cpp"
     "${SRC_DIR}/wlbl_label.cpp"
     "${SRC_DIR}/wlbl_reasonwise_label.cpp"
     
@@ -53,6 +55,7 @@ add_executable(
     
     # Utils
     "${UTILS_SRC_DIR}/id2str.cpp"
+    "${SRC_DIR}/btn_with_id.cpp"
     "${SRC_DIR}/name_dialog.cpp"
     
     "${SRC_DIR}/msgbox.cpp"
@@ -72,6 +75,8 @@ add_executable(
     "${SRC_DIR}/add_sub2tag_btn.cpp"
     "${SRC_DIR}/mv_tag_btn.cpp"
     "${SRC_DIR}/rm_tag_btn.cpp"
+    
+    "${SRC_DIR}/tag_stats.cpp"
     
     "${SRC_DIR}/regex_editor.cpp"
     
