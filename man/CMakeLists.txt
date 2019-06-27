@@ -11,7 +11,12 @@ endif()
 set(MAN_PAGES_BASENAMES "rscraper.1" "rscraper-hub.1" "rscraper-str2id.1" "rscraper-id2str.1" "rscraped-tagged-subs.1" "rscraped-reason.1" "rscrape-cmnts.1" "rscraper-init.1" "rscraper-init-scraper.1" "rscraper-export.1" "rscraper-import.1")
 set(DOC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(MAN_FILES)
+
 find_program(PANDOC NAMES pandoc)
+if(PANDOC STREQUAL "PANDOC-NOTFOUND")
+    return()
+endif()
+
 foreach(basename ${MAN_PAGES_BASENAMES})
     set(tgt "${basename}")
     add_custom_command(
