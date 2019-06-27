@@ -67,7 +67,7 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* p
 
 uint64_t ClTagsTab::create_tag(QString& qs){
     constexpr static const compsky::asciify::flag::Escape f;
-    compsky::mysql::exec("INSERT INTO tag (name, r,g,b,a) VALUES (\"",  f,  '"',  qs,  "\",0,0,0,0)");
+    compsky::mysql::exec("INSERT IGNORE INTO tag (name, r,g,b,a) VALUES (\"",  f,  '"',  qs,  "\",0,0,0,0)");
     compsky::mysql::query_buffer(&RES1,  "SELECT LAST_INSERT_ID() as ''");
     uint64_t id = 0;
     while(compsky::mysql::assign_next_row(RES1, &ROW1, &id));
@@ -89,7 +89,7 @@ void ClTagsTab::add_tag(){
     
     const uint64_t tag_id  =  (tagslist.contains(tagstr))  ?  tag_name2id[tagstr]  :  this->create_tag(tagstr);
     
-    compsky::mysql::exec("INSERT INTO tag2category (category_id, tag_id) VALUES (",  this->cat_id,  ',',  tag_id,  ')');
+    compsky::mysql::exec("INSERT IGNORE INTO tag2category (category_id, tag_id) VALUES (",  this->cat_id,  ',',  tag_id,  ')');
     ++this->row;
     tagslist << tagstr;
     this->l->addWidget(new TagNameLabel(tag_id, tagstr, this),  this->row,  0);
