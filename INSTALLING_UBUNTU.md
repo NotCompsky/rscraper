@@ -14,7 +14,7 @@ Run `sudo rscraper-init` and follow its instructions.
 
 Root privileges are required to use root passwordless authentication for MySQL - which is by default the only way to access new (unconfigured) installs of MySQL community servers.
 
-You can run without root privileges, so long as you specify the SQL server's admin's password.
+You can run without root (system) privileges, so long as you specify an account on the SLQ server that has root (SQL) privileges, and include its corresponding password.
 
 No further `rscraper` programs will ask to run with root privileges.
 
@@ -30,13 +30,9 @@ Navigate to the `__IO__` (import export) tab.
 
 ![__IO__ tab](https://user-images.githubusercontent.com/30552567/60239720-88e1c000-98a6-11e9-83f2-74064b2f4ffd.png)
 
-Navigate to the link shown.
+Navigate to the link shown, and click on the demo data dump link.
 
 ![Data dumps link](https://user-images.githubusercontent.com/30552567/60239723-8ed7a100-98a6-11e9-957d-d5b6746af7c7.png)
-
-Navigate to the the demo data dump link.
-
-![rscraper-tagger on github profile page](https://user-images.githubusercontent.com/30552567/60239723-8ed7a100-98a6-11e9-957d-d5b6746af7c7.png)
 
 Download the folder (as a zip file).
 
