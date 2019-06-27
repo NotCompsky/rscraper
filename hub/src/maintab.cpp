@@ -296,7 +296,24 @@ void MainTab::add_user_to(const char* tblname,  const bool delete_from){
         populate_user_name_completer();
     
     NameDialog* dialog = new NameDialog(tblname, "", "Is user ID (format id-t2_a1b2c3d)");
-    dialog->name_edit->setCompleter(user_name_completer);
+    if (!delete_from)
+        dialog->name_edit->setCompleter(user_name_completer);
+    else {
+        QStringList tbl_user_names;
+        compsky::mysql::query(&RES1, "SELECT u.name, t.id FROM user u RIGHT JOIN ", tblname, " t ON u.id=t.id");
+        char* name;
+        uint64_t id;
+        char buf[20];
+        while(compsky::mysql::assign_next_row(RES1, &ROW1, &name, &id)){
+            if (name != nullptr)
+                tbl_user_names << name;
+            else {
+                buf[id2str(id, buf)] = 0;
+                tbl_user_names << QString("id-t2_") + buf;
+            }
+        }
+        dialog->name_edit->setCompleter(new QCompleter(tbl_user_names));
+    }
     const auto rc = dialog->exec();
     const QString qstr = dialog->name_edit->text();
     const bool is_id = dialog->checkbox->isChecked();
