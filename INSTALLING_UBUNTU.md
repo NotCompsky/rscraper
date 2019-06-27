@@ -1,3 +1,5 @@
+# Installing
+
 Navigate to the [releases](releases) page.
 
 Download the `deb` files for the packages you wish to install. This guide will assume you have installed the `init`, `io`, and `gui` packages.
@@ -9,6 +11,8 @@ Navigate to your Downloads folder, and open in the terminal.
 Run `sudo apt install ./RScraper-*.deb`.
 
 ![Terminal](https://user-images.githubusercontent.com/30552567/60239671-59cb4e80-98a6-11e9-9102-e156814468d2.png)
+
+# Configuring
 
 Run `sudo rscraper-init` and follow its instructions.
 
@@ -46,4 +50,12 @@ Open the extracted folder in a terminal, and run `rscraper-import`. Allow a coup
 
 ![rscraper-import from rscraper-io package](https://user-images.githubusercontent.com/30552567/60245955-8f2b6880-98b5-11e9-984f-94fd6d1504f4.png)
 
-See the [hub usage guide](guides/hub.md) - if your data was imported successfully, it should resemble the screenshots.
+# Verifying
+
+Run `rscraper-hub` to open the `rscraper-hub` program.
+
+![rscraper-hub opened from terminal](https://user-images.githubusercontent.com/30552567/60246088-e2052000-98b5-11e9-82be-e259d6f30f9e.png)
+
+You should see there are new tabs, created from the data from the imported datasets.
+
+![category tab](https://user-images.githubusercontent.com/30552567/60246202-22649e00-98b6-11e9-8cef-61e6b5d87e77.png)

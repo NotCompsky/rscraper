@@ -2,10 +2,6 @@ Run `rscraper-hub` to open the `rscraper-hub` program.
 
 ![rscraper-hub opened from terminal](https://user-images.githubusercontent.com/30552567/60246088-e2052000-98b5-11e9-82be-e259d6f30f9e.png)
 
-You should see there are new tabs, created from the data from the imported datasets.
-
-![category tab](https://user-images.githubusercontent.com/30552567/60246202-22649e00-98b6-11e9-8cef-61e6b5d87e77.png)
-
 You can right-click on any tag's label to see the associated subreddits. For instance, here I clicked on `Dutch`.
 
 ![subreddit2tag summary for Dutch](https://user-images.githubusercontent.com/30552567/60246564-d8c88300-98b6-11e9-85c9-5d88d7a4d89e.png)
