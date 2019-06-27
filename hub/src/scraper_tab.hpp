@@ -15,18 +15,16 @@
 
 class CatDoughnut;
 
-class MainTab;
-typedef  void (MainTab::*MainTabMemberFnct)();
+class ScraperTab;
+typedef  void (ScraperTab::*ScraperTabMemberFnct)();
 
 
-class MainTab : public QWidget {
+class ScraperTab : public QWidget {
     Q_OBJECT
   public:
-    explicit MainTab(QTabWidget* tab_widget,  QWidget* parent = 0);
-  public Q_SLOTS:
-    void add_category();
+    explicit ScraperTab(QWidget* parent = 0);
   private:
-    int add(MainTabMemberFnct f_add,  MainTabMemberFnct f_rm,  QGridLayout* l,  int row);
+    int add(ScraperTabMemberFnct f_add,  ScraperTabMemberFnct f_rm,  QGridLayout* l,  int row);
     
     void open_cmnt_body_re_editor();
     
@@ -55,9 +53,6 @@ class MainTab : public QWidget {
     
     void add_to_reason_subreddit_bl();
     void rm_from_reason_subreddit_bl();
-    
-    QTabWidget* tab_widget;
-    CatDoughnut* cat_doughnut;
 };
 
 #endif

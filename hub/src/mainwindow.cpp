@@ -19,8 +19,9 @@
 
 #include "categorytab.hpp"
 #include "io_tab.hpp"
-#include "maintab.hpp"
+#include "main_tab.hpp"
 #include "name_dialog.hpp"
+#include "scraper_tab.hpp"
 #include "view_matched_comments.hpp"
 
 #define DIGITS_IN_UINT64 19
@@ -56,8 +57,10 @@ MainWindow::MainWindow(QWidget* parent){
     connect(this->tab_widget, &QTabWidget::tabBarDoubleClicked, this, &MainWindow::rename_category);
     
     this->tab_widget->addTab(new MainTab(this->tab_widget),             "__MAIN__");
+    this->tab_widget->addTab(new ScraperTab(),                          "__SCRAPER__");
     this->tab_widget->addTab(new ViewMatchedComments(this->tab_widget), "__CMNTS__");
     this->tab_widget->addTab(new IOTab(this->tab_widget),               "__IO__");
+    #define N_NONCATEGORY_TABS 4
     
     tag_name2id.clear();
     compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM tag");
@@ -121,7 +124,7 @@ void MainWindow::insert_category(const uint64_t id,  const char* name){
 }
 
 void MainWindow::rename_category(int indx){
-    if (indx < 3)
+    if (indx < N_NONCATEGORY_TABS)
         // Only category tabs can be renamed
         return;
     
