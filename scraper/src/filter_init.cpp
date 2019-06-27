@@ -8,6 +8,8 @@
 
 #include "filter_init.hpp"
 
+#include <stdlib.h> // for malloc, exit
+
 #include <compsky/mysql/query.hpp>
 
 #include "error_codes.hpp"
