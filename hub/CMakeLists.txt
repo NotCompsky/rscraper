@@ -4,7 +4,15 @@ if( EXISTS "${CMAKE_BINARY_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "Refusing to run in-source build.")
 endif()
 
-find_package(Qt5 REQUIRED COMPONENTS Widgets Charts)
+find_package(Qt5 COMPONENTS Widgets Charts)
+
+
+if(NOT Qt5_FOUND)
+    message(WARNING "Skipping rscraper-gui, as Qt5::Widgets and/or Qt5::Charts was not found")
+    return()
+endif()
+
+
 find_package(Boost COMPONENTS regex)
 
 
