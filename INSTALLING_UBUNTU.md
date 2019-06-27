@@ -42,7 +42,8 @@ Extract the zip.
 
 ![Downloads](https://user-images.githubusercontent.com/30552567/60239747-a878e880-98a6-11e9-8a97-690726508ca0.png)
 
-Open the extracted folder in a terminal, and run `rscraper-import`.
+Open the extracted folder in a terminal, and run `rscraper-import`. Allow a couple of minutes for it to complete. `user2subreddit_cmnt_count` and `subreddit2tag` in particular may take a while.
 
-![rscraper-import from rscraper-io package](https://user-images.githubusercontent.com/30552567/60239752-b0d12380-98a6-11e9-85b0-595940fe164a.png)
+![rscraper-import from rscraper-io package](https://user-images.githubusercontent.com/30552567/60245955-8f2b6880-98b5-11e9-984f-94fd6d1504f4.png)
 
+See the [hub usage guide](guides/hub.md) - if your data was imported successfully, it should resemble the screenshots.

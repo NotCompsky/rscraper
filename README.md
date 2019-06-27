@@ -4,6 +4,12 @@ Each subdirectory is its own package (`rscraper-NAME`), and has a README page fo
 
 Note: `rscraper-tagger` is for the server library and executables only. You do not need it if you only wish to use the `rtagger` addon (though you will then need to point it to some server elsewhere).
 
+# Usage
+
+See [hub usage guide](guides/hub.md) for detailed instructions on using `rscraper-hub`.
+
+See `docs` directory for more generic instructions on using the other programs.
+
 # Installing
 
 ## Ubuntu and other Debian-based systems
