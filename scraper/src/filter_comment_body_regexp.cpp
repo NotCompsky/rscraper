@@ -42,6 +42,7 @@ namespace filter_comment_body {
 
 std::vector<char*> reason_name2id;
 std::vector<int> groupindx2reason;
+std::vector<bool> record_contents;
 
 std::vector<std::vector<uint64_t>> SUBREDDIT_WHITELISTS;
 std::vector<std::vector<uint64_t>> SUBREDDIT_BLACKLISTS;
@@ -97,7 +98,7 @@ void init(){
     
     populate_reason2name();
     
-    char* regexpr_str_end = compsky::regex::convert_named_groups(regexpr_str + 1,  regexpr_str,  reason_name2id,  groupindx2reason);
+    char* regexpr_str_end = compsky::regex::convert_named_groups(regexpr_str + 1,  regexpr_str,  reason_name2id,  groupindx2reason,  record_contents);
     // Add one to the first buffer (src) not second buffer (dst) to ensure it is never overwritten when writing dst
     
     if (*(regexpr_str_end - 1) == '\n')

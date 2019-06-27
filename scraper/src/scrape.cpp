@@ -91,7 +91,7 @@ void count_user_subreddit_cmnt(const uint64_t user_id,  const uint64_t subreddit
     compsky::asciify::BUF_INDX = dummy_indx;
 }
 
-void process_this_comment(rapidjson::Value& cmnt,  uint64_t author_id,  const char* author_name,  uint64_t cmnt_id,  uint64_t subreddit_id,  unsigned int reason_matched,  bool is_submission_nsfw){
+void process_this_comment(rapidjson::Value& cmnt,  uint64_t author_id,  const char* author_name,  uint64_t cmnt_id,  uint64_t subreddit_id,  unsigned int reason_matched,  bool is_submission_nsfw,  const bool to_record_contents){
     const char* permalink = cmnt["data"]["permalink"].GetString();
     
     const time_t created_at = cmnt["data"]["created_utc"].GetFloat(); // It's delivered in float format
@@ -109,7 +109,7 @@ void process_this_comment(rapidjson::Value& cmnt,  uint64_t author_id,  const ch
         submission_id = str2id(cmnt["data"]["link_id"].GetString() + 3);
     }
     
-    const char* cmnt_content = cmnt["data"]["body"].GetString();
+    const char* cmnt_content = (to_record_contents)  ?  cmnt_content = cmnt["data"]["body"].GetString()  :  "";
     
     
     constexpr static const compsky::asciify::flag::concat::Start a;
@@ -159,18 +159,18 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
     unsigned int reason_matched = 0;
     
     if      (contains(filter_user::WHITELIST_BODY, author_id))
-        return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw);
+        return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw, true);
     else if (contains(filter_user::BLACKLIST_BODY, author_id))
         return;
     
     if      (contains(filter_subreddit::WHITELIST_BODY, subreddit_id))
-        return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw);
+        return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw, true);
     else if (contains(filter_subreddit::BLACKLIST_BODY, subreddit_id))
         return;
     
-    
-    if ((reason_matched = filter_comment_body::match(metadata, body, strlen(body)))){
-        return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw);
+    bool to_record_contents;
+    if ((reason_matched = filter_comment_body::match(metadata, body, strlen(body), to_record_contents))){
+        return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw, to_record_contents);
     }
     // if filter_comment_body::bl: return;
     

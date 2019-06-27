@@ -153,8 +153,9 @@ void RegexEditor::test_regex(){
     std::vector<int> groupindx2reason;
     std::vector<char*> group_starts;
     std::vector<char*> group_ends;
+    std::vector<bool> record_contents;
     
-    char* regexpr_str_end = compsky::regex::convert_named_groups(s + 1,  s,  reason_name2id,  groupindx2reason, group_starts, group_ends);
+    char* regexpr_str_end = compsky::regex::convert_named_groups(s + 1,  s,  reason_name2id,  groupindx2reason, record_contents, group_starts, group_ends);
     // Add one to the first buffer (src) not second buffer (dst) to ensure it is never overwritten when writing dst
     
     if (*(regexpr_str_end - 1) == '\n')
@@ -178,6 +179,8 @@ void RegexEditor::test_regex(){
     for (auto i = 1;  i < groupindx2reason.size();  ++i){
         report += "\n";
         report += QString::number(i);
+        report += "\t";
+        report += (record_contents[i]) ? "[Record contents]" : "[Count occurances]";
         report += "\t";
         report += reason_name2id[groupindx2reason[i]];
         report += "\n\t";

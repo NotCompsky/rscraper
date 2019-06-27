@@ -31,7 +31,7 @@ bool contains(A& ls,  B x){
 };
 
 
-unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len){
+unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len, bool& to_record_contents){
     if (!boost::regex_search(str,  str + str_len,  what,  *regexpr))
         return 0;
     
@@ -44,6 +44,7 @@ unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len
             continue;
         if (SUBREDDIT_BLACKLISTS[reason_id].size() != 0  &&  contains(SUBREDDIT_BLACKLISTS[reason_id], metadata.subreddit_id))
             continue; // Not return - might be later matches that are not blacklisted
+        to_record_contents = record_contents[i]; // Whether to leave the comment content blank in our database, or to copy its contents.
         return reason_id;
     }
     
