@@ -45,36 +45,9 @@ if(APPLE OR NOT UNIX)
 else()
     #-----------------------------------------------------------------------------
     # Linux specific
-    set(CPACK_GENERATOR "DEB;TBZ2;TXZ")
+    set(CPACK_GENERATOR "DEB")
     message(STATUS "Package generation - UNIX")
     message(STATUS "   + DEB                                  YES ")
-    message(STATUS "   + TBZ2                                 YES ")
-    message(STATUS "   + TXZ                                  YES ")
-
-    find_program(RPMBUILD_PATH rpmbuild)
-    if(RPMBUILD_PATH)
-        message(STATUS "   + RPM                                  YES ")
-        set(CPACK_GENERATOR "${CPACK_GENERATOR};RPM")
-        set(CPACK_RPM_PACKAGE_LICENSE "MIT")
-        # set(CPACK_RPM_PACKAGE_REQUIRES "gtkmm30")
-        # exclude folders which clash with default ones
-        set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST
-            ${CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST}
-            /usr
-            /usr/bin
-            /usr/share
-            /usr/share/applications
-            /usr/share/doc
-            /usr/share/icons
-            /usr/share/icons/hicolor
-            /usr/share/icons/hicolor/256x256
-            /usr/share/icons/hicolor/256x256/apps
-            /usr/share/icons/gnome
-            /usr/share/icons/gnome/256x256
-            /usr/share/icons/gnome/256x256/apps)
-    else()
-        message(STATUS "   + RPM                                  NO ")
-    endif()
 
     set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
     set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${HOMEPAGE}")
