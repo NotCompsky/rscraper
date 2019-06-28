@@ -5,7 +5,6 @@
 // @copyright		2019+, Adam Gray (GPLv3.0)
 // @include			https://www.reddit.com/*
 // @include			https://old.reddit.com/*
-// @include			https://new.reddit.com/*
 // @version			0.0.1
 // @grant			GM_xmlhttpRequest
 // ==/UserScript==
@@ -33,8 +32,8 @@ function main(d){
             continue;
         }
         for (var tpl of tpls){
-            tagstrtag = document.createElement("div");
-            tagstrtag.innerHTML = tpl[1];
+            var tagstrtag = document.createElement("div");
+            tagstrtag.innerText = tpl[1];
             tagstrtag.style.background = tpl[0];
             tagstrtag.style.display = "inline";
             t.appendChild(tagstrtag);
