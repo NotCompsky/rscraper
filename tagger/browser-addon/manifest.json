@@ -12,14 +12,16 @@
     
     "permissions": [
         "storage",
-        "http://localhost/*",
-        "https://localhost/*",
-        "https://*.reddit.com/*"
+        "http://*/*"
     ],
     
     "options_ui": {
         "page": "options.html",
         "open_in_tab": false
+    },
+
+    "page_action": {
+      "default_popup": "options.html"
     },
     
     "content_scripts": [
