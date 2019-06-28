@@ -84,8 +84,6 @@ add_executable(
     "${SRC_DIR}/mv_tag_btn.cpp"
     "${SRC_DIR}/rm_tag_btn.cpp"
     
-    "${SRC_DIR}/tag_stats.cpp"
-    
     "${SRC_DIR}/regex_editor.cpp"
     
     "${SRC_DIR}/cat_doughnut.cpp"
