@@ -30,7 +30,6 @@
 #include "mv_tag_btn.hpp"
 #include "name_dialog.hpp"
 #include "tagnamelabel.hpp"
-#include "tag_stats.hpp"
 
 
 extern MYSQL_RES* RES1;
