@@ -18,3 +18,8 @@ You can add tags with the `+Tag` button.
 
 ![Screenshot from 2019-06-26 22-43-17](https://user-images.githubusercontent.com/30552567/60246685-1e854b80-98b7-11e9-85cb-4d10f203bd93.png)
  
+You can generate a doughnut chart of the number of comments per category, broken down by each tag.
+
+For instance (with only one category):
+
+![region cat doughnut](https://user-images.githubusercontent.com/30552567/60340500-aea0bf00-99a3-11e9-8900-4f5fce4df5e9.png)
