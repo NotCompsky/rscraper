@@ -14,7 +14,7 @@ Run `sudo apt install ./RScraper-*.deb`.
 
 ![Terminal](https://user-images.githubusercontent.com/30552567/60239671-59cb4e80-98a6-11e9-9102-e156814468d2.png)
 
-[configuring](#Configuring)
+# Configuring
 
 Run `sudo rscraper-init` and follow its instructions.
 
