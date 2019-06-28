@@ -14,7 +14,7 @@ See [man](man) directory for more generic instructions on using the other progra
 
 To install the `rtagger` browser addon, you do not need to install any of these packages, only [the addon (or Javascript script)](tagger) is necessary. Only the server needs to run the following packages.
 
-## Ubuntu and other Debian-based systems
+## Ubuntu, Raspbian, and other Debian-based systems
 
 First install libcompsky:
 
