@@ -36,7 +36,9 @@ void MvTagBtn::exec(){
             return;
     
     constexpr static const compsky::asciify::flag::Escape f_esc;
-    compsky::mysql::exec("UPDATE tag2category t2c, category c SET t2c.category_id=c.id WHERE t2c.tag_id=", this->tag_id, " AND t2c.category_id=", static_cast<ClTagsTab*>(this->parent())->cat_id, " AND c.name=\"", f_esc, '"', qstr, "\"");
+    compsky::mysql::exec("UPDATE IGNORE tag2category t2c, category c SET t2c.category_id=c.id WHERE t2c.tag_id=", this->tag_id, " AND t2c.category_id=", static_cast<ClTagsTab*>(this->parent())->cat_id, " AND c.name=\"", f_esc, '"', qstr, "\"");
+    compsky::mysql::exec("DELETE t2c FROM tag2category t2c, category c WHERE t2c.tag_id=", this->tag_id, " AND t2c.category_id=", static_cast<ClTagsTab*>(this->parent())->cat_id);
+    
     // NOTE: Aim to support tags being in *multiple* categories - i.e. t2c.tag_id not being the primary key - despite this GUI not currently having a way to create that situation.
     
     QMessageBox::information(this,  "Success",  "The tag has been moved, but will still appear in this category until rscraper-hub is restarted");

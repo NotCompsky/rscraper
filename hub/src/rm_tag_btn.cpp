@@ -35,7 +35,7 @@ void RmTagBtn::rm_tag(){
     int row, col, rowspan, colspan;
     l->getItemPosition(l->indexOf(this), &row, &col, &rowspan, &colspan); // Last position
     
-    for (auto i = 0;  i < 6;  ++i){
+    for (auto i = 0;  i < 7;  ++i){
         QLayoutItem* a = l->itemAtPosition(row, i);
         delete a->widget();
         l->removeItem(a);
