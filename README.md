@@ -1,4 +1,4 @@
-rscraper -- A family of tools for scraping and using data from the Reddit API
+rscraper -- Fancy tools using the Reddit comments API
 ====================================
 
 ![Icon](tagger/browser-addon/icons/64.png)
