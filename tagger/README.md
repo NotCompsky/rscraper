@@ -4,7 +4,7 @@
 
 # Installation
 
-Firefox users can install the addon by opening the `rtagger.xpi` file from the releases page with their Firefox browser.
+Firefox users can install the addon by opening the `rtagger.xpi` file from the [releases page](https://github.com/NotCompsky/rscraper/releases) with their Firefox browser.
 
 Users of other browsers can install the [userscript](rtagger.js) into their Greasemonkey/Tampermonkey/etc addon.
 
