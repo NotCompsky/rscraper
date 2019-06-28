@@ -1,6 +1,24 @@
+rscraper -- A family of tools for scraping and using data from the Reddit API
+====================================
+
+![Icon](tagger/browser-addon/icons/64.png)
+
+# Description
+
+RScraper contains tools for scraping data, importing and exporting data sets, and using the data for generating charts and for tagging users via a [browser addon](tagger).
+
+Although based around the data from a scraper, the client, scraper, and database utilities are independent of one another.
+
 # Components
 
-Each subdirectory is its own package (`rscraper-NAME`), and has a README page for overview/details/building/installing.
+* [rtagger addon](tagger) - the browser addon for tagging Reddit users
+* [tagger](tagger) - the server for the [browser addon](rtagger) addon
+* [hub](hub) - a GUI manager for the database and configuring the scraper
+* [init](init) - one-off helper tools to initialse the database
+* [scraper](scraper) - tool for scraping data from Reddit
+* [io](io) - import/export tools (as an alternative to scraping Reddit yourself)
+* [man](man) - UNIX man pages
+* [utils](utils) - CLI database admin tools
 
 ## Tagger
 
