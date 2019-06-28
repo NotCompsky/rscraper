@@ -19,6 +19,7 @@ import "os/signal"
 
 
 func process(w http.ResponseWriter, r* http.Request){
+    w.Header().Set("Content-Type", "application/json")
     C.csv2cls(C.CString(r.URL.Path))
     io.WriteString(w, C.GoString(C.DST))
 }
