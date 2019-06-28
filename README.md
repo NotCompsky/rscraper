@@ -45,14 +45,7 @@ First install [libcompsky](https://github.com/NotCompsky/libcompsky):
 
 Then set the array of packages you wish to install (`init` is not required but the [configuration guide](INSTALLING_UBUNTU.md#Configuring) assumes it is installed)
 
-Then run (deleting packages you don't want):
-
-    for pkg in init man io utils scraper gui tagger; do
-        regexp="https://github\.com/NotCompsky/rscraper/releases/download/[0-9]\.[0-9]\.[0-9]\(-[a-z]+\)?/RScraper-[0-9]+\.[0-9]+\.[0-9]\(-[a-z]+\)?+-$(dpkg --print-architecture)-$pkg\.deb"
-        url=$(curl -s https://api.github.com/repos/NotCompsky/RScraper/releases/latest  |  egrep "$regexp" | sed 's%.*"\(https://.*\)"%\1%g')
-        wget -O "/tmp/RScraper-$pkg.deb" "$url"
-        sudo apt install "/tmp/RScraper-$pkg.deb"
-    done
+Then download the packages you want from the [releases page](releases).
 
 Then see the [configuration guide](INSTALLING_UBUNTU.md#Configuring).
 
