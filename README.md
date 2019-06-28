@@ -23,7 +23,7 @@ First install [libcompsky](https://github.com/NotCompsky/libcompsky):
     wget -O /tmp/libcompsky.deb "$url"
     sudo apt install /tmp/libcompsky.deb
 
-Then set the array of packages you wish to install (`init` is not required but the configuration guide assumes it is installed)
+Then set the array of packages you wish to install (`init` is not required but the [configuration guide](INSTALLING_UBUNTU.md#configuring) assumes it is installed)
 
     packages=init man io utils scraper gui tagger
 
@@ -35,6 +35,8 @@ Then run:
         wget -O "/tmp/RScraper-$pkg.deb" "$url"
         sudo apt install "/tmp/RScraper-$pkg.deb"
     done
+
+Then see the [configuration guide](INSTALLING_UBUNTU.md#configuring).
 
 Users of other Debian-based distributions may have to modify the dependency package names before the packages will install (you could use `equivs` if you don't want to modify the `deb` itself). Send a bug report with your platform and a suggestion for the alternative dependency.
 
