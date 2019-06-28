@@ -883,3 +883,13 @@ WHERE r1.id=m1.subreddit_id
   AND r2.name='cpp'
 ;
 
+
+
+INSERT IGNORE INTO subreddit2tag
+SELECT s.id, t.id
+FROM subreddit s, tag t
+WHERE t.name='US'
+  AND s.name REGEXP '^(Sunnyvale|Pasadena|Fullerton|Thousand_?Oaks|Visalia|Simi_?Valley|Concord|Roseville|Santa_?Clara|Vallejo|Victorville|El_?Monte|Berkeley|Downey|Costa_?Mesa|Inglewood|San_?Buenaventura|Ventura|West_?Covina|Norwalk|Carlsbad|Fairfield|Richmond|Murrieta|Burbank|Antioch|Daly_?City|Temecula|Santa_?Maria|El_?Cajon|Rialto|San_?Mateo|Compton|Clovis|South_?Gate|Vista|Mission_?Viejo|Vacaville|Carson|Hesperia|Redding|Santa_?Monica|Westminster|Santa_?Barbara|Chico|Whittier|Newport_?Beach|San_?Leandro|Hawthorne|San_?Marcos|Citrus_?Heights|Alhambra|Tracy|Livermore|Buena_?Park|Lakewood|Merced|Hemet|Chino|Menifee|Lake_?Forest|Napa|Redwood_?City|Fort_?Lauderdale|Port_?St_?Lucie|Pembroke_?Pines|Cape_?Coral|Hollywood|Gainesville|Miramar|Coral_?Springs|Clearwater|Miami_?Gardens|Palm_?Bay|West_?Palm_?Beach|Pompano_?Beach|Lakeland|Davie_?|Miami_?Beach|Deltona|Plantation|Sunrise|Boca_?Raton|Largo|Palm_?Coast|Deerfield_?Beach|Boynton_?Beach|Lauderhill|Decatur|Arlington_?Heights|Evanston|Schaumburg|Bolingbrook|Palatine|Waco|Carrollton|Beaumont|Abilene|Frisco|Denton|Midland|Wichita_?Falls|Odessa|Round_?Rock|Richardson|Tyler|Lewisville|College_?Station|San_?Angelo|Pearland|Allen|League_?City|Longview|Sugar_?Land|Bryan|Baytown|Pharr|Missouri_?City|Salt_?Lake_?City|West_?Valley_?City|Provo|West_?Jordan|Orem|Sandy|Ogden|St_?George|Layton|Burlington|Virginia_?Beach|Norfolk|Chesapeake|Richmond|Newport_?News|Alexandria|Hampton|Roanoke|Portsmouth|Lynchburg|Seattle|Spokane|Tacoma|Vancouver|Bellevue|Everett|Kent|Yakima|Renton|Spokane_?Valley|Federal_?Way|Bellingham|Kennewick|Auburn|Charleston|Milwaukee|Madison|Green_?Bay|Kenosha|Racine|Appleton|Waukesha|Cheyenne)'
+;
+
+
