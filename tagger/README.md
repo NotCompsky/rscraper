@@ -6,9 +6,15 @@
 
 Firefox users can install the addon by opening the `rtagger.xpi` file from the releases page with their Firefox browser.
 
-Users of other browsers can install the [Javascript script](rtagger.js) into their Greasemonkey/Tampermonkey/etc addon.
+Users of other browsers can install the [userscript](rtagger.js) into their Greasemonkey/Tampermonkey/etc addon.
 
 Creating an extension for Chrome isn't a priority, but I'm open to PRs.
+
+# Configuration
+
+By default, the addon and the userscript point towards a server at `http://localhost:8080`. To run such a server, you would need to install the `rscraper-tagger` package (see [root instructions](..) for how to do that).
+
+You can, however, point it towards any server - local or remote - so long as it sends the expected JSON response. The addon allows you to specify the port number, domain name, protocol, and path (that is, the `/this/is/the.path` of `https://www.foo.bar/this/is/the.path`) of the server. If you are using the userscript, you would have to edit it yourself to change these.
 
 # Building
 
