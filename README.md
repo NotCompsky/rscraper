@@ -2,7 +2,11 @@
 
 Each subdirectory is its own package (`rscraper-NAME`), and has a README page for overview/details/building/installing.
 
-Note: `rscraper-tagger` is for the server library and executables only. You do not need it if you only wish to use the `rtagger` addon (though you will then need to point it to some server elsewhere).
+## Tagger
+
+To install the `rtagger` browser addon, you do not need to install *any* of these packages; only [the addon (or Javascript script)](tagger) is necessary. Only the server needs to install (and run) the `rscraper-tagger` package.
+
+Even the server doesn't need any packages other than that one, though whoever is managing the server will want to install either the `rscraper-io` or `rscraper-scraper` packages to populate the database, and the `rscraper-gui` package for managing the database, and the `rscraper-init` package to initialise the database.
 
 # Usage
 
@@ -11,8 +15,6 @@ See [hub usage guide](guides/hub.md) for detailed instructions on using `rscrape
 See [man](man) directory for more generic instructions on using the other programs.
 
 # Installing
-
-To install the `rtagger` browser addon, you do not need to install any of these packages, only [the addon (or Javascript script)](tagger) is necessary. Only the server needs to run the following packages.
 
 ## Ubuntu, Raspbian, and other Debian-based systems
 
