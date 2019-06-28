@@ -20,6 +20,8 @@ You can add tags with the `+Tag` button.
  
 You can generate a doughnut chart of the number of comments per category, broken down by each tag.
 
+You first `bake` the chart (which currently freezes the application for ~1 minute), then `show` it.
+
 For instance (with only one category):
 
 ![region cat doughnut](https://user-images.githubusercontent.com/30552567/60340500-aea0bf00-99a3-11e9-8900-4f5fce4df5e9.png)
