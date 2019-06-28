@@ -1,13 +1,12 @@
-![Example 1](res/img/1.png)
-
-![Example 2](res/img/2.png)
+![Example Output](https://user-images.githubusercontent.com/30552567/60322807-48eb0d80-9978-11e9-94a4-d4e92e38bf25.png)
 
 # Installation
 
-You can either:
+Firefox users can install the addon by opening the `rtagger.xpi` file from the releases page with their Firefox browser.
 
-* Install the [Javascript script](rtagger.js) into the Greasemonkey (or equivalent) addon
-* Download [the addon](browser-addon/rtagger.xpi), open it with your browser, and install it
+Users of other browsers can install the [Javascript script](rtagger.js) into their Greasemonkey (or equivalent) browser extension.
+
+Creating an extension for Chrome isn't a priority, but I'm open to PRs.
 
 # Building
 
