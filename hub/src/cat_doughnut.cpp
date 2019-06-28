@@ -24,7 +24,7 @@ extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
 
-CatDoughnut::CatDoughnut(QWidget* parent) : QDialog(parent), is_initialised(false) {}
+CatDoughnut::CatDoughnut(QWidget* parent) : QDialog(parent), is_initialised(false), chart(nullptr) {}
 
 void CatDoughnut::show_chart(){
     if (!is_initialised){
@@ -44,6 +44,8 @@ void CatDoughnut::init(){
     char* tag_name;
     uint8_t r, g, b, a;
     QPieSeries* series = nullptr;
+    if (this->chart != nullptr)
+        delete this->chart;
     this->chart = new DonutBreakdownChart();
     int cat_r = 255;
     int cat_g = 0;
