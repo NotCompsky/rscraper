@@ -32,8 +32,8 @@ constexpr size_t strlen_constexpr(const char* s){
 
 namespace compsky {
     namespace asciify {
-        constexpr static const size_t BUF_SZ = 4 * 1024 * 1024;
-        char* BUF = (char*)malloc(4 * 1024 * 1024); // 4 MiB
+        constexpr static const size_t BUF_SZ = 4 * 1024;
+        char* BUF = (char*)malloc(BUF_SZ); // 4 MiB
             
         void ensure_buf_can_fit(const char* pre,  size_t n,  size_t trim_trailing_bytes = 1){
             if (unlikely(BUF_INDX + n  >  BUF_SZ)){
@@ -45,7 +45,7 @@ namespace compsky {
         }
         
         void ensure_buf_can_fit(const char* pre,  size_t n,  const char* post,  size_t post_len){
-            if (unlikely(BUF_INDX + n + strlen(post)  >  BUF_SZ)){
+            if (unlikely(BUF_INDX + n + post_len  >  BUF_SZ)){
                 --BUF_INDX; // Overwrite trailing comma
                 memcpy(BUF + BUF_INDX,  post,  post_len);
                 BUF_INDX += post_len;
@@ -138,20 +138,20 @@ void import_u2scc_table(FILE* f){
     size_t post_strlen;
     if (force){
         pre  = "INSERT INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ";
-        post = " ON DUPLICATE KEY SET count=VALUES(count)";
-        post_strlen = strlen_constexpr("INSERT INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ");
+        post = " ON DUPLICATE KEY UPDATE count=VALUES(count)";
+        post_strlen = strlen_constexpr(" ON DUPLICATE KEY UPDATE count=VALUES(count)");
     } else {
         pre = "INSERT IGNORE INTO user2subreddit_cmnt_count (user_id,subreddit_id,count) VALUES ";
-        post = " ";
+        post = "";
         post_strlen = 0;
     }
     compsky::asciify::asciify(pre);
     while(fscanf(f, "%[^\t\n]\t%[^\t\n]\t%[^\n]\n", uint64_a, uint64_b, uint64_c) != EOF){
         compsky::asciify::asciify("(", uint64_a, ',', uint64_b, ',', uint64_c, "),");
-        compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3,  post, post_strlen);
+        compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 19 + 1 + 19 + 2,  post, post_strlen);
     }
     if (compsky::asciify::BUF_INDX != strlen(pre))
-        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
+        compsky::asciify::ensure_buf_can_fit(pre, compsky::asciify::BUF_SZ, post, post_strlen);
     fclose(f);
     printf("  Completed\n");
 }
