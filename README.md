@@ -21,9 +21,13 @@ First install libcompsky:
     wget -O /tmp/libcompsky.deb "$url"
     sudo apt install /tmp/libcompsky.deb
 
+Then set the array of packages you wish to install (`init` is not required but the configuration guide assumes it is installed)
+
+    packages=init man io utils scraper gui tagger
+
 Then run:
 
-    for pkg in man init io utils scraper tagger gui; do
+    for pkg in $packages; do
         regexp="https://github\.com/NotCompsky/rscraper/releases/download/[0-9]\.[0-9]\.[0-9]/RScraper-[0-9]+\.[0-9]+\.[0-9]+-$(dpkg --print-architecture)-$pkg\.deb"
         url=$(curl -s https://api.github.com/repos/NotCompsky/RScraper/releases/latest  |  egrep "$regexp" | sed 's%.*"\(https://.*\)"%\1%g')
         wget -O "/tmp/RScraper-$pkg.deb" "$url"
