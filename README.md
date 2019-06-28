@@ -45,7 +45,7 @@ First install [libcompsky](https://github.com/NotCompsky/libcompsky):
 
 Then set the array of packages you wish to install (`init` is not required but the [configuration guide](INSTALLING_UBUNTU.md#Configuring) assumes it is installed)
 
-    packages=init man io utils scraper gui tagger
+    export packages=init man io utils scraper gui tagger
 
 Then run:
 
