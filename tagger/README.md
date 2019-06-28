@@ -1,10 +1,12 @@
-![Example Output](https://user-images.githubusercontent.com/30552567/60322807-48eb0d80-9978-11e9-94a4-d4e92e38bf25.png)
+![Firefox (addon)](https://user-images.githubusercontent.com/30552567/60322807-48eb0d80-9978-11e9-94a4-d4e92e38bf25.png)
+
+![Chrome (userscript)](https://user-images.githubusercontent.com/30552567/60327286-6376b400-9983-11e9-8a4e-142a35ed38eb.png)
 
 # Installation
 
 Firefox users can install the addon by opening the `rtagger.xpi` file from the releases page with their Firefox browser.
 
-Users of other browsers can install the [Javascript script](rtagger.js) into their Greasemonkey (or equivalent) browser extension.
+Users of other browsers can install the [Javascript script](rtagger.js) into their Greasemonkey/Tampermonkey/etc addon.
 
 Creating an extension for Chrome isn't a priority, but I'm open to PRs.
 
