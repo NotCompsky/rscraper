@@ -217,10 +217,11 @@ void ScraperTab::add_subreddit_to(const char* tblname,  const bool delete_from){
     compsky::mysql::exec(
         (delete_from) ? "DELETE a FROM " : "INSERT IGNORE INTO ",
         tblname,
-        (delete_from) ? " a, subreddit b WHERE a.id=b.id AND b.name=\"" : " SELECT id FROM subreddit WHERE name",
+        (delete_from) ? " a, subreddit b WHERE a.id=b.id AND b.name" : " SELECT id FROM subreddit WHERE name",
         patternstr,
-        qstr,
-        "\""
+        '"',
+        _f::esc, '"', qstr,
+        '"'
     );
 }
 
@@ -260,8 +261,6 @@ void ScraperTab::add_subreddit_to_reason(const char* tblname,  const bool delete
     if (!is_pattern  &&  !subreddit_names.contains(qstr_subreddit))
         return notfound::subreddit(this, qstr_subreddit);
     
-    constexpr static const compsky::asciify::flag::Escape f_esc;
-    
     compsky::mysql::exec(
         (delete_from) ? "DELETE x FROM " : "INSERT IGNORE INTO ",
         tblname,
@@ -270,7 +269,7 @@ void ScraperTab::add_subreddit_to_reason(const char* tblname,  const bool delete
         "\" AND b.name",
         patternstr,
         '"',
-        f_esc, '"', qstr_subreddit,
+        _f::esc, '"', qstr_subreddit,
         '"'
     );
 }
