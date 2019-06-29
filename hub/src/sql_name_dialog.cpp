@@ -16,7 +16,7 @@
 
 
 namespace details {
-    constexpr static const char* pattern_strs[3] = {"=",  " LIKE ",  " REGEXP_LIKE "};
+    constexpr static const char* pattern_strs[3] = {"=",  " LIKE ",  " REGEXP "};
 }
 
 
