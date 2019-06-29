@@ -65,6 +65,7 @@ add_executable(
     "${UTILS_SRC_DIR}/id2str.cpp"
     "${SRC_DIR}/btn_with_id.cpp"
     "${SRC_DIR}/name_dialog.cpp"
+    "${SRC_DIR}/sql_name_dialog.cpp"
     
     "${SRC_DIR}/msgbox.cpp"
     

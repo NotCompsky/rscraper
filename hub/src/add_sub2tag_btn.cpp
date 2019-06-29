@@ -9,7 +9,7 @@
 
 #include <QCompleter>
 
-#include "name_dialog.hpp"
+#include "sql_name_dialog.hpp"
 #include "notfound.hpp"
 
 #include <compsky/mysql/query.hpp>
@@ -32,7 +32,7 @@ AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  bool delete_from,  QWidget* par
 void AddSub2TagBtn::add_subreddit(){
     bool ok;
     while(true){
-        NameDialog* namedialog = new NameDialog("Subreddit Name", "", "Use SQL LIKE pattern matching");
+        SQLNameDialog* namedialog = new SQLNameDialog("Subreddit Name");
         
         if (!this->delete_from)
             namedialog->name_edit->setCompleter(subreddit_name_completer);
@@ -47,7 +47,8 @@ void AddSub2TagBtn::add_subreddit(){
         }
         
         int rc = namedialog->exec();
-        const bool is_pattern = namedialog->checkbox->isChecked();
+        const char* patternstr = namedialog->get_pattern_str();
+        const bool is_pattern = !(patternstr[0] == '=');
         const QString qstr = namedialog->name_edit->text();
         
         delete namedialog;
@@ -67,7 +68,7 @@ void AddSub2TagBtn::add_subreddit(){
             (this->delete_from) ? "DELETE s2t FROM subreddit2tag s2t LEFT JOIN subreddit s ON s2t.subreddit_id=s.id WHERE tag_id=" : "INSERT IGNORE INTO subreddit2tag SELECT id,",
             this->tag_id,
             (this->delete_from) ? " AND s.name" : " FROM subreddit WHERE name",
-            (is_pattern)?" LIKE ":"=",
+            patternstr,
             '"',  qstr,  '"'
         );
     }
