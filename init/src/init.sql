@@ -1,3 +1,7 @@
+/*
+Prefer VARBINARY to VARCHAR as the latter forces case-insensitivity in searches.
+*/
+
 R"=====(
 
 CREATE TABLE IF NOT EXISTS user (
