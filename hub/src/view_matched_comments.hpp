@@ -13,7 +13,7 @@
 #include <QLineEdit>
 #include <QWidget>
 
-#include <compsky/mysql/query.hpp>
+#include <compsky/mysql/mysql.hpp>
 
 
 class ViewMatchedComments : public QWidget {

@@ -7,7 +7,7 @@
 
 #include "view_matched_comments.hpp"
 
-#include <ctime> // for strftime, localtime, time_t
+#include <ctime> // for localtime, time_t
 
 #include <QCompleter>
 #include <QGroupBox>
@@ -17,10 +17,19 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
+#define ASCIIFY_TIME
+#include <compsky/asciify/asciify.hpp>
+#include <compsky/mysql/query.hpp>
+
 #include "id2str.hpp"
 
 extern QStringList tagslist;
 extern QCompleter* reason_name_completer;
+
+
+namespace _f {
+    constexpr static const compsky::asciify::flag::ChangeBuffer chbuf;
+}
 
 
 constexpr const char* tag_a1 = 
@@ -155,8 +164,7 @@ void ViewMatchedComments::init(){
     const QString tag    = this->tagname_input->text();
     const QString reason = this->reasonname_input->text();
     
-    constexpr static const compsky::asciify::flag::ChangeBuffer chbuf;
-    compsky::asciify::asciify(chbuf, compsky::asciify::BUF, 0);
+    compsky::asciify::asciify(_f::chbuf, compsky::asciify::BUF, 0);
     
     if (!tag.isEmpty())
         if (!reason.isEmpty())
@@ -189,8 +197,6 @@ void ViewMatchedComments::next(){
     uint64_t t;
     char* username;
     char* reason;
-    char dt_buf[200];
-    struct tm* dt;
     if (compsky::mysql::assign_next_row(this->res1, &this->row1, &subname, &post_id, &cmnt_id, &t, f, &body_sz, &body, &username, &reason)){
         post_id_str[id2str(post_id, post_id_str)] = 0;
         cmnt_id_str[id2str(cmnt_id, cmnt_id_str)] = 0;
@@ -198,15 +204,15 @@ void ViewMatchedComments::next(){
         this->permalink->setText(QString("https://www.reddit.com/r/" + QString(subname) + QString("/comments/") + QString(post_id_str) + QString("/_/") + QString(cmnt_id_str)));
         
         const time_t tt = t;
-        dt = localtime(&tt);
-        strftime(dt_buf, sizeof(dt_buf), "%Y %a %b %d %H:%M:%S", dt);
+        const struct tm* dt = localtime(&tt);
+        char* dt_buf = compsky::asciify::BUF;
+        compsky::asciify::asciify(_f::chbuf, dt_buf, 0,  dt);
+        compsky::asciify::BUF[compsky::asciify::BUF_INDX] = 0;
         
         this->subname->setText(subname);
         this->username->setText(username);
         this->reasonname->setText(reason);
         this->datetime->setText(dt_buf);
-        
-        
         
         this->textarea->setPlainText(body);
     } else this->res1 = nullptr;
