@@ -5,20 +5,20 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __MV_TAG_BTN_H__
-#define __MV_TAG_BTN_H__
+#ifndef __UNLINK_TAG_BTN_H__
+#define __UNLINK_TAG_BTN_H__
 
 #include <QMouseEvent>
 #include <QPushButton>
 
 
-class MvTagBtn : public QPushButton{
+class UnlinkTagBtn : public QPushButton{
     Q_OBJECT
   private Q_SLOTS:
     void mousePressEvent(QMouseEvent* e);
   public:
     const uint64_t tag_id;
-    explicit MvTagBtn(const uint64_t id,  QWidget* parent);
+    explicit UnlinkTagBtn(const uint64_t id,  QWidget* parent);
   public Q_SLOTS:
     void exec();
 };
