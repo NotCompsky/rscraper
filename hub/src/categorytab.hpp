@@ -9,6 +9,7 @@
 #define __CATEGORYTAB_H__
 
 #include <QGridLayout>
+#include <QScrollArea>
 #include <QTabWidget>
 #include <QWidget>
 
@@ -17,15 +18,16 @@ class ClTagsTab : public QWidget{
     Q_OBJECT
   public:
     explicit ClTagsTab(const uint64_t id,  QTabWidget* tab_widget,  QWidget* parent = 0);
+    QGridLayout* l;
     const uint64_t cat_id;
   public Q_SLOTS:
     void add_tag();
+    void add_tag_row(const uint64_t tag_id,  QString tagstr,  const QColor& cl);
     void rm_self();
     uint64_t create_tag(const QString& qs);
+    QScrollArea* tab_named(const QString& qstr);
   private:
     void display_tag_stats(const int tag_id);
-    void add_tag_row(const uint64_t id,  QString name,  const double r,  const double g,  const double b,  const double a);
-    QGridLayout* l;
     QTabWidget* tab_widget;
     int row;
 };

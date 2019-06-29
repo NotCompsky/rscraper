@@ -20,6 +20,7 @@ class SelectColourButton : public QPushButton{
   public:
     const uint64_t tag_id;
     QColor colour;
+    explicit SelectColourButton(const uint64_t id,  const QColor& cl,  QWidget* parent);
     explicit SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  QWidget* parent);
   public Q_SLOTS:
     void set_colour();

@@ -56,7 +56,7 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
 
 void MainTab::add_category(){
     bool ok;
-    NameDialog* catdialog = new NameDialog("New Category", "");
+    NameDialog* catdialog = new NameDialog("New Category", "Avoid using '&'");
     if (catdialog->exec() != QDialog::Accepted)
         return;
     const QString cat_qstr = catdialog->name_edit->text();

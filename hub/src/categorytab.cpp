@@ -40,6 +40,7 @@ extern MYSQL_ROW ROW2;
 
 extern std::map<QString, uint64_t> tag_name2id;
 extern QStringList tagslist;
+extern QStringList category_names;
 
 
 ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* parent) : cat_id(cat_id), QWidget(parent), row(0), tab_widget(tab_widget){
@@ -54,10 +55,10 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* p
     {
     uint64_t id;
     char* name;
-    unsigned char r, g, b, a;
+    uint8_t r, g, b, a;
     
     while (compsky::mysql::assign_next_row(RES2, &ROW2, &id, &name, &r, &g, &b, &a))
-        add_tag_row(id, name, r, g, b, a);
+        add_tag_row(id, name, QColor(r, g, b, a));
     }
     
     
@@ -66,6 +67,20 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* p
     this->l->addWidget(rm_self_btn, ++this->row, 0);
     
     setLayout(this->l);
+}
+
+QScrollArea* ClTagsTab::tab_named(const QString& qs){
+    QString qstr = qs;
+    qstr.detach(); // i.e. makes deep copy
+    qstr.remove('&');
+    // Remove ampersands that are automatically added by Qt to control the shortcuts (Alt+char)
+    // The shortcutting cannot be disabled unless Qt is compiled with QT_NO_SHORTCUT
+    // Additionally, even when shortcutting is disabled, single ampersands do not appear, and double ampersands are converted to single ampersands.
+    // see https://stackoverflow.com/questions/52266876/how-do-i-disable-special-handling-of-on-qt-button-labels
+    for (auto i = 0;  i < this->tab_widget->count();  ++i)
+        if (this->tab_widget->tabText(i).remove('&') == qstr.remove('&'))
+            return static_cast<QScrollArea*>(this->tab_widget->widget(i));
+    return nullptr;
 }
 
 uint64_t ClTagsTab::create_tag(const QString& qs){
@@ -95,14 +110,14 @@ void ClTagsTab::add_tag(){
     compsky::mysql::exec("INSERT IGNORE INTO tag2category (category_id, tag_id) VALUES (",  this->cat_id,  ',',  tag_id,  ')');
     tagslist << tagstr;
     
-    this->add_tag_row(tag_id, tagstr, 0, 0, 0, 0);
+    this->add_tag_row(tag_id,  tagstr,  QColor(0, 0, 0, 0));
 }
 
-void ClTagsTab::add_tag_row(const uint64_t tag_id,  QString tagstr,  const double r,  const double g,  const double b,  const double a){
+void ClTagsTab::add_tag_row(const uint64_t tag_id,  QString tagstr,  const QColor& cl){
     ++this->row;
     
     this->l->addWidget(new TagNameLabel(tag_id, tagstr, this),              this->row,  0);
-    this->l->addWidget(new SelectColourButton(tag_id,  0, 0, 0, 0,  this),  this->row,  1);
+    this->l->addWidget(new SelectColourButton(tag_id,  cl,  this),  this->row,  1);
     
     BtnWithID* tag_stats_btn = new BtnWithID("Stats", tag_id, this);
     connect(tag_stats_btn, &BtnWithID::left_clicked, this, &ClTagsTab::display_tag_stats);
@@ -130,6 +145,9 @@ void ClTagsTab::rm_self(){
         return;
     }
     compsky::mysql::exec("DELETE FROM category WHERE id=", this->cat_id);
+    
+    category_names.removeAt(category_names.indexOf(this->tab_widget->tabText(this->tab_widget->indexOf(this))));
+    
     this->tab_widget->removeTab(this->tab_widget->indexOf(this));
     delete this;
 }

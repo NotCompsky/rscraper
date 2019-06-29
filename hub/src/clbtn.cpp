@@ -20,10 +20,11 @@ extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
 
-SelectColourButton::SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  QWidget* parent) : tag_id(id) {
+SelectColourButton::SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  QWidget* parent) : SelectColourButton(id, QColor(r,g,b,a), parent) {}
+
+SelectColourButton::SelectColourButton(const uint64_t id,  const QColor& cl,  QWidget* parent) : tag_id(id), colour(cl) {
     this->setAutoFillBackground(true);
     this->setFlat(true);
-    this->colour = QColor(r, g, b, a);
     
     QPalette pal = this->palette();
     pal.setColor(QPalette::Button, this->colour);
