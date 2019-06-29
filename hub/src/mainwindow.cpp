@@ -141,7 +141,7 @@ void MainWindow::rename_category(int indx){
     
     this->tab_widget->setTabText(indx, qstr);
     
-    const uint64_t cat_id = static_cast<ClTagsTab*>(this->tab_widget->widget(indx))->cat_id;
+    const uint64_t cat_id = static_cast<ClTagsTab*>(static_cast<QScrollArea*>(this->tab_widget->widget(indx))->widget())->cat_id;
     
     compsky::mysql::exec("UPDATE category SET name=\"", f_esc, '"', qstr, "\" WHERE id=", cat_id);
 }
