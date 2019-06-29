@@ -14,7 +14,7 @@
 #include "categorytab.hpp"
 
 
-UnlinkTagBtn::UnlinkTagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), QPushButton("Unlink", parent) {}
+UnlinkTagBtn::UnlinkTagBtn(const uint64_t id,  QWidget* parent) : QPushButton("Unlink", parent), tag_id(id) {}
 
 void UnlinkTagBtn::exec(){
     compsky::mysql::exec("DELETE FROM tag2category WHERE tag_id=", this->tag_id, " AND category_id=", static_cast<ClTagsTab*>(this->parent())->cat_id);
@@ -25,5 +25,6 @@ void UnlinkTagBtn::mousePressEvent(QMouseEvent* e){
     switch(e->button()){
         case Qt::LeftButton:
             return this->exec();
+        default: return;
     }
 }

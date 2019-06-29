@@ -83,5 +83,6 @@ void TagNameLabel::mousePressEvent(QMouseEvent* e){
         case Qt::RightButton:
             this->display_subs_w_tag();
             return;
+        default: return;
     }
 }

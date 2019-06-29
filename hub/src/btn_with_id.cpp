@@ -29,5 +29,6 @@ void BtnWithID::mousePressEvent(QMouseEvent* e){
     switch(e->button()){
         case Qt::LeftButton:
             emit(left_clicked(this->id));
+        default: return;
     }
 }

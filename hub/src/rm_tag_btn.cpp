@@ -19,7 +19,7 @@ extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
 
-RmTagBtn::RmTagBtn(const uint64_t id,  QWidget* parent) : tag_id(id), QPushButton("Delete", parent) {
+RmTagBtn::RmTagBtn(const uint64_t id,  QWidget* parent) : QPushButton("Delete", parent), tag_id(id) {
     QPalette palette = this->palette();
     palette.setColor(QPalette::Button, QColor(Qt::red));
     this->setAutoFillBackground(true);
@@ -51,5 +51,6 @@ void RmTagBtn::mousePressEvent(QMouseEvent* e){
     switch(e->button()){
         case Qt::LeftButton:
             return this->rm_tag();
+        default: return;
     }
 }

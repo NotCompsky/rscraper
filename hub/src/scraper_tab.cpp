@@ -178,7 +178,6 @@ void ScraperTab::open_cmnt_body_re_editor(){
 
 
 void ScraperTab::add_subreddit_to(const char* tblname,  const bool delete_from){
-    bool ok;
     NameDialog* dialog = new NameDialog(tblname, "", "Use SQL LIKE pattern matching");
     if (!delete_from)
         dialog->name_edit->setCompleter(subreddit_name_completer);
@@ -222,7 +221,6 @@ void ScraperTab::add_subreddit_to(const char* tblname,  const bool delete_from){
 }
 
 void ScraperTab::add_subreddit_to_reason(const char* tblname,  const bool delete_from){
-    bool ok;
     NameDialog* dialog;
     int rc;
     
@@ -267,8 +265,6 @@ void ScraperTab::add_subreddit_to_reason(const char* tblname,  const bool delete
 }
 
 void ScraperTab::add_user_to(const char* tblname,  const bool delete_from){
-    bool ok;
-    
     if (user_name_completer == nullptr)
         populate_user_name_completer();
     

@@ -56,5 +56,6 @@ void SelectColourButton::mousePressEvent(QMouseEvent* e){
         case Qt::LeftButton:
             this->set_colour();
             return;
+        default: return;
     }
 }
