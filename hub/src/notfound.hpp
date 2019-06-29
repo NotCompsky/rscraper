@@ -7,6 +7,7 @@
 
 namespace notfound {
 
+void category(QWidget* parent,  const QString& s);
 void subreddit(QWidget* parent,  const QString& s);
 void reason(QWidget* parent,  const QString& s);
 void user(QWidget* parent,  const QString& s);

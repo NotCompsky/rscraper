@@ -5,6 +5,10 @@
 
 namespace notfound {
 
+void category(QWidget* parent,  const QString& s){
+    QMessageBox::information(parent, "Category Not Found", "No category named `" + s + "` was found in the database.\nIf you are sure the entry exists, restart this program so that the caches are updated.");
+}
+
 void subreddit(QWidget* parent,  const QString& s){
     QMessageBox::information(parent, "Subreddit Not Found", "No subreddit named `" + s + "` was found in the database.\nHint: Use `rscrape-cmnts` and/or `rscraper-import user.csv` to populate the table.\nIf you are sure the entry exists, restart this program so that the caches are updated.");
     return;
