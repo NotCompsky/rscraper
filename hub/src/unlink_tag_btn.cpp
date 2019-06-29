@@ -18,7 +18,17 @@ UnlinkTagBtn::UnlinkTagBtn(const uint64_t id,  QWidget* parent) : QPushButton("U
 
 void UnlinkTagBtn::exec(){
     compsky::mysql::exec("DELETE FROM tag2category WHERE tag_id=", this->tag_id, " AND category_id=", static_cast<ClTagsTab*>(this->parent())->cat_id);
-    QMessageBox::information(this,  "Success",  "The tag has been unlinked, but will still appear in this category until rscraper-hub is restarted");
+    
+    const QWidget* par = reinterpret_cast<QWidget*>(this->parent());
+    QGridLayout* l = reinterpret_cast<QGridLayout*>(par->layout());
+    int row, col, rowspan, colspan;
+    l->getItemPosition(l->indexOf(this), &row, &col, &rowspan, &colspan); // Last position
+    
+    for (auto i = 0;  i < 8;  ++i){
+        QLayoutItem* a = l->itemAtPosition(row, i);
+        delete a->widget();
+        l->removeItem(a);
+    }
 }
 
 void UnlinkTagBtn::mousePressEvent(QMouseEvent* e){

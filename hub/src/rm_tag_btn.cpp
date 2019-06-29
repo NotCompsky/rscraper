@@ -10,7 +10,9 @@
 #include <QGridLayout>
 #include <QMessageBox>
 
+#include "categorytab.hpp"
 #include "clbtn.hpp"
+#include "unlink_tag_btn.hpp"
 
 #include <compsky/mysql/query.hpp>
 
@@ -33,18 +35,15 @@ void RmTagBtn::rm_tag(){
     compsky::mysql::exec("DELETE FROM tag WHERE id=", this->tag_id);
     compsky::mysql::exec("DELETE FROM tag2category WHERE tag_id=", this->tag_id);
     
-    QMessageBox::information(this,  "Success",  "The tag has been deleted, but will still appear in all its previous categories until rscraper-hub is restarted");
+    ClTagsTab* cat_tab = reinterpret_cast<ClTagsTab*>(this->parent());
+    const int indx = cat_tab->l->indexOf(this);
     
-    const QWidget* par = reinterpret_cast<QWidget*>(this->parent());
-    QGridLayout* l = reinterpret_cast<QGridLayout*>(par->layout());
     int row, col, rowspan, colspan;
-    l->getItemPosition(l->indexOf(this), &row, &col, &rowspan, &colspan); // Last position
+    cat_tab->l->getItemPosition(indx, &row, &col, &rowspan, &colspan);
     
-    for (auto i = 0;  i < 8;  ++i){
-        QLayoutItem* a = l->itemAtPosition(row, i);
-        delete a->widget();
-        l->removeItem(a);
-    }
+    QMessageBox::information(this,  "Success",  "The tag has been deleted, but will still appear in other previous categories - if it was assigned to them - until rscraper-hub is restarted");
+    
+    reinterpret_cast<UnlinkTagBtn*>(cat_tab->l->itemAtPosition(row, 6)->widget())->exec(); // unlink, which removes the row from the layout (includes deleting this object) // TODO: Rename exec to unlink_tag, for safety
 }
 
 void RmTagBtn::mousePressEvent(QMouseEvent* e){
