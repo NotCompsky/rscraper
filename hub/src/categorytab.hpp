@@ -21,9 +21,10 @@ class ClTagsTab : public QWidget{
   public Q_SLOTS:
     void add_tag();
     void rm_self();
-    uint64_t create_tag(QString& qs);
+    uint64_t create_tag(const QString& qs);
   private:
     void display_tag_stats(const int tag_id);
+    void add_tag_row(const uint64_t id,  QString name,  const double r,  const double g,  const double b,  const double a);
     QGridLayout* l;
     QTabWidget* tab_widget;
     int row;

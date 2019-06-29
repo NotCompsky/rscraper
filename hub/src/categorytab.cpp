@@ -56,22 +56,10 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* p
     char* name;
     unsigned char r, g, b, a;
     
-    while (compsky::mysql::assign_next_row(RES2, &ROW2, &id, &name, &r, &g, &b, &a)){
-        ++this->row;
-        this->l->addWidget(new TagNameLabel(id, name, this),                this->row,  0);
-        this->l->addWidget(new SelectColourButton(id, r, g, b, a, this),    this->row,  1);
-        
-        BtnWithID* tag_stats_btn = new BtnWithID("Stats", id, this);
-        connect(tag_stats_btn, &BtnWithID::left_clicked, this, &ClTagsTab::display_tag_stats);
-        this->l->addWidget(tag_stats_btn, this->row, 2);
-        
-        this->l->addWidget(new AddSub2TagBtn(id, false, this),  this->row,  3);
-        this->l->addWidget(new AddSub2TagBtn(id, true,  this),  this->row,  4);
-        this->l->addWidget(new ShTagBtn(id,     this),  this->row,  5);
-        this->l->addWidget(new UnlinkTagBtn(id, this),  this->row,  6);
-        this->l->addWidget(new RmTagBtn(id,     this),  this->row,  7);
+    while (compsky::mysql::assign_next_row(RES2, &ROW2, &id, &name, &r, &g, &b, &a))
+        add_tag_row(id, name, r, g, b, a);
     }
-    }
+    
     
     QPushButton* rm_self_btn = new QPushButton("Delete Category");
     connect(rm_self_btn, SIGNAL(clicked()), this, SLOT(rm_self()));
@@ -80,7 +68,7 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* p
     setLayout(this->l);
 }
 
-uint64_t ClTagsTab::create_tag(QString& qs){
+uint64_t ClTagsTab::create_tag(const QString& qs){
     constexpr static const compsky::asciify::flag::Escape f;
     compsky::mysql::exec("INSERT IGNORE INTO tag (name, r,g,b,a) VALUES (\"",  f,  '"',  qs,  "\",0,0,0,0)");
     compsky::mysql::query_buffer(&RES1,  "SELECT LAST_INSERT_ID() as ''");
@@ -105,8 +93,14 @@ void ClTagsTab::add_tag(){
     const uint64_t tag_id  =  (tagslist.contains(tagstr))  ?  tag_name2id[tagstr]  :  this->create_tag(tagstr);
     
     compsky::mysql::exec("INSERT IGNORE INTO tag2category (category_id, tag_id) VALUES (",  this->cat_id,  ',',  tag_id,  ')');
-    ++this->row;
     tagslist << tagstr;
+    
+    this->add_tag_row(tag_id, tagstr, 0, 0, 0, 0);
+}
+
+void ClTagsTab::add_tag_row(const uint64_t tag_id,  QString tagstr,  const double r,  const double g,  const double b,  const double a){
+    ++this->row;
+    
     this->l->addWidget(new TagNameLabel(tag_id, tagstr, this),              this->row,  0);
     this->l->addWidget(new SelectColourButton(tag_id,  0, 0, 0, 0,  this),  this->row,  1);
     
