@@ -24,6 +24,7 @@
 #ifdef USE_BOOST_REGEX
 # include "regex_editor.hpp"
 #endif
+#include "sql_name_dialog.hpp"
 #include "wlbl_label.hpp"
 #include "wlbl_reasonwise_label.hpp"
 
@@ -178,7 +179,7 @@ void ScraperTab::open_cmnt_body_re_editor(){
 
 
 void ScraperTab::add_subreddit_to(const char* tblname,  const bool delete_from){
-    NameDialog* dialog = new NameDialog(tblname, "", "Use SQL LIKE pattern matching");
+    SQLNameDialog* dialog = new SQLNameDialog(tblname);
     if (!delete_from)
         dialog->name_edit->setCompleter(subreddit_name_completer);
     else {
@@ -197,9 +198,12 @@ void ScraperTab::add_subreddit_to(const char* tblname,  const bool delete_from){
         }
         dialog->name_edit->setCompleter(new QCompleter(tbl_user_names));
     }
-    const auto rc = dialog->exec();
+    
+    const int rc = dialog->exec();
+    const char* patternstr = dialog->get_pattern_str();
+    const bool is_pattern = !(patternstr[0] == '=');
     const QString qstr = dialog->name_edit->text();
-    const bool is_pattern = dialog->checkbox->isChecked();
+    
     delete dialog;
     
     if (rc != QDialog::Accepted)
@@ -214,17 +218,16 @@ void ScraperTab::add_subreddit_to(const char* tblname,  const bool delete_from){
         (delete_from) ? "DELETE a FROM " : "INSERT IGNORE INTO ",
         tblname,
         (delete_from) ? " a, subreddit b WHERE a.id=b.id AND b.name=\"" : " SELECT id FROM subreddit WHERE name",
-        (is_pattern) ? " LIKE \"" : "=\"",
-            qstr,
+        patternstr,
+        qstr,
         "\""
     );
 }
 
 void ScraperTab::add_subreddit_to_reason(const char* tblname,  const bool delete_from){
-    NameDialog* dialog;
     int rc;
     
-    dialog = new NameDialog("Reason", "");
+    NameDialog* dialog = new NameDialog("Reason", "");
     dialog->name_edit->setCompleter(reason_name_completer);
     rc = dialog->exec();
     const QString qstr_reason = dialog->name_edit->text();
@@ -237,12 +240,18 @@ void ScraperTab::add_subreddit_to_reason(const char* tblname,  const bool delete
     if (!reason_names.contains(qstr_reason))
         return notfound::reason(this, qstr_reason);
     
-    dialog = new NameDialog("Subreddit", "", "Use SQL LIKE pattern matching");
-    dialog->name_edit->setCompleter(subreddit_name_completer);
-    rc = dialog->exec();
-    const QString qstr_subreddit = dialog->name_edit->text();
-    const bool is_pattern = dialog->checkbox->isChecked();
-    delete dialog;
+    
+    
+    SQLNameDialog* subreddit_dialog = new SQLNameDialog("Subreddit");
+    subreddit_dialog->name_edit->setCompleter(subreddit_name_completer);
+    
+    rc = subreddit_dialog->exec();
+    const char* patternstr = subreddit_dialog->get_pattern_str();
+    const bool is_pattern = !(patternstr[0] == '=');
+    const QString qstr_subreddit = subreddit_dialog->name_edit->text();
+    
+    delete subreddit_dialog;
+    
     if (rc != QDialog::Accepted)
         return;
     if (qstr_subreddit.isEmpty())
@@ -251,15 +260,17 @@ void ScraperTab::add_subreddit_to_reason(const char* tblname,  const bool delete
     if (!is_pattern  &&  !subreddit_names.contains(qstr_subreddit))
         return notfound::subreddit(this, qstr_subreddit);
     
+    constexpr static const compsky::asciify::flag::Escape f_esc;
+    
     compsky::mysql::exec(
         (delete_from) ? "DELETE x FROM " : "INSERT IGNORE INTO ",
         tblname,
         (delete_from) ? " x, reason_matched a, subreddit b WHERE x.reason=a.id AND x.subreddit=b.id AND a.name=\"" : " SELECT a.id,b.id FROM reason_matched a, subreddit b WHERE a.name=\"",
         qstr_reason,
         "\" AND b.name",
-        (is_pattern) ? " LIKE " : "=",
+        patternstr,
         '"',
-        qstr_subreddit,
+        f_esc, '"', qstr_subreddit,
         '"'
     );
 }
