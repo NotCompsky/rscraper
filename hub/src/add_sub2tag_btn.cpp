@@ -22,15 +22,14 @@ extern QStringList subreddit_names;
 extern QCompleter* subreddit_name_completer;
 
 
-AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  bool delete_from,  QWidget* parent)
+AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  const bool _delete_from,  QWidget* parent)
 :
+    QPushButton(QString(_delete_from?"-":"+") + "Subreddits",  parent),
     tag_id(id),
-    QPushButton(QString(delete_from?"-":"+") + "Subreddits",  parent),
-    delete_from(delete_from)
+    delete_from(_delete_from)
 {}
 
 void AddSub2TagBtn::add_subreddit(){
-    bool ok;
     while(true){
         SQLNameDialog* namedialog = new SQLNameDialog("Subreddit Name");
         
@@ -78,5 +77,6 @@ void AddSub2TagBtn::mousePressEvent(QMouseEvent* e){
     switch(e->button()){
         case Qt::LeftButton:
             return this->add_subreddit();
+        default: return;
     }
 }
