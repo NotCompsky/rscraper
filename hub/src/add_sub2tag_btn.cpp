@@ -45,7 +45,7 @@ void AddSub2TagBtn::add_subreddit(){
             namedialog->name_edit->setCompleter(tag_subreddits_names_completer);
         }
         
-        int rc = namedialog->exec();
+        const int rc = namedialog->exec();
         const char* patternstr = namedialog->get_pattern_str();
         const bool is_pattern = !(patternstr[0] == '=');
         const QString qstr = namedialog->name_edit->text();
