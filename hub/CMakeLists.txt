@@ -28,18 +28,6 @@ find_package(Compsky REQUIRED asciify mysql)
 set(CMAKE_AUTOMOC ON)
 
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    # e.g. cmake .. -DCMAKE_BUILD_TYPE=Debug
-    set(MY_DEFINITIONS "DEBUG")
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
-    endif()
-else()
-    set(CMAKE_BUILD_TYPE "Release")
-    set(MY_DEFINITIONS "QT_NO_DEBUG" "QT_NO_DEBUG_OUTPUT")
-endif()
-message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(UTILS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../utils/src")
 

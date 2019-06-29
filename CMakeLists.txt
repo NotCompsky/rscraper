@@ -7,6 +7,23 @@ endif()
 project(RScraper C CXX) # WARNING: Sets some important variables about the plarform. Don't call find_package before setting a project name.
 
 
+
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    # e.g. cmake .. -DCMAKE_BUILD_TYPE=Debug
+    set(MY_DEFINITIONS "DEBUG")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fsanitize=undefined -Wall -Wextra -Wshadow -Wstrict-aliasing -Wfloat-equal -Wpointer-arith -Wwrite-strings -Wformat=2 -Wstrict-overflow -Wunreachable-code") # -Wredundant-decls -Wmissing-declarations
+    endif()
+else()
+    set(CMAKE_BUILD_TYPE "Release")
+    set(MY_DEFINITIONS "QT_NO_DEBUG" "QT_NO_DEBUG_OUTPUT")
+endif()
+message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+
+
+
+
 if(WHY_THIS_NECESSARY)
     set(COMPSKY_INCLUDE_DIRS "${WHY_THIS_NECESSARY}/../include")
     set(COMPSKY_BIN_DIRS "${WHY_THIS_NECESSARY}/../bin")
