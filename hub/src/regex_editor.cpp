@@ -166,7 +166,7 @@ void RegexEditor::test_regex(){
     else *regexpr_str_end = 0;
     
     try {
-        boost::basic_regex<char, boost::cpp_regex_traits<char>> test(s,  boost::regex::perl | boost::regex::optimize);
+        boost::basic_regex<char, boost::cpp_regex_traits<char>> test(s,  boost::regex::perl);
     } catch (boost::regex_error& e){
         QMessageBox::critical(this,  "Bad Regex",  e.what());
         return;
