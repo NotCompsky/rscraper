@@ -7,11 +7,13 @@
 
 #include "view_matched_comments.hpp"
 
+#include <boost/regex.hpp>
 #include <ctime> // for localtime, time_t
 
 #include <QCompleter>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QStringList>
 #include <QRadioButton>
@@ -21,11 +23,17 @@
 #include <compsky/asciify/asciify.hpp>
 #include <compsky/mysql/query.hpp>
 
+#include "init_regexp_from_file.hpp"
+
 #include "id2str.hpp"
+
 
 extern QStringList tagslist;
 extern QCompleter* reason_name_completer;
 
+namespace filter_comment_body {
+    extern boost::basic_regex<char, boost::cpp_regex_traits<char>>* regexpr;
+}
 
 namespace _f {
     constexpr static const compsky::asciify::flag::ChangeBuffer chbuf;
@@ -75,7 +83,7 @@ constexpr const char* reason_a2 =
     "AND u.id=c.author_id";
 
 
-ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res1(0), is_ascending(false) {
+ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res1(0), is_ascending(false), cmnt_body(nullptr) {
     QVBoxLayout* l = new QVBoxLayout;
     
     
@@ -146,6 +154,20 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res
     
     l->addWidget(this->textarea);
     
+    QPushButton* details_cmnt = new QPushButton("Details", this);
+    connect(details_cmnt, &QPushButton::clicked, this, &ViewMatchedComments::view_matches);
+    l->addWidget(details_cmnt);
+    
+    QPushButton* del_cmnt = new QPushButton("Delete", this);
+    connect(del_cmnt, &QPushButton::clicked, this, &ViewMatchedComments::del_cmnt);
+    QPalette palette = this->palette();
+    palette.setColor(QPalette::Button, QColor(Qt::red));
+    del_cmnt->setAutoFillBackground(true);
+    del_cmnt->setPalette(palette);
+    del_cmnt->setFlat(true);
+    del_cmnt->update();
+    l->addWidget(del_cmnt);
+    
     this->setLayout(l);
 }
 
@@ -186,20 +208,23 @@ void ViewMatchedComments::init(){
 }
 
 void ViewMatchedComments::next(){
-    if (this->res1 == nullptr)
+    if (this->res1 == nullptr){
+        this->subname->setText("");
+        this->username->setText("");
+        this->reasonname->setText("");
+        this->datetime->setText("");
+        this->textarea->setPlainText("");
         return;
+    }
     char* subname;
     constexpr static const compsky::asciify::flag::StrLen f;
-    char* body;
     uint64_t post_id;
-    uint64_t cmnt_id;
-    size_t body_sz;
     uint64_t t;
     char* username;
     char* reason;
-    if (compsky::mysql::assign_next_row(this->res1, &this->row1, &subname, &post_id, &cmnt_id, &t, f, &body_sz, &body, &username, &reason)){
-        post_id_str[id2str(post_id, post_id_str)] = 0;
-        cmnt_id_str[id2str(cmnt_id, cmnt_id_str)] = 0;
+    if (compsky::mysql::assign_next_row(this->res1, &this->row1, &subname, &post_id, &this->cmnt_id, &t, f, &this->cmnt_body_sz, &this->cmnt_body, &username, &reason)){
+        post_id_str[id2str(post_id,         post_id_str)] = 0;
+        cmnt_id_str[id2str(this->cmnt_id,   cmnt_id_str)] = 0;
         
         this->permalink->setText(QString("https://www.reddit.com/r/" + QString(subname) + QString("/comments/") + QString(post_id_str) + QString("/_/") + QString(cmnt_id_str)));
         
@@ -214,10 +239,49 @@ void ViewMatchedComments::next(){
         this->reasonname->setText(reason);
         this->datetime->setText(dt_buf);
         
-        this->textarea->setPlainText(body);
+        this->textarea->setPlainText(cmnt_body);
     } else this->res1 = nullptr;
 }
 
 void ViewMatchedComments::toggle_order_btns(){
     this->is_ascending = !this->is_ascending;
+}
+
+void ViewMatchedComments::del_cmnt(){
+    compsky::mysql::exec("DELETE FROM comment WHERE id=", this->cmnt_id);
+    this->next();
+}
+
+void ViewMatchedComments::view_matches(){
+    /*
+     * NOTE: The current regexp is run on the string, notably not necessarily the one that originally matched the comment.
+     */
+    
+    std::vector<char*> reason_name2id;
+    std::vector<int> groupindx2reason;
+    std::vector<bool> record_contents;
+    
+    QString report = ""; 
+    
+    if (filter_comment_body::regexpr == nullptr)
+        filter_comment_body::init_regexp_from_file(reason_name2id, groupindx2reason, record_contents);
+    
+    if (filter_comment_body::regexpr == nullptr){
+        report += "Cannot find regexpr file. Ensure that the environmental variable RSCRAPER_REGEX_FILE is set to the file path of the regex file.";
+    }
+    
+    boost::match_results<const char*> what;
+    
+    const char* str = this->cmnt_body;
+    
+    if (!boost::regex_search(str,  str + this->cmnt_body_sz,  what,  *filter_comment_body::regexpr))
+        report += "No matches";
+    
+    for (auto i = 1;  i < what.size();  ++i){
+        // Ignore first index - it is the entire match, not a regex group.
+        if (what[i].matched)
+            report += QString("\nMatched group ") + QString::number(i) + QString("\n\t") + QString::fromLocal8Bit(what[i].first,  (uintptr_t)what[i].second - (uintptr_t)what[i].first);
+    }
+    
+    QMessageBox::information(this, "Report", report);
 }

@@ -24,6 +24,10 @@
 #include "msgbox.hpp"
 
 
+namespace filter_comment_body {
+    extern boost::basic_regex<char, boost::cpp_regex_traits<char>>* regexpr;
+}
+
 static const QString help_text = 
     "Supports boost::regex Perl syntax, with Python named groups (?P<name>).\n"
     "The first spaces and tabs of each line are ignored, except if the newline was escaped.\n"
@@ -166,9 +170,13 @@ void RegexEditor::test_regex(){
     else *regexpr_str_end = 0;
     
     try {
-        boost::basic_regex<char, boost::cpp_regex_traits<char>> test(s,  boost::regex::perl);
+        if (filter_comment_body::regexpr != nullptr)
+            delete filter_comment_body::regexpr;
+        filter_comment_body::regexpr = new boost::basic_regex<char, boost::cpp_regex_traits<char>>(s,  boost::regex::perl);
     } catch (boost::regex_error& e){
         QMessageBox::critical(this,  "Bad Regex",  e.what());
+        delete filter_comment_body::regexpr;
+        filter_comment_body::regexpr = nullptr;
         return;
     }
     

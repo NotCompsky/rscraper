@@ -24,7 +24,6 @@ struct tag2cl{
 
 
 
-
 class MainWindow : public QDialog{
     Q_OBJECT
   public:

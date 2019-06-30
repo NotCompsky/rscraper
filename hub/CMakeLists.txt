@@ -57,6 +57,8 @@ add_executable(
     
     "${SRC_DIR}/msgbox.cpp"
     
+    "${SRC_DIR}/../../shared-src/init_regexp_from_file.cpp"
+    
     # Messages
     "${SRC_DIR}/notfound.cpp"
     
@@ -78,6 +80,10 @@ add_executable(
     
     "${SRC_DIR}/cat_doughnut.cpp"
 )
+if(NOT FS_NOT_EXPERIMENTAL)
+    target_compile_definitions(rscraper-hub PRIVATE FS_EXPERIMENTAL=1)
+    target_link_libraries(rscraper-hub stdc++fs)
+endif()
 set_property(TARGET rscraper-hub PROPERTY CXX_STANDARD 17)
 target_include_directories(rscraper-hub PRIVATE ${COMPSKY_INCLUDE_DIRS})
 target_link_libraries(rscraper-hub mysqlclient Qt5::Widgets Qt5::Charts compsky_asciify compsky_mysql)

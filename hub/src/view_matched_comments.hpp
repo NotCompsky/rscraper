@@ -23,8 +23,10 @@ class ViewMatchedComments : public QWidget {
     ~ViewMatchedComments();
   private:
     void next();
+    void del_cmnt();
     void init();
     void toggle_order_btns();
+    void view_matches();
     QLineEdit* tagname_input;
     QLineEdit* reasonname_input;
     QPlainTextEdit* textarea;
@@ -36,6 +38,9 @@ class ViewMatchedComments : public QWidget {
     char post_id_str[10];
     char cmnt_id_str[10];
     char dt_buf[200];
+    uint64_t cmnt_id;
+    char* cmnt_body;
+    size_t cmnt_body_sz;
     MYSQL_RES* res1;
     MYSQL_ROW row1;
     bool is_ascending;
