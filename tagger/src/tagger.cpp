@@ -8,7 +8,7 @@
 
 #include "rscraper/tagger.hpp"
 
-#include <string.h> // for memcpy, strlen
+#include <cstring> // for memcpy, strlen
 #include <stdlib.h> // for abort
 
 #ifndef DEBUG

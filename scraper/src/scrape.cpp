@@ -6,14 +6,13 @@
  */
 
 
-#include <string.h> // for memcpy
+#include <cstring> // for malloc, memcpy
 #ifdef _WIN32
 # include <windows.h> // for sleep
 # define sleep(n) Sleep(1000 * n)
 #else
 # include <unistd.h> // for sleep
 #endif
-#include <string.h> // for malloc
 
 #include "error_codes.hpp" // for myerr:*
 

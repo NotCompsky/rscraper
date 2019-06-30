@@ -8,7 +8,7 @@
 #include "curl_utils.hpp"
 
 #include <stdlib.h> // for realloc
-#include <string.h> // for memcpy
+#include <cstring> // for memcpy
 
 #include "error_codes.hpp" // for myerr:*
 
