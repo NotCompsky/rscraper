@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS submission (
     subreddit_id BIGINT UNSIGNED NOT NULL,
     content VARBINARY(40000),
     created_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    nsfw SMALLINT UNSIGNED NOT NULL,
     PRIMARY KEY (id)
 );
 
