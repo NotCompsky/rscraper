@@ -14,6 +14,9 @@
 #include <QWidget>
 
 
+class CatPie;
+
+
 class ClTagsTab : public QWidget{
     Q_OBJECT
   public:
@@ -29,6 +32,7 @@ class ClTagsTab : public QWidget{
   private:
     void display_tag_stats(const int tag_id);
     QTabWidget* tab_widget;
+    CatPie* cat_pie;
     int row;
 };
 

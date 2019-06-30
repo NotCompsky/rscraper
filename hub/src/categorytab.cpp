@@ -25,6 +25,7 @@
 
 #include "add_sub2tag_btn.hpp"
 #include "btn_with_id.hpp"
+#include "cat_pie.hpp"
 #include "clbtn.hpp"
 #include "sh_tag_btn.hpp"
 #include "unlink_tag_btn.hpp"
@@ -45,6 +46,18 @@ extern QStringList category_names;
 
 ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* parent) : cat_id(cat_id), QWidget(parent), row(0), tab_widget(tab_widget){
     this->l = new QGridLayout;
+    
+    {
+    l->addWidget(new QLabel("Pie Chart"), ++this->row, 0);
+    this->cat_pie = new CatPie(this->cat_id, this);
+    QPushButton* bake_cat_pie_btn = new QPushButton("Bake", this);
+    connect(bake_cat_pie_btn, &QPushButton::clicked, this->cat_pie, &CatPie::init);
+    l->addWidget(bake_cat_pie_btn, this->row, 1);
+    QPushButton* show_cat_pie_btn = new QPushButton("Eat", this);
+    connect(show_cat_pie_btn, &QPushButton::clicked, this->cat_pie, &CatPie::show_chart);
+    l->addWidget(show_cat_pie_btn, this->row, 2);
+    ++this->row;
+    }
     
     QPushButton* add_tag_btn = new QPushButton("+Tag", this);
     connect(add_tag_btn, SIGNAL(clicked()), this, SLOT(add_tag()));
