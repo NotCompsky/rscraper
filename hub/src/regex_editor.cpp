@@ -30,6 +30,8 @@ namespace filter_comment_body {
 
 static const QString help_text = 
     "Supports boost::regex Perl syntax, with Python named groups (?P<name>).\n"
+    "The group syntax is more flexible than Python's - you can use whatever characters you please, save for '&' and '<', and can use the same group name for multiple groups.\n"
+    "\n"
     "The first spaces and tabs of each line are ignored, except if the newline was escaped.\n"
     "All text after an unescaped # is ignored, and all unescaped preceding spaces and tabs too.\n"
     "Only \\\\, \\n, \\r, \\t, and \\v are recognised escapes sequences.\n"
