@@ -41,7 +41,7 @@ namespace compsky {
 
 constexpr size_t strlen_constexpr(const char* s){
     // GCC strlen is constexpr; this is apparently a bug
-    return (*s)  ?  1 + strlen_constexpr(s + 1)  :  0;
+    return (*s != 0)  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
 
 constexpr static const char* SQL__INSERT_SUBMISSION_FROM_CMNT_STR = "INSERT IGNORE INTO submission (id, subreddit_id, nsfw) values";
@@ -90,9 +90,7 @@ void count_user_subreddit_cmnt(const uint64_t user_id,  const uint64_t subreddit
     compsky::asciify::BUF_INDX = dummy_indx;
 }
 
-void process_this_comment(rapidjson::Value& cmnt,  uint64_t author_id,  const char* author_name,  uint64_t cmnt_id,  uint64_t subreddit_id,  unsigned int reason_matched,  bool is_submission_nsfw,  const bool to_record_contents){
-    const char* permalink = cmnt["data"]["permalink"].GetString();
-    
+void process_this_comment(const rapidjson::Value& cmnt,  const uint64_t author_id,  const char* author_name,  const uint64_t cmnt_id,  const uint64_t subreddit_id,  const unsigned int reason_matched,  const bool is_submission_nsfw,  const bool to_record_contents){
     const time_t created_at = cmnt["data"]["created_utc"].GetFloat(); // It's delivered in float format
     
     compsky::mysql::exec("INSERT IGNORE INTO user (id, name) VALUES (",  author_id,  ",'",  author_name,  "')");
@@ -133,7 +131,7 @@ void process_this_comment(rapidjson::Value& cmnt,  uint64_t author_id,  const ch
     compsky::asciify::BUF_INDX = dummy_indx;
 }
 
-void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
+void process_live_cmnt(const rapidjson::Value& cmnt,  const uint64_t cmnt_id){
     const char* body            = cmnt["data"]["body"].GetString();
     const char* subreddit_name  = cmnt["data"]["subreddit"].GetString();
     const char* author_name     = cmnt["data"]["author"].GetString();
@@ -141,7 +139,7 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
     const uint64_t author_id = str2id(cmnt["data"]["author_fullname"].GetString() + 3); // Skip "t2_" prefix
     const uint64_t subreddit_id = str2id(cmnt["data"]["subreddit_id"].GetString() + 3); // Skip "t3_" prefix
     const bool is_submission_nsfw = cmnt["data"]["over_18"].GetBool();
-    const uint8_t is_subreddit_nsfw = (is_submission_nsfw) ? 2 : 0; // 0 for certainly SFW, 1 for certainly NSFW. 2 for unknown.
+    const uint8_t is_subreddit_nsfw = (is_submission_nsfw) ? 2 : 0; // 0 for certainly SFW, 1 for certainly NSFW. 2 for unknown. // TODO: Record this
     
     if (!contains(filter_subreddit::BLACKLIST_COUNT, subreddit_id)  &&  !contains(filter_user::BLACKLIST_COUNT, author_id))
         count_user_subreddit_cmnt(author_id, subreddit_id, subreddit_name);
@@ -157,27 +155,24 @@ void process_live_cmnt(rapidjson::Value& cmnt, const uint64_t cmnt_id){
     
     unsigned int reason_matched = 0;
     
-    if      (contains(filter_user::WHITELIST_BODY, author_id))
+    if (contains(filter_user::WHITELIST_BODY, author_id))
         return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw, true);
-    else if (contains(filter_user::BLACKLIST_BODY, author_id))
+    if (contains(filter_user::BLACKLIST_BODY, author_id))
         return;
     
-    if      (contains(filter_subreddit::WHITELIST_BODY, subreddit_id))
+    if (contains(filter_subreddit::WHITELIST_BODY, subreddit_id))
         return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw, true);
-    else if (contains(filter_subreddit::BLACKLIST_BODY, subreddit_id))
+    if (contains(filter_subreddit::BLACKLIST_BODY, subreddit_id))
         return;
     
     bool to_record_contents;
-    if ((reason_matched = filter_comment_body::match(metadata, body, strlen(body), to_record_contents))){
+    if ((reason_matched = filter_comment_body::match(metadata, body, strlen(body), to_record_contents)))
         return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw, to_record_contents);
-    }
-    // if filter_comment_body::bl: return;
-    
     
     return;
 }
 
-uint64_t process_live_replies(rapidjson::Value& replies, const uint64_t last_processed_cmnt_id){
+uint64_t process_live_replies(rapidjson::Value& replies,  const uint64_t last_processed_cmnt_id){
     /*
     'replies' object is the 'replies' JSON object which has property 'kind' of value 'Listing'
     */
@@ -234,11 +229,11 @@ void process_all_comments_live(){
     }
 }
 
-int main(const int argc, const char* argv[]){
+int main(){
     void* dummy = malloc(81000); // Max size of Reddit comments is 40000 characters, iirc.
     if (dummy == nullptr)
         exit(myerr::OUT_OF_MEMORY);
-    compsky::asciify::BUF = (char*)dummy;
+    compsky::asciify::BUF = static_cast<char*>(dummy);
     
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
     filter_comment_body::init();
