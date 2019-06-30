@@ -23,7 +23,6 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QRadioButton>
 #include <QStringList>
 #include <QVBoxLayout>
 
@@ -39,9 +38,14 @@ namespace _f {
     constexpr static const compsky::asciify::flag::ChangeBuffer chbuf;
 }
 
+namespace details {
+    static const QString sorting_column_titles[6] = {"Datetime", "Reason", "Subreddit", "User", "Submission", "Content Length"};
+    constexpr static const char* sorting_columns[6] = {"c.id", "m.name", "subreddit_name", "u.name", "submission_id", "LENGTH(c.content)"};
+}
+
 
 constexpr const char* tag_a1 = 
-    "SELECT S.name, S.id, c.id, c.created_at, c.content, u.name, m.name " // Dummy column '' to substitute for 'reason' column
+    "SELECT S.name AS subreddit_name, S.id AS submission_id, c.id, c.created_at, c.content, u.name, m.name "
     "FROM reason_matched m, user u, comment c "
     "JOIN ("
         "SELECT R.name, s.id "
@@ -68,7 +72,7 @@ constexpr const char* tag_a2 =
     "AND m.id=c.reason_matched";
 
 constexpr const char* reason_a1 = 
-    "SELECT r.name, s.id, c.id, c.created_at, c.content, u.name, m.name "
+    "SELECT r.name AS subreddit_name, s.id AS submission_id, c.id, c.created_at, c.content, u.name, m.name "
     "FROM subreddit r, submission s, comment c, user u, reason_matched m "
     "WHERE ";
 constexpr const char* reason_b1 = 
@@ -108,6 +112,20 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res
     }
     
     
+    
+    {
+    QGroupBox* group_box = new QGroupBox("Order By:");
+    QHBoxLayout* box = new QHBoxLayout;
+    for (auto i = 0;  i < 6;  ++i){
+        this->sorting_column_btns[i] = new QRadioButton(details::sorting_column_titles[i]);
+        box->addWidget(this->sorting_column_btns[i]);
+    }
+    this->sorting_column_btns[0]->setChecked(true);
+    box->addStretch(1);
+    group_box->setLayout(box);
+    l->addWidget(group_box);
+    }
+    
     {
     QGroupBox* group_box = new QGroupBox("Order By Date:");
     QRadioButton* asc   = new QRadioButton("Ascending");
@@ -121,6 +139,7 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res
     group_box->setLayout(box);
     l->addWidget(group_box);
     }
+    
     
     
     {
@@ -179,6 +198,12 @@ ViewMatchedComments::~ViewMatchedComments(){
     delete this->subname;
 }
 
+const char* ViewMatchedComments::get_sort_column(){
+    for (auto i = 0;  i < 6;  ++i)
+        if (this->sorting_column_btns[i]->isChecked())
+            return details::sorting_columns[i];
+}
+
 void ViewMatchedComments::init(){
     if (this->res1 != nullptr)
         mysql_free_result(this->res1);
@@ -199,8 +224,8 @@ void ViewMatchedComments::init(){
     else
         compsky::asciify::asciify(reason_a1, reason_a2);
     
-    compsky::asciify::asciify(" ORDER BY c.created_at ");
-    compsky::asciify::asciify((this->is_ascending) ? "asc" : "desc");
+    compsky::asciify::asciify(" ORDER BY ", this->get_sort_column());
+    compsky::asciify::asciify((this->is_ascending) ? " asc" : " desc");
     
     compsky::mysql::query_buffer(&this->res1, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
     

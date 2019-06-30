@@ -10,6 +10,7 @@
 
 #include <compsky/mysql/mysql.hpp>
 
+#include <QRadioButton>
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QLineEdit>
@@ -27,6 +28,7 @@ class ViewMatchedComments : public QWidget {
     void init();
     void toggle_order_btns();
     void view_matches();
+    const char* get_sort_column();
     QLineEdit* tagname_input;
     QLineEdit* reasonname_input;
     QPlainTextEdit* textarea;
@@ -35,6 +37,7 @@ class ViewMatchedComments : public QWidget {
     QLabel* reasonname;
     QLabel* datetime;
     QLineEdit* permalink;
+    QRadioButton* sorting_column_btns[6];
     char post_id_str[10];
     char cmnt_id_str[10];
     char dt_buf[200];
