@@ -26,6 +26,7 @@
 #include "add_sub2tag_btn.hpp"
 #include "btn_with_id.hpp"
 #include "cat_pie.hpp"
+#include "tag_pie.hpp"
 #include "clbtn.hpp"
 #include "sh_tag_btn.hpp"
 #include "unlink_tag_btn.hpp"
@@ -166,62 +167,6 @@ void ClTagsTab::rm_self(){
 }
 
 void ClTagsTab::display_tag_stats(const int tag_id){
-    using namespace QtCharts;
-    
-    constexpr static const compsky::asciify::flag::Escape f_esc;
-    compsky::mysql::query(
-        &RES1,
-        "SELECT s.name, COUNT" // Only difference
-        "(u2scc.count) as c FROM user2subreddit_cmnt_count u2scc, subreddit2tag s2t, tag t, subreddit s WHERE u2scc.subreddit_id=s2t.subreddit_id AND s2t.tag_id=t.id AND t.id=",
-        tag_id,
-        " AND s2t.subreddit_id=s.id GROUP BY s.name ORDER BY s.name"
-    );
-    compsky::mysql::query(
-        &RES2,
-        "SELECT SUM" // Only difference
-        "(u2scc.count) as c FROM user2subreddit_cmnt_count u2scc, subreddit2tag s2t, tag t, subreddit s WHERE u2scc.subreddit_id=s2t.subreddit_id AND s2t.tag_id=t.id AND t.id=",
-        tag_id,
-        " AND s2t.subreddit_id=s.id GROUP BY s.name ORDER BY s.name"
-    );
-    
-    char* name;
-    uint64_t count;
-    uint64_t sum;
-    QHorizontalBarSeries* series = new QHorizontalBarSeries();
-    while(compsky::mysql::assign_next_row(RES1, &ROW1, &name, &count)  &&  compsky::mysql::assign_next_row(RES2, &ROW1, &sum)){
-        QBarSet* set = new QBarSet(name);
-        set->append(count);
-        set->append(sum);
-        series->append(set);
-    }
-    
-    QChart* chart = new QChart();
-    chart->addSeries(series);
-    chart->setTitle("Sums per tagged subreddit");
-    chart->setAnimationOptions(QChart::SeriesAnimations);
-    
-    QStringList categories;
-    categories << "Users" << "Comments";
-    QBarCategoryAxis* axis_y = new QBarCategoryAxis();
-    axis_y->append(categories);
-    chart->addAxis(axis_y, Qt::AlignLeft);
-    series->attachAxis(axis_y);
-    QValueAxis* axis_x = new QValueAxis();
-    chart->addAxis(axis_x, Qt::AlignBottom);
-    series->attachAxis(axis_x);
-    axis_x->applyNiceNumbers();
-    
-    chart->legend()->setVisible(true);
-    chart->legend()->setAlignment(Qt::AlignBottom);
-    
-    QChartView* chart_view = new QChartView(chart);
-    chart_view->setRenderHint(QPainter::Antialiasing);
-    
-    QDialog* dialog = new QDialog(this);
-    
-    QVBoxLayout* l = new QVBoxLayout();
-    l->addWidget(chart_view);
-    dialog->setLayout(l);
-    
-    dialog->show();
+    TagPie* tag_pie = new TagPie(tag_id, this);
+    tag_pie->exec();
 }

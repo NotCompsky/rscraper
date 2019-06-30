@@ -80,6 +80,7 @@ add_executable(
     
     "${SRC_DIR}/cat_doughnut.cpp"
     "${SRC_DIR}/cat_pie.cpp"
+    "${SRC_DIR}/tag_pie.cpp"
 )
 if(NOT FS_NOT_EXPERIMENTAL)
     target_compile_definitions(rscraper-hub PRIVATE FS_EXPERIMENTAL=1)
