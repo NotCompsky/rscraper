@@ -4,6 +4,8 @@
 
 RScraper is a family of independent tools including a scraper, [browser addon](tagger), and chart generators.
 
+![Taster](https://user-images.githubusercontent.com/30552567/60394819-d453d280-9b21-11e9-8dd9-323ae460b2bf.png)
+
 ## Components
 
 * [rtagger addon](tagger) - the browser addon for tagging Reddit users
