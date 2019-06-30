@@ -8,12 +8,12 @@
 #ifndef __VIEW_MATCHED_COMMENTS_H__
 #define __VIEW_MATCHED_COMMENTS_H__
 
+#include <compsky/mysql/mysql.hpp>
+
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QLineEdit>
 #include <QWidget>
-
-#include <compsky/mysql/mysql.hpp>
 
 
 class ViewMatchedComments : public QWidget {

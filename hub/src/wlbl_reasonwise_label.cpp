@@ -7,9 +7,9 @@
 
 #include "wlbl_reasonwise_label.hpp"
 
-#include <compsky/mysql/query.hpp>
-
 #include "msgbox.hpp"
+
+#include <compsky/mysql/query.hpp>
 
 
 extern MYSQL_RES* RES1;

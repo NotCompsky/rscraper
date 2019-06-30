@@ -8,14 +8,14 @@
 
 #include "main_tab.hpp"
 
+#include "categorytab.hpp"
+#include "name_dialog.hpp"
+
 #include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
 
 #include <QLabel>
 #include <QPushButton>
-
-#include "categorytab.hpp"
-#include "name_dialog.hpp"
 
 
 extern MYSQL_RES* RES1;

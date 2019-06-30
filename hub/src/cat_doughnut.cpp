@@ -4,6 +4,11 @@
 
 #include "cat_doughnut.hpp"
 
+#include <compsky/mysql/query.hpp>
+
+#include "3rdparty/donutbreakdownchart.h"
+#include "3rdparty/mainslice.h"
+
 #include <tuple>
 
 #include <QChartView>
@@ -13,11 +18,6 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QWindow>
-
-#include <compsky/mysql/query.hpp>
-
-#include "3rdparty/donutbreakdownchart.h"
-#include "3rdparty/mainslice.h"
 
 
 extern MYSQL_RES* RES1;

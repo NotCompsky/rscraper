@@ -1,5 +1,7 @@
 #include "init_regexp_from_file.hpp"
 
+#include <compsky/regex/named_groups.hpp>
+
 #ifdef FS_EXPERIMENTAL
 # include <experimental/filesystem>
 namespace fs = std::experimental::filesystem::v1;
@@ -7,8 +9,6 @@ namespace fs = std::experimental::filesystem::v1;
 # include <filesystem>
 namespace fs = std::filesystem;
 #endif
-
-#include <compsky/regex/named_groups.hpp>
 
 
 namespace filter_comment_body {

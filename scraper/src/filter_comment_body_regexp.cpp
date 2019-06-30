@@ -17,13 +17,12 @@ It cannot end in a literal newline. If such is desired, use [\n]
 
 #include "filter_comment_body_regexp.hpp"
 
+#include "init_regexp_from_file.hpp"
+#include "error_codes.hpp" // for myerr:*
+#include "filter_comment_body.hpp"
+
 #include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
-
-#include "init_regexp_from_file.hpp"
-
-#include "filter_comment_body.hpp"
-#include "error_codes.hpp" // for myerr:*
 
 
 extern MYSQL_RES* RES;

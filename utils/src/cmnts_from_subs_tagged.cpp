@@ -5,14 +5,14 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#include <ctime> // for strftime, localtime, time_t
-#include <stdio.h> // for fwrite
-#include <stdlib.h> // for malloc
+#include "id2str.hpp" // for id2str
 
 #include <compsky/mysql/mysql.hpp>
 #include <compsky/mysql/query.hpp>
 
-#include "id2str.hpp" // for id2str
+#include <ctime> // for strftime, localtime, time_t
+#include <stdio.h> // for fwrite
+#include <stdlib.h> // for malloc
 
 
 MYSQL_RES* RES;

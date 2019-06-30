@@ -7,10 +7,10 @@
 
 #include "curl_utils.hpp"
 
-#include <stdlib.h> // for realloc
-#include <cstring> // for memcpy
-
 #include "error_codes.hpp" // for myerr:*
+
+#include <cstring> // for memcpy
+#include <stdlib.h> // for realloc
 
 #ifndef DEBUG
 # define printf(...)

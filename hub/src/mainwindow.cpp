@@ -8,21 +8,21 @@
 
 #include "mainwindow.hpp"
 
-#include <QColorDialog>
-#include <QCompleter>
-#include <QMessageBox>
-#include <QScrollArea>
-#include <QVBoxLayout>
-
-#include <compsky/asciify/flags.hpp>
-#include <compsky/mysql/query.hpp>
-
 #include "categorytab.hpp"
 #include "io_tab.hpp"
 #include "main_tab.hpp"
 #include "name_dialog.hpp"
 #include "scraper_tab.hpp"
 #include "view_matched_comments.hpp"
+
+#include <compsky/asciify/flags.hpp>
+#include <compsky/mysql/query.hpp>
+
+#include <QColorDialog>
+#include <QCompleter>
+#include <QMessageBox>
+#include <QScrollArea>
+#include <QVBoxLayout>
 
 #define DIGITS_IN_UINT64 19
 

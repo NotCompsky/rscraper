@@ -1,6 +1,6 @@
+#include <cstring> // for memcpy
 #include <stdio.h> // for fprintf
 #include <iostream> // for std::cout
-#include <cstring> // for memcpy
 
 #ifdef _WIN32
 # include <windows.h>

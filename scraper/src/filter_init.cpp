@@ -8,11 +8,11 @@
 
 #include "filter_init.hpp"
 
-#include <stdlib.h> // for malloc, exit
+#include "error_codes.hpp"
 
 #include <compsky/mysql/query.hpp>
 
-#include "error_codes.hpp"
+#include <stdlib.h> // for malloc, exit
 
 
 extern MYSQL_RES* RES;

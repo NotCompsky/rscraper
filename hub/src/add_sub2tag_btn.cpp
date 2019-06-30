@@ -7,12 +7,12 @@
 
 #include "add_sub2tag_btn.hpp"
 
-#include <QCompleter>
-
-#include "sql_name_dialog.hpp"
 #include "notfound.hpp"
+#include "sql_name_dialog.hpp"
 
 #include <compsky/mysql/query.hpp>
+
+#include <QCompleter>
 
 
 extern MYSQL_RES* RES1;

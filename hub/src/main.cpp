@@ -5,9 +5,10 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#include "mainwindow.hpp"
 
 #include <QApplication>
-#include "mainwindow.hpp"
+
 
 int main(int argc,  char** argv){
     QApplication app(argc, argv);

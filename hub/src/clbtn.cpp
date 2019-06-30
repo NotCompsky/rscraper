@@ -8,12 +8,12 @@
 
 #include "clbtn.hpp"
 
+#include <compsky/asciify/flags.hpp>
+#include <compsky/mysql/query.hpp>
+
 #include <QColorDialog>
 #include <QMessageBox>
 #include <QPalette>
-
-#include <compsky/asciify/flags.hpp>
-#include <compsky/mysql/query.hpp>
 
 
 extern MYSQL_RES* RES1;

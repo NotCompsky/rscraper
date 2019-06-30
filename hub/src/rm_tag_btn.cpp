@@ -7,14 +7,14 @@
 
 #include "rm_tag_btn.hpp"
 
-#include <QGridLayout>
-#include <QMessageBox>
-
 #include "categorytab.hpp"
 #include "clbtn.hpp"
 #include "unlink_tag_btn.hpp"
 
 #include <compsky/mysql/query.hpp>
+
+#include <QGridLayout>
+#include <QMessageBox>
 
 
 extern MYSQL_RES* RES1;

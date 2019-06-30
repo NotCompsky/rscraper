@@ -7,11 +7,11 @@
 
 #include "unlink_tag_btn.hpp"
 
-#include <QMessageBox>
+#include "categorytab.hpp"
 
 #include <compsky/mysql/query.hpp>
 
-#include "categorytab.hpp"
+#include <QMessageBox>
 
 
 UnlinkTagBtn::UnlinkTagBtn(const uint64_t id,  QWidget* parent) : QPushButton("Unlink", parent), tag_id(id) {}

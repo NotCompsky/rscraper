@@ -7,13 +7,13 @@
 
 #include "tagnamelabel.hpp"
 
-#include <QCompleter>
+#include "msgbox.hpp"
+#include "name_dialog.hpp"
 
 #include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
 
-#include "name_dialog.hpp"
-#include "msgbox.hpp"
+#include <QCompleter>
 
 
 extern QStringList tagslist;

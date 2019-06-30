@@ -7,17 +7,17 @@
 
 #include "sh_tag_btn.hpp"
 
-#include <QCompleter>
-#include <QMessageBox>
-#include <QStringList>
-
-#include <compsky/mysql/query.hpp>
-
 #include "categorytab.hpp"
 #include "clbtn.hpp"
 #include "name_dialog.hpp"
 #include "notfound.hpp"
 #include "tagnamelabel.hpp"
+
+#include <compsky/mysql/query.hpp>
+
+#include <QCompleter>
+#include <QMessageBox>
+#include <QStringList>
 
 
 extern MYSQL_RES* RES1;

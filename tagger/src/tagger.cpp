@@ -8,6 +8,8 @@
 
 #include "rscraper/tagger.hpp"
 
+#include <compsky/mysql/query.hpp>
+
 #include <cstring> // for memcpy, strlen
 #include <stdlib.h> // for abort
 
@@ -16,8 +18,6 @@
 #else
 # include <stdio.h> // for printf // TMP
 #endif
-
-#include <compsky/mysql/query.hpp>
 
 
 MYSQL_RES* RES;

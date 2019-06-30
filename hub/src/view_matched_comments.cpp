@@ -7,6 +7,14 @@
 
 #include "view_matched_comments.hpp"
 
+#include "init_regexp_from_file.hpp"
+
+#include "id2str.hpp"
+
+#define ASCIIFY_TIME
+#include <compsky/asciify/asciify.hpp>
+#include <compsky/mysql/query.hpp>
+
 #include <boost/regex.hpp>
 #include <ctime> // for localtime, time_t
 
@@ -15,17 +23,9 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QStringList>
 #include <QRadioButton>
+#include <QStringList>
 #include <QVBoxLayout>
-
-#define ASCIIFY_TIME
-#include <compsky/asciify/asciify.hpp>
-#include <compsky/mysql/query.hpp>
-
-#include "init_regexp_from_file.hpp"
-
-#include "id2str.hpp"
 
 
 extern QStringList tagslist;

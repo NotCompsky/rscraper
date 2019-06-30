@@ -4,6 +4,8 @@
 
 #include "cat_pie.hpp"
 
+#include <compsky/mysql/query.hpp>
+
 #include <QChartView>
 #include <QMessageBox>
 #include <QPieLegendMarker>
@@ -11,8 +13,6 @@
 #include <QPieSlice>
 #include <QPushButton>
 #include <QVBoxLayout>
-
-#include <compsky/mysql/query.hpp>
 
 
 extern MYSQL_RES* RES1;

@@ -7,14 +7,14 @@
 
 #include "btn_with_id.hpp"
 
-#include <QCompleter>
-#include <QMessageBox>
-#include <QStringList>
+#include "categorytab.hpp"
+#include "name_dialog.hpp"
 
 #include <compsky/mysql/query.hpp>
 
-#include "categorytab.hpp"
-#include "name_dialog.hpp"
+#include <QCompleter>
+#include <QMessageBox>
+#include <QStringList>
 
 
 extern MYSQL_RES* RES1;

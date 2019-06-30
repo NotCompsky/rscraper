@@ -8,10 +8,10 @@
 #ifndef __SCRAPER_TAB_H__
 #define __SCRAPER_TAB_H__
 
+#include "cat_doughnut.hpp"
+
 #include <QTabWidget>
 #include <QWidget>
-
-#include "cat_doughnut.hpp"
 
 
 class MainTab : public QWidget {

@@ -8,13 +8,9 @@
 
 #include "scraper_tab.hpp"
 
-#include <compsky/asciify/flags.hpp>
-#include <compsky/mysql/query.hpp>
-
-#include <QCompleter>
-#include <QLabel>
-#include <QMessageBox>
-#include <QPushButton>
+#include "sql_name_dialog.hpp"
+#include "wlbl_label.hpp"
+#include "wlbl_reasonwise_label.hpp"
 
 #include "id2str.hpp"
 
@@ -24,9 +20,14 @@
 #ifdef USE_BOOST_REGEX
 # include "regex_editor.hpp"
 #endif
-#include "sql_name_dialog.hpp"
-#include "wlbl_label.hpp"
-#include "wlbl_reasonwise_label.hpp"
+
+#include <compsky/asciify/flags.hpp>
+#include <compsky/mysql/query.hpp>
+
+#include <QCompleter>
+#include <QLabel>
+#include <QMessageBox>
+#include <QPushButton>
 
 
 extern MYSQL_RES* RES1;

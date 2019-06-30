@@ -5,12 +5,11 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#include <compsky/asciify/print.hpp>
+#include <compsky/mysql/query.hpp>
 
 #include <stdio.h> // for fwrite
 #include <stdlib.h> // for malloc
-
-#include <compsky/mysql/query.hpp>
-#include <compsky/asciify/print.hpp>
 
 
 MYSQL_RES* RES;

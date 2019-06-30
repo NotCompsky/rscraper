@@ -9,6 +9,10 @@
 
 #include "regex_editor.hpp"
 
+#include "msgbox.hpp"
+
+#include <compsky/regex/named_groups.hpp>
+
 #include <boost/regex.hpp>
 
 #include <QLabel>
@@ -18,10 +22,6 @@
 #include <QRegularExpression>
 #include <QStringRef>
 #include <QVBoxLayout>
-
-#include <compsky/regex/named_groups.hpp>
-
-#include "msgbox.hpp"
 
 
 namespace filter_comment_body {

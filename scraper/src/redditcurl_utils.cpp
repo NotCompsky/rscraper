@@ -7,6 +7,14 @@
 
 #include "redditcurl_utils.hpp"
 
+#include "curl_utils.hpp" // for mycu::*
+#include "error_codes.hpp" // for myerr:*
+
+#include <compsky/asciify/asciify.hpp>
+
+#include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
+// NOTE: These are to prefer local headers, as rapidjson is a header-only library. This allows easy use of any version of rapidjson, as those provided by repositories might be dated.
+
 #include <stdlib.h> // for free, malloc, realloc
 
 #ifdef _WIN32
@@ -20,13 +28,6 @@ extern "C" {
 # include <libb64.h> // for base64_encode // Must be after stdlib.h for size_t
 }
 
-#include "rapidjson/pointer.h" // for rapidjson::GetValueByPointer
-// NOTE: These are to prefer local headers, as rapidjson is a header-only library. This allows easy use of any version of rapidjson, as those provided by repositories might be dated.
-
-#include <compsky/asciify/asciify.hpp>
-
-#include "error_codes.hpp" // for myerr:*
-#include "curl_utils.hpp" // for mycu::*
 
 namespace myrcu {
 

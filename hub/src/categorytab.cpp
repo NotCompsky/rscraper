@@ -8,31 +8,31 @@
 
 #include "categorytab.hpp"
 
+#include "add_sub2tag_btn.hpp"
+#include "btn_with_id.hpp"
+#include "cat_pie.hpp"
+#include "clbtn.hpp"
+#include "name_dialog.hpp"
+#include "tag_pie.hpp"
+#include "sh_tag_btn.hpp"
+#include "unlink_tag_btn.hpp"
+#include "rm_tag_btn.hpp"
+#include "tagnamelabel.hpp"
+
+#include <compsky/mysql/query.hpp>
+
 #include <map>
 
 #include <QCompleter>
 #include <QDialogButtonBox>
 #include <QMessageBox>
+#include <QVBoxLayout>
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QBarSet>
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
 #include <QtCharts/QHorizontalBarSeries>
 #include <QtCharts/QValueAxis>
-#include <QVBoxLayout>
-
-#include <compsky/mysql/query.hpp>
-
-#include "add_sub2tag_btn.hpp"
-#include "btn_with_id.hpp"
-#include "cat_pie.hpp"
-#include "tag_pie.hpp"
-#include "clbtn.hpp"
-#include "sh_tag_btn.hpp"
-#include "unlink_tag_btn.hpp"
-#include "rm_tag_btn.hpp"
-#include "name_dialog.hpp"
-#include "tagnamelabel.hpp"
 
 
 extern MYSQL_RES* RES1;

@@ -5,6 +5,19 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
+#include "error_codes.hpp" // for myerr:*
+
+#include "curl_utils.hpp" // for mycu::*
+#include "id2str.hpp" // for str2id
+#include "redditcurl_utils.hpp" // for myrcu::*, rapidjson::*
+
+#include "filter_comment_body.hpp" // for filter_comment_body::*
+#include "filter_comment_body_regexp.hpp"
+#include "filter_subreddit.hpp" // for filter_subreddit::*
+#include "filter_user.hpp" // for filter_user::*
+
+#include <compsky/asciify/base.hpp>
+#include <compsky/mysql/query.hpp>
 
 #include <cstring> // for malloc, memcpy
 #ifdef _WIN32
@@ -13,20 +26,6 @@
 #else
 # include <unistd.h> // for sleep
 #endif
-
-#include "error_codes.hpp" // for myerr:*
-
-#include "id2str.hpp" // for str2id
-#include "curl_utils.hpp" // for mycu::*
-#include "redditcurl_utils.hpp" // for myrcu::*, rapidjson::*
-
-#include "filter_comment_body.hpp" // for filter_comment_body::*
-#include "filter_comment_body_regexp.hpp"
-#include "filter_user.hpp" // for filter_user::*
-#include "filter_subreddit.hpp" // for filter_subreddit::*
-
-#include <compsky/asciify/base.hpp>
-#include <compsky/mysql/query.hpp>
 
 
 MYSQL_RES* RES;
