@@ -14,6 +14,8 @@ For instance (with only one category):
 
 # Scraper Tab
 
+![l](https://user-images.githubusercontent.com/30552567/60397047-94501800-9b40-11e9-9023-31b79795a20d.png)
+
 You can edit the comment body matching regex here. It includes a preprocessor that converts the more human-readable regex here into the regex that is used by the scraper. As it uses `boost::regex`'s Perl regex internally, all features of that are supported here. Additionally, named groups are supported too. If you see a `reason` field on other tabs, it is talking about the named capture groups (that are pre-processed out of the regex and into the database).
 
 You can `test` the regex for correctness.
@@ -30,9 +32,9 @@ You can also compare the comment's contents to the current regex, with `Details`
 
 # Category Tabs
 
-NOTE: the package is often being updated. Some screenshots below may be slightly outdated and omit the new buttons, though the general idea is the same.
-
 ![Example](https://user-images.githubusercontent.com/30552567/60396903-0e7f9d00-9b3f-11e9-845e-28f36e39e2d9.png)
+
+* NOTE: the package is often being updated. Some screenshots below may be slightly outdated and omit the new buttons, though the general idea is the same.
 
 You can right-click on any tag's label to see the associated subreddits. For instance, here I clicked on `Dutch`.
 
