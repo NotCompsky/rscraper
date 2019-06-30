@@ -20,6 +20,8 @@ You can, however, point it towards any server - local or remote - so long as it 
 
 If you wish to build the `xpi` from source, navigate to the `browser-addon` directory and run `./build`.
 
+If you wish to build `rscraper-tagger` (the server executables), follow the instructions [here](../BUILDING.md).
+
 # Usage
 
 Only works on the old Reddit style - you can view Reddit with this by default in your preferences on Reddit.
