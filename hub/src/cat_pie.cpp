@@ -6,6 +6,7 @@
 
 #include <QChartView>
 #include <QMessageBox>
+#include <QPieLegendMarker>
 #include <QPieSeries>
 #include <QPieSlice>
 #include <QPushButton>
@@ -42,9 +43,22 @@ void CatPie::init(){
         QPieSlice* slice = series->append(QString(tag_name), tag_count);
         slice->setColor(QColor(r, g, b, a));
     }
+    series->setLabelsVisible();
     chart->addSeries(series);
+    for (QLegendMarker* marker : this->chart->legend()->markers(series)){
+        // This loop is adapted from the Breakdown Chart example in Qt5 documentation
+        QPieLegendMarker* pie_marker = qobject_cast<QPieLegendMarker*>(marker);
+        pie_marker->setLabel(
+            QString("%1 %2%")
+                .arg(pie_marker->slice()->label())
+                .arg(pie_marker->slice()->percentage() * 100, 0, 'f', 2)
+        );
+        pie_marker->setFont(QFont("Arial", 8));
+    }
+    
     this->chart->setAnimationOptions(QChart::AllAnimations);
     this->chart->setTitle("Total comment count per tag");
+    this->chart->legend()->setAlignment(Qt::AlignRight);
     
     QVBoxLayout* l = new QVBoxLayout;
     
