@@ -61,7 +61,7 @@ if("rscraper-init-scraper" IN_LIST MY_TARGETS)
 endif()
 
 if("rscrape-cmnts" IN_LIST MY_TARGETS)
-    add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${SRC_FILES} "${ID2STR_DIR}/id2str.cpp")
+    add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${SRC_FILES} "${ID2STR_DIR}/id2str.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../shared-src/init_regexp_from_file")
     set_property(TARGET rscrape-cmnts PROPERTY CXX_STANDARD 17)
     if(NOT FS_NOT_EXPERIMENTAL)
         target_compile_definitions(rscrape-cmnts PRIVATE FS_EXPERIMENTAL=1)

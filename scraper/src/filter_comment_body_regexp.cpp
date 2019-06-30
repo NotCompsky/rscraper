@@ -17,17 +17,10 @@ It cannot end in a literal newline. If such is desired, use [\n]
 
 #include "filter_comment_body_regexp.hpp"
 
-#ifdef FS_EXPERIMENTAL
-# include <experimental/filesystem>
-namespace fs = std::experimental::filesystem::v1;
-#else
-# include <filesystem>
-namespace fs = std::filesystem;
-#endif
-
 #include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
-#include <compsky/regex/named_groups.hpp>
+
+#include "init_regexp_from_file.hpp"
 
 #include "filter_comment_body.hpp"
 #include "error_codes.hpp" // for myerr:*
@@ -82,31 +75,9 @@ void populate_reason2name(){
 }
 
 void init(){
-    const char* fp = getenv("RSCRAPER_REGEX_FILE");
-    if (fp == nullptr)
-        return;
-    
-    size_t f_sz = fs::file_size(fp);
-    void* dummy = malloc(f_sz + 2); // 1 for blank at beginning, 1 for terminating \0
-    if (dummy == nullptr)
-        exit(myerr::OUT_OF_MEMORY);
-    char* regexpr_str = (char*)dummy;
-    
-    FILE* f = fopen(fp, "rb");
-    fread(regexpr_str + 1,  1,  f_sz,  f);
-    regexpr_str[f_sz + 1] = 0; // Ensure there is a terminating \0
-    
     populate_reason2name();
     
-    char* regexpr_str_end = compsky::regex::convert_named_groups(regexpr_str + 1,  regexpr_str,  reason_name2id,  groupindx2reason,  record_contents);
-    // Add one to the first buffer (src) not second buffer (dst) to ensure it is never overwritten when writing dst
-    
-    if (*(regexpr_str_end - 1) == '\n')
-        // Very confused what is happening here, but it seems that some files have \n appended to them by fread, while others do not.
-        // A small test file containing only `(?P<test>a)` written in `vim` is given a trailing \n by fread
-        // while a larger file containing newlines elsewhere but not at the end is not given a trailing \n by fread
-        *(regexpr_str_end - 1) = 0;
-    else *regexpr_str_end = 0;
+    filter_comment_body::init_regexp_from_file(reason_name2id, groupindx2reason, record_contents);
     
     constexpr static const compsky::asciify::flag::ChangeBuffer chbuf;
     constexpr static const compsky::asciify::flag::Escape esc;
@@ -117,10 +88,6 @@ void init(){
         compsky::asciify::asciify("(", i, ",\"", esc, '"', reason_name2id[i], "\"),");
     
     compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Ignore trailing comma
-    
-    regexpr = new boost::basic_regex<char, boost::cpp_regex_traits<char>>(regexpr_str,  boost::regex::perl | boost::regex::optimize);
-    
-    free(regexpr_str);
 }
 
 

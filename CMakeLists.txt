@@ -44,6 +44,8 @@ set(RSCRAPER_VERSION ${RSCRAPER_MAJOR_VERSION}.${RSCRAPER_MINOR_VERSION}.${RSCRA
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/include")
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/lib")
 
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/shared-src")
+
 include_directories("${COMPSKY_INCLUDE_DIRS}")
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     link_directories("${COMPSKY_BIN_DIRS}")

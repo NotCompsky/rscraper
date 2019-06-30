@@ -12,8 +12,6 @@
 
 namespace filter_comment_body {
 
-boost::basic_regex<char, boost::cpp_regex_traits<char>>* regexpr;
-
 #ifndef USE_BOOST_REGEX
 void init(){
 }
