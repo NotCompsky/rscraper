@@ -2,3 +2,5 @@
 
 rm rtagger.xpi
 zip -1 -r rtagger.xpi icons js options.html options.js manifest.json
+
+echo "Now you must sign the addon through Mozilla's developer hub, else Firefox will report it as corrupt."
