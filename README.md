@@ -33,7 +33,7 @@ See [man](man) directory for more generic instructions on using the other progra
 
 Packages exist for `Ubuntu` and `Raspbian` systems.
 
-However, it should work on MacOS and other Linux distros too. I just don't have access to such systems, so currently the only option for these systems is to build from source.
+However, it should work on MacOS and other Linux distros too. I just don't have access to such systems, so currently the only option for these systems is to [build](BUILDING.md) from source.
 
 Windows support is pending someone more knowledgeable about Windows builds helping out.
 
