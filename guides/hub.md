@@ -17,8 +17,12 @@ You can colour tags by left-clicking on the space between the label and the `+Su
 You can add tags with the `+Tag` button.
 
 ![Screenshot from 2019-06-26 22-43-17](https://user-images.githubusercontent.com/30552567/60246685-1e854b80-98b7-11e9-85cb-4d10f203bd93.png)
+
+The `stats` button next to each tag generates a pie chart of the number of comments per subreddit for that tag.
+
+![Subreddits tagged US](https://i.imgur.com/56OJW2J.png)
  
-You can generate a doughnut chart of the number of comments per category, broken down by each tag.
+In the `__MAIN__` tab, you can generate a doughnut chart of the number of comments per category, broken down by each tag.
 
 You first `bake` the chart (which currently freezes the application for ~1 minute), then `show` it.
 
