@@ -25,3 +25,7 @@ You first `bake` the chart (which currently freezes the application for ~1 minut
 For instance (with only one category):
 
 ![region cat doughnut](https://user-images.githubusercontent.com/30552567/60340500-aea0bf00-99a3-11e9-8900-4f5fce4df5e9.png)
+
+You can search through the matched comments in the `__CMNTS__` tab.
+
+![cmnts tab](https://user-images.githubusercontent.com/30552567/60394734-db2e1580-9b20-11e9-8107-4c619c871adf.png)
