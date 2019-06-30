@@ -65,3 +65,13 @@ The person who issues a PR to allow building for Windows will get a big recognit
 # Building
 
 See [BUILDING.md](BUILDING.md)
+
+# ROADMAP
+
+This is still in active development, so expect quite a few things to change.
+
+What should stay the same is the database structure. Purely aesthetic changes - such as the names of columns - will not be made.
+
+Backwards-incompatible changes are very unlikely in the database structure (defined in [init.sql](init/src/init.sql)), tagger, init and io, and unlikely in utils.
+
+Features may be added in particular to `rscraper-hub`.
