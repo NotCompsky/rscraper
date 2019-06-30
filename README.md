@@ -1,18 +1,13 @@
-rscraper -- Fancy tools using the Reddit comments API
-====================================
-
 ![Icon](tagger/browser-addon/icons/64.png)
 
 # Description
 
-RScraper contains tools for scraping data, importing and exporting data sets, and using the data for generating charts and for tagging users via a [browser addon](tagger).
+RScraper is a family of independent tools including a scraper, [browser addon](tagger), and chart generators.
 
-Although based around the data from a scraper, the client, scraper, and database utilities are independent of one another.
-
-# Components
+## Components
 
 * [rtagger addon](tagger) - the browser addon for tagging Reddit users
-* [tagger](tagger) - the server for the [browser addon](rtagger) addon
+* [tagger](tagger) - the server for the [browser addon](tagger) addon
 * [hub](hub) - a GUI manager for the database and configuring the scraper
 * [init](init) - one-off helper tools to initialse the database
 * [scraper](scraper) - tool for scraping data from Reddit
@@ -20,7 +15,7 @@ Although based around the data from a scraper, the client, scraper, and database
 * [man](man) - UNIX man pages
 * [utils](utils) - CLI database admin tools
 
-## Tagger
+### Tagger
 
 To install the `rtagger` browser addon, you do not need to install *any* of these packages; only [the addon (or Javascript script)](tagger) is necessary. Only the server needs to install (and run) the `rscraper-tagger` package.
 
@@ -55,4 +50,16 @@ If installation still fails for some reason, see [installing on Ubuntu](INSTALLI
 
 ## Windows 10
 
-See [installing on Windows](INSTALLING_WINDOWS.md).
+Not supported yet, but very open to PRs. Some weeks ago it cross-compiled fine, so there shouldn't be many changes to the source code required to build it on or for Windows.
+
+The big hurdle to build for Windows is doing one of the following:
+
+* Modifying CMake to cross-compile on MXE for Windows
+* Convert the CMake to `pro` files for `qmake`
+* Convert the CMake to work with Visual Studio files
+
+The person who issues a PR to allow building for Windows will get a big recognition at the top of the page here. Create an issue if you want to discuss with me the steps I took in cross-compiling test versions.
+
+# Building
+
+See [BUILDING.md](BUILDING.md)
