@@ -14,11 +14,13 @@ You can colour tags by left-clicking on the space between the label and the `+Su
 
 ![Screenshot from 2019-06-26 22-42-58](https://user-images.githubusercontent.com/30552567/60246656-0a414e80-98b7-11e9-98fb-ceb0b829cb61.png)
 
-You can add tags with the `+Tag` button.
+You can add tags with the `+Tag` button. NOTE: package has been updated since this screenshot, there are now more buttons.
 
 ![Screenshot from 2019-06-26 22-43-17](https://user-images.githubusercontent.com/30552567/60246685-1e854b80-98b7-11e9-85cb-4d10f203bd93.png)
 
 The `stats` button next to each tag generates a pie chart of the number of comments per subreddit for that tag.
+
+![Stats Button](https://user-images.githubusercontent.com/30552567/60396903-0e7f9d00-9b3f-11e9-845e-28f36e39e2d9.png)
 
 ![Subreddits tagged US](https://i.imgur.com/56OJW2J.png)
  
