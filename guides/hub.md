@@ -16,11 +16,15 @@ For instance (with only one category):
 
 You can edit the comment body matching regex here. It includes a preprocessor that converts the more human-readable regex here into the regex that is used by the scraper. As it uses `boost::regex`'s Perl regex internally, all features of that are supported here. Additionally, named groups are supported too. If you see a `reason` field on other tabs, it is talking about the named capture groups (that are pre-processed out of the regex and into the database).
 
+You can `test` the regex for correctness.
+
 ![Regex Editor](https://user-images.githubusercontent.com/30552567/60394879-c18dcd80-9b22-11e9-97c8-c997013d6d21.png)
 
 # Comments Overview Tab
 
-You can filter and cycle through the scraped comments. Comments which were captured by non-capturing capture groups (i.e. reasons beginning with `!`) will have all the metadata, but empty comment bodies.
+You can filter and cycle through the scraped comments. Comments which were captured by non-capturing capture groups (i.e. reasons beginning with `!`) will have all the metadata, but empty comment contents.
+
+You can also compare the comment's contents to the current regex, with `Details`. It will show which substrings matched which regex capture groups.
 
 ![cmnts tab](https://user-images.githubusercontent.com/30552567/60394734-db2e1580-9b20-11e9-8107-4c619c871adf.png)
 
