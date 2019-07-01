@@ -38,22 +38,9 @@ function main(d){
 }
 
 chrome.storage.sync.get({
-    port_n: 8080,
-    is_https: false,
-    pth: "/"
+    url: "http://104.197.15.19:8080/"
 }, function(items) {
-    var url = "http";
-    if (items.is_https){
-        url += "s";
-    }
-    url += "://localhost:";
-    url += items.port_n;
-    url += items.pth;
-    url += user_ids.join(",");
-    
-    console.log("Fetching " + url);
-    
-    fetch(url)
+    fetch(items.url + user_ids.join(","))
         .then(function(r){
             return r.json();
         })
@@ -61,7 +48,7 @@ chrome.storage.sync.get({
             main(json);
         })
         .catch(function(err){
-            console.log(err);
+            console.log(user_ids + ": " + err);
         })
 });
 

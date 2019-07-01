@@ -43,7 +43,7 @@ function main(d){
 
 GM_xmlhttpRequest({
     method:     'GET',
-    url:        'http://localhost:8080/' + user_ids.join(","),
+    url:        "http://104.197.15.19:8080/" + user_ids.join(","),
     onload:     function(response){
                     main(JSON.parse(response.responseText));
                 }

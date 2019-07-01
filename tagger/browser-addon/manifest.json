@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "RTagger",
-    "version": "0.1.5",
+    "version": "0.1.11",
     "description": "Tag Reddit users based on the subreddits that they comment on",
     
     "icons":{
