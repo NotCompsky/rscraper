@@ -31,9 +31,9 @@ See [man](man) directory for more generic instructions on using the other progra
 
 # Platforms
 
-Packages exist for `Ubuntu` and `Raspbian` systems.
+Debian-based systems can use the `deb` installer packages in the [releases page](releases). I have tested it on `Ubuntu`, `Raspbian`, and `Debian`. Other (up to date) Debian-based distros should also work.
 
-However, it should work on MacOS and other Linux distros too. I just don't have access to such systems, so currently the only option for these systems is to [build](BUILDING.md) from source.
+It should work on MacOS and other Linux distros too. I just don't have access to such systems, so currently the only option for these systems is to [build](BUILDING.md) from source.
 
 Windows support is pending someone more knowledgeable about Windows builds helping out.
 
