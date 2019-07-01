@@ -1,0 +1,13 @@
+#!/bin/bash
+
+for f in $(
+    find .. \
+    \( \( -type d \( -name 'build*' -o -name 'etc' -o -name '3rdparty' \) \) -prune \) \
+    -o \( -regextype egrep -type f -regex ".*\.(cpp|hpp)" \)
+); do
+    if [ -d "$f" ]; then
+        continue
+    fi
+    clang-tidy --checks='-*,llvm-include-order' "$f" #'*,-llvm-namespace-comment,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-*-braces-around-statements,-hicpp-no-array-decay,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-readability-implicit-bool-conversion,-*-no-malloc,-cppcoreguidelines-owning-memory,-cppcoreguidelines-pro-bounds-constant-array-index' "$f"
+    read -p "[ENTER TO CONTINUE]" dummy
+done

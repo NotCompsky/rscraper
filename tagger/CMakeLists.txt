@@ -25,7 +25,7 @@ set(INC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${INC_DIR}")
 
 add_library(rscraper-tagger SHARED "${SRC_DIR}/tagger.cpp")
-target_link_libraries(rscraper-tagger mysqlclient compsky_asciify compsky_mysql)
+target_link_libraries(rscraper-tagger ${WHICH_MYSQL_CLIENT} compsky_asciify compsky_mysql)
 set_property(TARGET rscraper-tagger PROPERTY CXX_STANDARD 17)
 
 
