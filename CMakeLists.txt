@@ -105,7 +105,7 @@ if(BUILD_PACKAGES)
         message(FATAL_ERROR "Please specify the curl package to use with -DWHICH_CURL=...\nDiscover this with the command:  apt list --installed | grep libcurl")
     endif()
     if(NOT WHICH_BOOST_REGEX)
-        message(FATAL_ERROR "Please specify the curl package to use with -DWHICH_BOOST_REGEX=...\nDiscover this with the command:  apt list --installed | grep libboost-regex")
+        message(FATAL_ERROR "Please specify the curl package to use with -DWHICH_BOOST_REGEX=...\nDiscover this with the command:  apt list --installed | egrep 'libboost-regex[0-9.]*/' | sed -r 's~/.*~~g'")
     endif()
 
     set(CPACK_DEBIAN_UTILS_PACKAGE_DEPENDS "libcompsky")
