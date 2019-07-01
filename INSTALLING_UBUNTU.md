@@ -16,6 +16,8 @@ Run `sudo apt install ./RScraper-*.deb`.
 
 # Configuring
 
+If you are hosting the server on your machine, install and configure `mysql-server`. If it is a new install, run `sudo mysql_secure_installation`.
+
 Run `sudo rscraper-init` and follow its instructions.
 
 Root privileges are required to use root passwordless authentication for MySQL - which is by default the only way to access new (unconfigured) installs of MySQL community servers.

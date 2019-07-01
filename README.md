@@ -54,8 +54,6 @@ Then download the packages you want from the [releases page](releases).
 
 Then see the [configuration guide](INSTALLING_UBUNTU.md#Configuring).
 
-Users of other Debian-based distributions may have to modify the dependency package names before the packages will install (you could use `equivs` if you don't want to modify the `deb` itself). Send a bug report with your platform and a suggestion for the alternative dependency.
-
 If installation still fails for some reason, see [installing on Ubuntu](INSTALLING_UBUNTU.md) (and also make a bug report).
 
 ## Windows 10
