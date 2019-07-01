@@ -2,6 +2,12 @@
 
 ![Chrome (userscript)](https://user-images.githubusercontent.com/30552567/60327286-6376b400-9983-11e9-8a4e-142a35ed38eb.png)
 
+# Description
+
+RTagger is a browser extension or userscript that will tag users on Reddit according to their post history.
+
+You can point it to your own installation of the server software - see [Configuration](#Configuration) section below.
+
 # Installation
 
 Firefox users can install the addon by opening the `rtagger.xpi` file from the [releases page](https://github.com/NotCompsky/rscraper/releases) with their Firefox browser.
@@ -16,9 +22,7 @@ By default, the addon and the userscript point towards a server at `http://104.1
 
 If you want customisation - such as more tagged subreddits, and different colours - you should edit your addon preferences (or userscript, whichever you installed) to make it point to another server.
 
-To run your own instance of the `rscraper-tagger-server`, you would need to install the `rscraper-tagger` package (see [root instructions](https://github.com/NotCompsky/rscraper) for how to do that).
-
-You can, however, point it towards any server - local or remote - so long as it sends the expected JSON response. The addon allows you to specify the port number, domain name, protocol, and path (that is, the `/this/is/the.path` of `https://www.foo.bar/this/is/the.path`) of the server. If you are using the userscript, you would have to edit it yourself to change these.
+To run your own instance of the `rscraper-tagger-server`, you would need to run the `rscraper-tagger` package. You would also need to point the server towards a MySQL/MariaDB database - for this, you'd need to install `rscraper-init` to (initialise it) and either `rscraper-scraper` or `rscraper-io` (to populate it). See the [root instructions](https://github.com/NotCompsky/rscraper) for how to do this.
 
 # Building
 
