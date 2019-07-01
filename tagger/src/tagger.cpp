@@ -27,7 +27,7 @@ extern "C" char* DST = NULL; // alias for BUF
 
 namespace compsky {
     namespace asciify {
-        char* BUF = (char*)malloc(4096 * 1024);
+        char* BUF;
         constexpr const size_t BUF_SZ = 4096 * 1024;
     }
 }
@@ -40,6 +40,9 @@ constexpr size_t strlen_constexpr(const char* s){
     // GCC strlen is constexpr; this is apparently a bug
     return (*s)  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
+
+
+
 
 
 size_t id2str(uint64_t id_orig,  char* buf){
@@ -78,6 +81,9 @@ constexpr uint64_t str2id(const char* str,  const size_t start_index,  const siz
 extern "C"
 void init(){
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
+    compsky::asciify::BUF = (char*)malloc(compsky::asciify::BUF_SZ);
+    if (compsky::asciify::BUF == nullptr)
+        abort();
 }
 
 extern "C"
