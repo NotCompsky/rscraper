@@ -21,6 +21,17 @@ else()
 endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
+if (NOT WHICH_MYSQL_CLIENT)
+    find_library(WHICH_MYSQL_CLIENT mariadbclient)
+endif()
+if (NOT WHICH_MYSQL_CLIENT)
+    find_library(WHICH_MYSQL_CLIENT mysqlclient)
+endif()
+if (WHICH_MYSQL_CLIENT)
+    message(STATUS "WHICH_MYSQL_CLIENT: ${WHICH_MYSQL_CLIENT}")
+else()
+    message(FATAL_ERROR "Please specify the libmysqlclient equivalent with -DWHICH_MYSQL_CLIENT=...\nFor instance, for Ubuntu/Debian, you would specify -DWHICH_MYSQL_CLIENT=mariadbclient; for others, perhaps, -DWHICH_MYSQL_CLIENT=mysqlclient")
+endif()
 
 
 
