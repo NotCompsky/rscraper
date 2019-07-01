@@ -28,7 +28,7 @@ extern "C" char* DST = NULL; // alias for BUF
 namespace compsky {
     namespace asciify {
         char* BUF = (char*)malloc(4096 * 1024);
-        size_t BUF_SZ = 4096 * 1024;
+        constexpr const size_t BUF_SZ = 4096 * 1024;
     }
 }
 
@@ -73,20 +73,6 @@ constexpr uint64_t str2id(const char* str,  const size_t start_index,  const siz
 //static_assert(str2id("6l4z3", 0, 5) == 11063919); // /u/AutoModerator
 // Causes error in MXE GCC
 
-
-size_t estimated_n_bytes(const char* csv){
-    size_t n = 0;
-    size_t i = 0;
-    while (true){
-        if (csv[i] == ','){
-            n += 2 + strlen_constexpr("[\"SUBREDDITNAME\",\"rgba(255,255,255,1.0)\"],")*2; // 2 for "": minus ,  2 spaces for ["SUBREDDITNAME","rgba(255,255,255,1.0)"],
-        } else if (csv[i] == 0)
-            return 1 + (n+5+11) + 1 + 1; // { ... }\0
-        ++i;
-        ++n;
-    }
-}
-
 //static_assert(n_required_bytes("id-t2_foo,id-t2_bar") == strlen_constexpr("{\"foo\":\"#123456\",\"bar\":\"#123456\"}") + 1);
 
 extern "C"
@@ -97,19 +83,6 @@ void init(){
 extern "C"
 void exit_mysql(){
     compsky::mysql::exit_mysql();
-}
-
-void enlarge_dst(size_t extra_sz){
-    // -1 for terminating null byte
-    compsky::asciify::BUF[compsky::asciify::BUF_INDX + 1] = 0; // Necessary to null-terminate for memcpy?
-    compsky::asciify::BUF_SZ *= 2;
-    compsky::asciify::BUF_SZ += 1000 + extra_sz;
-    char* dst = (char*)realloc(compsky::asciify::BUF, compsky::asciify::BUF_SZ);
-    if (dst != NULL){
-        compsky::asciify::BUF = dst;
-        return;
-    }
-    abort();
 }
 
 extern "C"
@@ -133,12 +106,6 @@ void csv2cls(const char* csv){
     if (csv[0] == 0){
         compsky::asciify::BUF_INDX = 1;
         goto goto_results;
-    }
-    
-    {
-    size_t estimated_requirement = estimated_n_bytes(csv) + 1000;
-    if (compsky::asciify::BUF_SZ < estimated_requirement)
-        enlarge_dst(estimated_requirement);
     }
     
     compsky::asciify::BUF_INDX = 0;
@@ -228,18 +195,22 @@ void csv2cls(const char* csv){
     char* s;
     char id_str[20];
     size_t id_str_len;
+    size_t s_len;
     constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f;
     constexpr static const compsky::asciify::flag::StrLen ff;
-    while (compsky::mysql::assign_next_row(RES, &ROW, &id, &n_cmnts, &r, &g, &b, &a, &s)){
+    while (compsky::mysql::assign_next_row(RES, &ROW, &id, &n_cmnts, &r, &g, &b, &a, ff, &s_len, &s)){
+        const size_t max_new_entry_size = strlen_constexpr("],\"id-t2_abcdefghijklm\":[[\"rgba(255,255,255,1.000)\",\"") + s_len + strlen_constexpr("\"],");
+        
+        if (compsky::asciify::BUF_INDX + max_new_entry_size + 1 > compsky::asciify::BUF_SZ )
+            // +1 is to account for the terminating '}' char.
+            break;
+        
         if (id != last_id){
             --compsky::asciify::BUF_INDX;  // Overwrite trailing comma left by RGBs
             id_str_len = id2str(id, id_str);
             compsky::asciify::asciify("],\"id-t2_",  ff, id_str, id_str_len,  "\":[");
             last_id = id;
         }
-        
-        if (compsky::asciify::BUF_INDX + strlen(s) + 1000  >=  compsky::asciify::BUF_SZ)
-            enlarge_dst(strlen(s) + 1000);
         
         compsky::asciify::asciify(
             "[\"rgba(",
@@ -248,7 +219,7 @@ void csv2cls(const char* csv){
             +(uint8_t)(255.0 * b / (double)n_cmnts),  ',',
             f, (double)(a / (double)n_cmnts), 3,
             ")\",\"",
-            s,
+            ff, s, s_len,
             "\"],"
         );
     }
@@ -262,5 +233,4 @@ void csv2cls(const char* csv){
     DST[0] = '{';
     compsky::asciify::BUF[++compsky::asciify::BUF_INDX] = '}';
     compsky::asciify::BUF[++compsky::asciify::BUF_INDX] = 0;
-    printf("%s\n", DST);
 }
