@@ -20,6 +20,8 @@ Creating an extension for Chrome isn't a priority, but I'm open to PRs.
 
 By default, the addon and the userscript point towards a server at `http://104.197.15.19:8080`. This is only a proof of concept server - I won't be updating the database.
 
+It is running on a Google cloud instance, so the IP is a subset of Google cloud's. That means it may be caught by some domain filters, such as uBlock Origin.
+
 If you want customisation - such as more tagged subreddits, and different colours - you should edit your addon preferences (or userscript, whichever you installed) to make it point to another server.
 
 To run your own instance of the `rscraper-tagger-server`, you would need to run the `rscraper-tagger` package. You would also need to point the server towards a MySQL/MariaDB database - for this, you'd need to install `rscraper-init` to (initialise it) and either `rscraper-scraper` or `rscraper-io` (to populate it). See the [root instructions](https://github.com/NotCompsky/rscraper) for how to do this.
