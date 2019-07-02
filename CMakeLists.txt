@@ -100,19 +100,15 @@ if(BUILD_PACKAGES)
         "Server for RTagger")
     set(CPACK_COMPONENT_GUI_DESCRIPTION
         "Qt5-based GUI for managing the scraper and tagger")
-
-    if(NOT WHICH_CURL)
-        message(FATAL_ERROR "Please specify the curl package to use with -DWHICH_CURL=...\nDiscover this with the command:  apt list --installed | grep libcurl")
-    endif()
-    if(NOT WHICH_BOOST_REGEX)
-        message(FATAL_ERROR "Please specify the curl package to use with -DWHICH_BOOST_REGEX=...\nDiscover this with the command:  apt list --installed | egrep 'libboost-regex[0-9.]*/' | sed -r 's~/.*~~g'")
-    endif()
-
+    
+    set(Boost_USE_STATIC_LIBS ON) # Different repos have different libboost-regex versions that different repositories include, just easier to avoid this dependency for packages.
     set(CPACK_DEBIAN_UTILS_PACKAGE_DEPENDS "libcompsky")
+    set(CPACK_DEBIAN_INIT_PACKAGE_DEPENDS "libcompsky")
+    set(CPACK_DEBIAN_IO_PACKAGE_DEPENDS "libcompsky")
     set(CPACK_DEBIAN_MAN_PACKAGE_DEPENDS "")
-    set(CPACK_DEBIAN_SCRAPER_PACKAGE_DEPENDS "libcompsky, ${WHICH_CURL}, ${WHICH_BOOST_REGEX}")
+    set(CPACK_DEBIAN_SCRAPER_PACKAGE_DEPENDS "libcompsky,  libcurl4 | libcurl3")
     set(CPACK_DEBIAN_TAGGER_PACKAGE_DEPENDS "libcompsky")
-    set(CPACK_DEBIAN_GUI_PACKAGE_DEPENDS "libcompsky, libqt5widgets5, libqt5charts5, ${WHICH_BOOST_REGEX}")
+    set(CPACK_DEBIAN_GUI_PACKAGE_DEPENDS "libcompsky, libqt5widgets5, libqt5charts5")
 endif()
 
 include(CheckCXXSourceCompiles)
