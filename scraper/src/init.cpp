@@ -7,6 +7,11 @@
 #endif
 
 
+constexpr size_t strlen_constexpr(const char* s){
+    return (*s != 0)  ?  1 + strlen_constexpr(s + 1)  :  0;
+}
+
+
 char* REDDIT_AUTH[6];
 char* AUTH_PTR;
 
@@ -23,15 +28,59 @@ void ef_reed(){
 
 
 int main(){
-    static const char* env_var = "RSCRAPER_REDDIT_CFG";
-    
     char* buf = (char*)malloc(4096 * 2);
+    FILE* cfg;
+    
+    /* Create RSCRAPER_REGEX_FILE file */
+    std::cout << "File path to save regex (will NOT create folders/directories for you): ";
+    
+    char* const regex_fp = buf;
+    {
+    char c;
+    for(auto i = 0;  (c = fgetc(stdin));  ++i){
+        if (c != '\n')
+            *(buf++) = c;
+        else break;
+    }
+    }
+    *buf = 0;
+    
+    cfg = fopen(regex_fp, "wb");
+    fwrite(
+        #include "regex_file_eg.txt"
+        ,  1
+        ,  strlen_constexpr(
+            #include "regex_file_eg.txt"
+        )
+        ,  cfg
+    );
+    fclose(cfg);
+    
+    
+    memcpy(buf, ".human", strlen_constexpr(".human"));
+    buf[strlen_constexpr(".human")] = 0;
+    // NOTE: Do not increment buf, as the environmental variable should point towards the true regex file, not the human-readable one.
+    cfg = fopen(regex_fp, "wb");
+    fwrite(
+        #include "regex_file_eg.txt.human"
+        ,  1
+        ,  strlen_constexpr(
+            #include "regex_file_eg.txt.human"
+        )
+        ,  cfg
+    );
+    fclose(cfg);
+    
+    
+    
+    /* Create RSCRAPER_REDDIT_CFG */
+    static const char* env_var = "RSCRAPER_REDDIT_CFG";
     
     std::cout << "* Reddit Configuration *" << std::endl;
     
     std::cout << "Absolute file path to save the config file to (will NOT create folders/directories for you): ";
     
-    char* cfg_pth = buf;
+    char* const cfg_fp = buf;
     {
     char c;
     for(auto i = 0;  (c = fgetc(stdin));  ++i){
@@ -85,7 +134,7 @@ int main(){
     AUTH_PTR_ENDS[i] = AUTH_PTR;
     *AUTH_PTR = '\n'; // Terminate port number calculation
     
-    FILE* cfg = fopen(cfg_pth, "wb");
+    cfg = fopen(cfg_fp, "wb");
     fwrite(auth,  1,  (uintptr_t)AUTH_PTR + 1 - (uintptr_t)auth,  cfg);
     fclose(cfg);
     
@@ -101,7 +150,7 @@ int main(){
         fprintf(stderr, "Cannot open registry to insert environmental variables\n");
         goto goto_diy_env;
     }
-    l_status = RegSetValueEx(hkey,  env_var,  0,  REG_SZ,  (const BYTE*)cfg_pth,  strlen(cfg_pth) + 1);
+    l_status = RegSetValueEx(hkey,  env_var,  0,  REG_SZ,  (const BYTE*)cfg_fp,  strlen(cfg_fp) + 1);
     RegCloseKey(hkey);
     if (l_status != ERROR_SUCCESS){
         fprintf(stderr, "Cannot set environmental variables in registry\n");
@@ -113,9 +162,13 @@ int main(){
 #ifdef _WIN32
     std::cout << "You need to add the following environmental variable using My Computer > Properties > Advanced > Environmental Variables:" << std::endl;
     std::cout << "Name\tValue" << std::endl;
-    std::cout << env_var << "\t" << cfg_pth << std::endl;
+    std::cout << "RSCRAPER_REGEX_FILE" << "\t" << regex_fp << std::endl;
+    std::cout << env_var << "\t" << cfg_fp << std::endl;
 #else
-    std::cout << "You need to add the following line to your shell profile (such as ~/.bashrc):" << std::endl;
-    std::cout << "export " << env_var << "=" << cfg_pth << std::endl;
+    std::cout << "You need to either add the following line to your shell profile (such as ~/.bashrc or /etc/profiles.d):" << std::endl;
+    std::cout << "\texport " << "RSCRAPER_REGEX_FILE" << "=" << regex_fp << std::endl;
+    std::cout << "\texport " << env_var << "=" << cfg_fp << std::endl;
+    
+    std::cout << "or add them to /etc/environment (same as above but without the 'export ' part)" << std::endl;
 #endif
 }
