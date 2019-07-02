@@ -31,7 +31,7 @@ See [man](man) directory for more generic instructions on using the other progra
 
 # Platforms
 
-Debian-based systems can use the `deb` installer packages in the [releases page](releases). I have tested it on `Ubuntu`, `Raspbian`, and `Debian`. Other (up to date) Debian-based distros should also work.
+Debian-based systems can use the `deb` installer packages in the [releases page](https://github.com/NotCompsky/rscraper/releases). I have tested it on `Ubuntu`, `Raspbian`, and `Debian`. Other (up to date) Debian-based distros should also work.
 
 It should work on MacOS and other Linux distros too. I just don't have access to such systems, so currently the only option for these systems is to [build](BUILDING.md) from source.
 
@@ -50,7 +50,7 @@ First install [libcompsky](https://github.com/NotCompsky/libcompsky):
 
 Then set the array of packages you wish to install (`init` is not required but the [configuration guide](INSTALLING_UBUNTU.md#Configuring) assumes it is installed)
 
-Then download the packages you want from the [releases page](releases).
+Then download the packages you want from the [releases page](https://github.com/NotCompsky/rscraper/releases).
 
 Then see the [configuration guide](INSTALLING_UBUNTU.md#Configuring).
 
