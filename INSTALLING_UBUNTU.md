@@ -34,6 +34,8 @@ After you have completed the instructions, you must either close and reopen the 
 
 ![rscraper-init from rscraper-init package](https://user-images.githubusercontent.com/30552567/60239676-6059c600-98a6-11e9-8074-7cb8da7f31d0.png)
 
+If you wish to run the scraper - `rscrape-cmnts` - you must also run `rscraper-init-scraper`. This is in the `rscraper-scraper` package, not `rscraper-init`. It is the same style as the above, but initialises the regex file and reddit.com authorisation.
+
 Run `rscraper-hub` to open the GUI.
 
 ![rscraper-hub from rscraper-hub package](https://user-images.githubusercontent.com/30552567/60239689-6a7bc480-98a6-11e9-8c1b-74b7cd106a6e.png)
