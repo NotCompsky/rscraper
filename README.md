@@ -31,7 +31,7 @@ See [man](man) directory for more generic instructions on using the other progra
 
 # Platforms
 
-Debian-based systems can use the `deb` installer packages in the [releases page](https://github.com/NotCompsky/rscraper/releases). I have tested it on `Ubuntu`, `Raspbian`, and `Debian`. Other (up to date) Debian-based distros should also work.
+Debian-based systems can use the `deb` installer packages in the [releases page](https://github.com/NotCompsky/rscraper/releases) - `amd64` for `x86_64` systems (most laptops and desktops), `armhf` for 64bit arm (e.g. Raspberry Pi). I have tested it on `Ubuntu`, `Raspbian`, and `Debian`. Other (up to date) Debian-based distros should also work.
 
 It should work on MacOS and other Linux distros too. I just don't have access to such systems, so currently the only option for these systems is to [build](BUILDING.md) from source.
 
