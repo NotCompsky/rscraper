@@ -1,5 +1,12 @@
 Run `rscraper-hub` to open the `rscraper-hub` program.
 
+# Tabs
+
+* [Main Tab](#Main)
+* [Scraper Tab](#Scraper-Tab)
+* [Comment Viewer Tab](#Comments-Overview-Tab)
+* [Category Tabs](#Category-Tabs)
+
 # Main Tab
 
 ![rscraper-hub opened from terminal](https://user-images.githubusercontent.com/30552567/60246088-e2052000-98b5-11e9-82be-e259d6f30f9e.png)
