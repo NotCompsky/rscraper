@@ -54,4 +54,4 @@ You can add tags with the `+Tag` button.
 
 The `stats` button next to each tag generates a pie chart of the number of comments per subreddit for that tag.
 
-![Subreddits tagged US](https://i.imgur.com/56OJW2J.png)
+![Subreddits tagged US](https://i.imgur.com/zVB4f5M.png)
