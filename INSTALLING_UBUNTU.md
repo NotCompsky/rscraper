@@ -14,6 +14,10 @@ Run `sudo apt install ./RScraper-*.deb`.
 
 ![Terminal](https://user-images.githubusercontent.com/30552567/60239671-59cb4e80-98a6-11e9-9102-e156814468d2.png)
 
+If you are on Raspbian/Debian rather than Ubuntu, check for the presence of `libcurl-gnutls.so`. If it is not present, you will have to create the link. For instance, on Raspbian:
+
+    ln -s /usr/lib/x86_64-linux-gnu/libcurl.so.4 /usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4
+
 # Configuring
 
 If you are hosting the server on your machine, install and configure `mysql-server`. If it is a new install, run `sudo mysql_secure_installation`.
