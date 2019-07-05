@@ -61,14 +61,15 @@ size_t id2str(uint64_t id_orig,  char* buf){
     return to_return;
 }
 
-constexpr uint64_t str2id(const char* str,  const size_t start_index,  const size_t end_index_plus_one){
+constexpr uint64_t str2id(const char* start,  const char* end){
+    // End points to the comma after the id
     uint64_t n = 0;
-    for (auto i = start_index;  i < end_index_plus_one;  ++i){
+    for (char* str = start;  str != end;  ++str){
         n *= (10 + 26);
-        if (str[i] >= '0'  &&  str[i] <= '9')
-            n += str[i] - '0';
+        if (*str >= '0'  &&  *str <= '9')
+            n += *str - '0';
         else
-            n += str[i] - 'a' + 10;
+            n += *str - 'a' + 10;
     }
     return n;
 }
@@ -109,9 +110,12 @@ void csv2cls(const char* csv){
     // The former is longer than the latter, so can reuse the same string as the final output
     // SQL statement might still be longer though, so have to create new string for it
     
-    if (csv[0] == 0){
-        compsky::asciify::BUF_INDX = 1;
-        goto goto_results;
+    for (auto i = 0;  i < 5;  ++i){
+        // Safely skip first prefix bar the last character
+        if (*(csv++) == 0){
+            compsky::asciify::BUF_INDX = 1;
+            goto goto_results;
+        }
     }
     
     compsky::asciify::BUF_INDX = 0;
@@ -138,31 +142,35 @@ void csv2cls(const char* csv){
     compsky::asciify::BUF_INDX += strlen_constexpr(stmt_pre);
     
     {
-    size_t i = 6; // Skip first prefix
-    size_t j = 6;
-    bool current_id_valid = (csv[i-1] == '_');
-    printf("%c\n", csv[i-1]);
+    bool current_id_valid = (*csv == '_');
+    printf("%c\n", *csv);
+    ++csv; // Skip last character of first prefix (no need to check for 0 - done in switch)
+    char* current_id_start = csv;
     while (true){
-        switch(csv[i]){
+        switch(*csv){
             case 0:
             case ',':
                 if (current_id_valid){
-                    const uint64_t id = str2id(csv, j, i);
+                    const uint64_t id = str2id(current_id_start, csv);
                     
                     compsky::asciify::asciify(id);
                     compsky::asciify::asciify(',');
                 }
-                if (csv[i] == 0)
-                    goto goto_break;
-                i += 6; // Skip "id-t2_"
-                current_id_valid = (csv[i] == '_');
-                printf("%c\n", csv[i]);
-                j = i + 1; // Start at character after comma
+                for (auto i = 0;  i < 6;  ++i)
+                    // Safely skip the prefix ("id-t2_")
+                    if (*(++csv) == 0)
+                        // Good input would end only on k = 0 (corresponding to 'case 0')
+                        // Otherwise, there was not the expected prefix in after the comma
+                        goto goto_break;
+                current_id_valid = (*csv == '_');
+                printf("%c\n", *csv);
+                current_id_start = csv + 1; // Start at character after comma
                 break;
         }
-        ++i;
+        ++csv;
     }
     }
+    
     goto_break:
     
     if (compsky::asciify::BUF_INDX == strlen_constexpr(stmt_pre)){
