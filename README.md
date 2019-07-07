@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/NotCompsky/rscraper.svg?style=svg)](https://circleci.com/gh/NotCompsky/rscraper)
+
 ![Icon](tagger/browser-addon/icons/64.png)
 
 # Description
