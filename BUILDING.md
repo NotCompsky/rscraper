@@ -58,8 +58,8 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
     
     cd rscraper
     mkdir -p 3rdparty/include 3rdparty/src 3rdparty/cmake
-    wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/master/5282025f88b0d3d30035782fe048239893a8a9bc/libb64.h
-    wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/master/5282025f88b0d3d30035782fe048239893a8a9bc/cencode.c
+    wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h
+    wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/master/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/cencode.c
     
     mkdir build
     cd build
