@@ -28,7 +28,7 @@ function main(d){
             continue;
         }
         for (var tpl of tpls){
-            tagstrtag = document.createElement("div");
+            var tagstrtag = document.createElement("div");
             tagstrtag.innerText = tpl[1];
             tagstrtag.style.background = tpl[0];
             tagstrtag.style.display = "inline";
