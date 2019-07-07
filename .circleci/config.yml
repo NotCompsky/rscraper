@@ -17,7 +17,7 @@ jobs:
           command: 'apt install -y wget libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
       - run:
           name: WGet libb64
-          command: 'wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/master/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/cencode.c'
+          command: 'wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/76db2bce7a2f78d789fe3f13234be752b24c5404/libb64/cencode.c'
       - run:
           name: Install sudo
           command: 'apt update  &&  apt install -y sudo  &&  rm -rf /var/lib/apt/lists/*'
