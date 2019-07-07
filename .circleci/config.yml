@@ -14,7 +14,7 @@ jobs:
           command: 'apt install -y curl wget libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
       - run:
           name: Install libcompsky - define regexp
-          command: 'regexp="https://github\.com/NotCompsky/libcompsky/releases/download/[0-9]\.[0-9]\.[0-9]/libcompsky-[0-9]+\.[0-9]+\.[0-9]+-$(dpkg --print-architecture)\.deb"'
+          command: 'regexp="https://github\.com/NotCompsky/libcompsky/releases/download/[0-9]+\.[0-9]+\.[0-9]+/libcompsky-[0-9]+\.[0-9]+\.[0-9]+-$(dpkg --print-architecture)\.deb"'
       - run:
           name: Install libcompsky - get package url
           command: 'url=$(curl -s https://api.github.com/repos/NotCompsky/libcompsky/releases/latest  |  egrep "$regexp" | sed ''s%.*"\(https://.*\)"%\1%g'')'

@@ -42,8 +42,8 @@ Windows support is pending someone more knowledgeable about Windows builds helpi
 ## Ubuntu, Raspbian, and other Debian-based systems
 
 First install [libcompsky](https://github.com/NotCompsky/libcompsky):
-
-    regexp="https://github\.com/NotCompsky/libcompsky/releases/download/[0-9]\.[0-9]\.[0-9]/libcompsky-[0-9]+\.[0-9]+\.[0-9]+-$(dpkg --print-architecture)\.deb"
++
+    regexp="https://github\.com/NotCompsky/libcompsky/releases/download/[0-9]+\.[0-9]+\.[0-9]+/libcompsky-[0-9]+\.[0-9]+\.[0-9]+-$(dpkg --print-architecture)\.deb"
     url=$(curl -s https://api.github.com/repos/NotCompsky/libcompsky/releases/latest  |  egrep "$regexp" | sed 's%.*"\(https://.*\)"%\1%g')
     wget -O /tmp/libcompsky.deb "$url"
     sudo apt install /tmp/libcompsky.deb
