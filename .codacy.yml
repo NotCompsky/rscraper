@@ -2,3 +2,4 @@ exclude_paths:
   - '**/*.sql' # Codacy does not recognise MySQL
   - '**/*.js'  # Codacy does not recognise userscript-specific function practices (e.g. GreaseMonkey GM_... functions), nor addon-specific objects (e.g. chrome)
   - 'man/*.md' # Man pages require multiple top-level headers
+  - '**/*.md'  # And ignore the rest of the markdown pages too, screw it.
