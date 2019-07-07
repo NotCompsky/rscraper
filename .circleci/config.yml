@@ -1,0 +1,36 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: debian:buster
+
+    steps:
+      - checkout
+      - run:
+          name: Update Apt Cache
+          command: 'apt update'
+      - run:
+          name: mkdirs
+          command: 'mkdir -p build 3rdparty/include 3rdparty/src 3rdparty/cmake'
+      - run:
+          name: Install Dependencies
+          command: 'apt install -y wget libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
+      - run:
+          name: WGet libb64
+          command: 'wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/master/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/cencode.c'
+      - run:
+          name: Install sudo
+          command: 'apt update  &&  apt install -y sudo  &&  rm -rf /var/lib/apt/lists/*'
+      - run:
+          name: Install GCC
+          command: 'apt update  &&  apt install -y gcc g++'
+      - run:
+          name: Install CMake
+          command: 'apt update  &&  sudo apt install -y cmake'
+
+      - run:
+          name: Generate build files
+          command: 'cd build  &&  cmake ..'
+      - run:
+          name: Build
+          command: 'cmake --build build'
