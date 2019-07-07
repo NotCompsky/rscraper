@@ -54,6 +54,17 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
 
 ### Linux, Mac, and other Unix-derived
 
+First, build libcompsky (as development of it is closely tied to this project and changes in the bleeding edge will be intertwined) - [optional for GUI]:
+
+    sudo apt install mariadb-client default-libmysqlclient-dev [qt5-default libqt5widgets5]
+    git clone https://github.com/NotCompsky/libcompsky
+    cd libcompsky
+    mkdir build
+    cd build
+    cmake ..
+
+Then finally:
+
     git clone https://github.com/NotCompsky/rscraper
     
     cd rscraper

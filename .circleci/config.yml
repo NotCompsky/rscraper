@@ -6,15 +6,33 @@ jobs:
 
     steps:
       - checkout
+
       - run:
           name: Update Apt Cache
           command: 'apt update'
+
+      - run:
+          name: libcompsky - Install git
+          command: 'apt install -y git'
+      - run:
+          name: libcompsky - Download
+          command: 'git clone https://github.com/NotCompsky/libcompsky'
+      - run:
+          name: libcompsky - Install SQL Client Dev
+          command: 'apt install -y mariadb-client default-libmysqlclient-dev qt5-default libqt5widgets5'
+      - run:
+          name: libcompsky - Install GCC
+          command: 'apt install -y g++'
+      - run:
+          name: libcompsky - Install CMake
+          command: 'apt install -y cmake'
+      - run:
+          name: libcompsky - Generate build files
+          command: 'mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. -DMYSQL_UNDER_DIR=/usr/include/mysql -DMYSQL_UNDER_DIR_OVERRIDE=1  &&  cmake --build .  &&  make install'
+
       - run:
           name: Install Curl and WGet
           command: 'apt install -y curl wget'
-      - run:
-          name: Install libcompsky
-          command: 'tmp_pkg_fp=/tmp/libcompsky-0.1.0-amd64.deb  &&  wget -O "$tmp_pkg_fp" https://github.com/NotCompsky/libcompsky/releases/download/0.1.0/libcompsky-0.1.0-amd64.deb  &&  apt install -y "$tmp_pkg_fp"'
       - run:
           name: Install Dependencies
           command: 'apt install -y libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
@@ -24,16 +42,6 @@ jobs:
       - run:
           name: WGet libb64
           command: 'wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/76db2bce7a2f78d789fe3f13234be752b24c5404/libb64/cencode.c'
-      - run:
-          name: Install sudo
-          command: 'apt update  &&  apt install -y sudo  &&  rm -rf /var/lib/apt/lists/*'
-      - run:
-          name: Install GCC
-          command: 'apt update  &&  apt install -y gcc g++'
-      - run:
-          name: Install CMake
-          command: 'apt update  &&  sudo apt install -y cmake'
-
       - run:
           name: Generate build files
           command: 'cd build  &&  cmake ..'
