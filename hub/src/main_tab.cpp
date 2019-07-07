@@ -47,7 +47,6 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
     QPushButton* show_cat_doughnut_btn = new QPushButton("Eat", this);
     connect(show_cat_doughnut_btn, &QPushButton::clicked, this->cat_doughnut, &CatDoughnut::show_chart);
     l->addWidget(show_cat_doughnut_btn, row, 2);
-    ++row;
     }
     
     
