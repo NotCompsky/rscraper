@@ -10,9 +10,9 @@ To build packages for redistribution, append the `-DBUILD_PACKAGES=1` to the cma
 
 In addition to those required for installing.
 
-* libcurl-dev
-* libmysqlclient-dev
-* rapidjson
+*   libcurl-dev
+*   libmysqlclient-dev
+*   rapidjson
 
 #### Ubuntu, Raspbian, and other Debian-derived
 
@@ -36,7 +36,7 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
 
 ### Regex Matching
 
-* boost::regex
+*   boost::regex
 
 #### Ubuntu, Raspbian, and other Debian-derived
 
