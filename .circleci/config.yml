@@ -35,7 +35,7 @@ jobs:
           command: 'apt install -y curl wget'
       - run:
           name: Install Dependencies
-          command: 'apt install -y libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
+          command: 'apt install -y golang libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
       - run:
           name: mkdirs
           command: 'mkdir -p build 3rdparty/include 3rdparty/src 3rdparty/cmake'
