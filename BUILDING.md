@@ -44,7 +44,7 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
 
 ### Man Pages
 
-* pandoc
+*   pandoc
 
 #### Ubuntu, Raspbian, and other Debian-derived
 

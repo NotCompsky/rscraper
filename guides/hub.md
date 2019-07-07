@@ -1,13 +1,13 @@
 Run `rscraper-hub` to open the `rscraper-hub` program.
 
-# Tabs
+## Tabs
 
-* [Main Tab](#Main)
-* [Scraper Tab](#Scraper-Tab)
-* [Comment Viewer Tab](#Comments-Overview-Tab)
-* [Category Tabs](#Category-Tabs)
+*   [Main Tab](#Main)
+*   [Scraper Tab](#Scraper-Tab)
+*   [Comment Viewer Tab](#Comments-Overview-Tab)
+*   [Category Tabs](#Category-Tabs)
 
-# Main Tab
+## Main Tab
 
 ![rscraper-hub opened from terminal](https://user-images.githubusercontent.com/30552567/60246088-e2052000-98b5-11e9-82be-e259d6f30f9e.png)
 
@@ -19,7 +19,7 @@ For instance (with only one category):
 
 ![region cat doughnut](https://user-images.githubusercontent.com/30552567/60340500-aea0bf00-99a3-11e9-8900-4f5fce4df5e9.png)
 
-# Scraper Tab
+## Scraper Tab
 
 ![l](https://user-images.githubusercontent.com/30552567/60397047-94501800-9b40-11e9-9023-31b79795a20d.png)
 
@@ -35,7 +35,7 @@ You can `test` the regex for correctness.
 
 ![Regex Editor](https://user-images.githubusercontent.com/30552567/60394879-c18dcd80-9b22-11e9-97c8-c997013d6d21.png)
 
-# Comments Overview Tab
+## Comments Overview Tab
 
 You can filter and cycle through the scraped comments. Comments which were captured by non-capturing capture groups (i.e. reasons beginning with `!`) will have all the metadata, but empty comment contents.
 
@@ -43,11 +43,11 @@ You can also compare the comment's contents to the current regex, with `Details`
 
 ![cmnts tab](https://user-images.githubusercontent.com/30552567/60394734-db2e1580-9b20-11e9-8107-4c619c871adf.png)
 
-# Category Tabs
+## Category Tabs
 
 ![Example](https://user-images.githubusercontent.com/30552567/60396903-0e7f9d00-9b3f-11e9-845e-28f36e39e2d9.png)
 
-* NOTE: the package is often being updated. Some screenshots below may be slightly outdated and omit the new buttons, though the general idea is the same.
+*   NOTE: the package is often being updated. Some screenshots below may be slightly outdated and omit the new buttons, though the general idea is the same.
 
 You can `Share` a tag with other categories; `Unlink` a tag to remove it from the current category; or `Delete` the tag to purge the tag and all its relationships from the database.
 
