@@ -64,7 +64,7 @@ size_t id2str(uint64_t id_orig,  char* buf){
 constexpr uint64_t str2id(const char* start,  const char* end){
     // End points to the comma after the id
     uint64_t n = 0;
-    for (char* str = start;  str != end;  ++str){
+    for (const char* str = start;  str != end;  ++str){
         n *= (10 + 26);
         if (*str >= '0'  &&  *str <= '9')
             n += *str - '0';
@@ -145,7 +145,7 @@ void csv2cls(const char* csv){
     bool current_id_valid = (*csv == '_');
     printf("%c\n", *csv);
     ++csv; // Skip last character of first prefix (no need to check for 0 - done in switch)
-    char* current_id_start = csv;
+    const char* current_id_start = csv;
     while (true){
         switch(*csv){
             case 0:
