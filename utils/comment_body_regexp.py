@@ -48,15 +48,15 @@ if __name__ == "__main__":
     import argparse
     import os
     import re
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--search")
     parser.add_argument("-e", "--export", default=False, action="store_true")
     args = parser.parse_args()
-    
+
     if args.search:
         t = re.sub("\(\?P<([^>]*)>", replacer_fnct, s)
-        
+
         match = re.search(t, args.search)
         if (match is not None):
             for i, x in enumerate(match.groups()):
@@ -65,6 +65,6 @@ if __name__ == "__main__":
             for x,y in match.groupdict().items():
                 if y is not None:
                     print('\t', x)
-    
+
     if args.export:
         open(os.environ["RSCRAPER_REGEX_FILE"], "w").write(s)

@@ -14,7 +14,7 @@ def query(userids:bytes):
 if __name__ == "__main__":
     rtagger = ctypes.cdll.LoadLibrary("librscraper-tagger.so")
     rtagger.init()
-    
+
     query(b"id-t2_6l4z3,id-t2_32duad4")
-    
+
     rtagger.exit_mysql()

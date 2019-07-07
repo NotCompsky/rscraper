@@ -22,14 +22,14 @@ def get_rtags(path:str):
 if __name__ == "__main__":
     import argparse
     import ctypes
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-p','--port', type=int, default=8080)
     args = parser.parse_args()
-    
+
     rtagger = ctypes.cdll.LoadLibrary("librscraper-tagger.so")
     rtagger.init()
-    
+
     app.run(host='localhost', port=args.port)
-    
+
     rtagger.exit_mysql()
