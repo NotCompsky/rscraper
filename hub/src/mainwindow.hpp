@@ -16,14 +16,6 @@
 #include <inttypes.h> // for uintN_t
 
 
-struct tag2cl{
-    uint64_t tagid;
-    char* tagname;
-    uint32_t cl;
-};
-
-
-
 class MainWindow : public QDialog{
     Q_OBJECT
   public:
