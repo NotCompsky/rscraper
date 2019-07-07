@@ -29,6 +29,7 @@ void init_regexp_from_file(std::vector<char*>& reason_name2id,  std::vector<int>
     
     FILE* f = fopen(fp, "rb");
     fread(regexpr_str + 1,  1,  f_sz,  f);
+    fclose(f);
     regexpr_str[f_sz + 1] = 0; // Ensure there is a terminating \0
     
     char* regexpr_str_end = compsky::regex::convert_named_groups(regexpr_str + 1,  regexpr_str,  reason_name2id,  groupindx2reason,  record_contents);
