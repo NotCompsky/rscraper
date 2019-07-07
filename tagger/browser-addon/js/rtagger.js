@@ -6,19 +6,19 @@
  */
 
 
-var user_ids = [];
+var userIds = [];
 for (var t of document.getElementsByClassName("author")){
     var s = t.classList[2];
     if (s[0] == 'm'){
         s = t.classList[3];
     }
-    user_ids.push(s);
+    userIds.push(s);
 }
 
 function main(d){
     for (var t of document.getElementsByClassName("author")){
         var s = t.classList[2];
-        if (s[0] == 'm'){
+        if (s[0] === 'm'){
             s = t.classList[3];
         }
         var tpls = d[s];
@@ -40,7 +40,7 @@ function main(d){
 chrome.storage.sync.get({
     url: "http://104.197.15.19:8080/"
 }, function(items) {
-    fetch(items.url + user_ids.join(","))
+    fetch(items.url + userIds.join(","))
         .then(function(r){
             return r.json();
         })
@@ -48,8 +48,8 @@ chrome.storage.sync.get({
             main(json);
         })
         .catch(function(err){
-            console.log(user_ids + ": " + err);
-        })
+            console.log(userIds + ": " + err);
+        };)
 });
 
 

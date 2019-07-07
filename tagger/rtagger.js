@@ -10,19 +10,19 @@
 // ==/UserScript==
 
 
-var user_ids = [];
+var userIds = [];
 for (var t of document.getElementsByClassName("author")){
     var s = t.classList[2];
     if (s[0] == 'm'){
         s = t.classList[3];
     }
-    user_ids.push(s);
+    userIds.push(s);
 }
 
 function main(d){
     for (var t of document.getElementsByClassName("author")){
         var s = t.classList[2];
-        if (s[0] == 'm'){
+        if (s[0] === 'm'){
             s = t.classList[3];
         }
         var tpls = d[s];
@@ -42,8 +42,8 @@ function main(d){
 }
 
 GM_xmlhttpRequest({
-    method:     'GET',
-    url:        "http://104.197.15.19:8080/" + user_ids.join(","), // <-- You can customise the url to point to your server
+    method:     "GET",
+    url:        "http://104.197.15.19:8080/" + userIds.join(","), // <-- You can customise the url to point to your server
     onload:     function(response){
                     main(JSON.parse(response.responseText));
                 }
