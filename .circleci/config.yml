@@ -10,11 +10,23 @@ jobs:
           name: Update Apt Cache
           command: 'apt update'
       - run:
+          name: Install Dependencies
+          command: 'apt install -y curl wget libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
+      - run:
+          name: Install libcompsky - define regexp
+          command: 'regexp="https://github\.com/NotCompsky/libcompsky/releases/download/[0-9]\.[0-9]\.[0-9]/libcompsky-[0-9]+\.[0-9]+\.[0-9]+-$(dpkg --print-architecture)\.deb"'
+      - run:
+          name: Install libcompsky - get package url
+          command: 'url=$(curl -s https://api.github.com/repos/NotCompsky/libcompsky/releases/latest  |  egrep "$regexp" | sed ''s%.*"\(https://.*\)"%\1%g'')'
+      - run:
+          name: Install libcompsky - download package
+          command: 'wget -O /tmp/libcompsky.deb "$url"'
+      - run:
+          name: Install libcompsky - install package
+          command: 'sudo apt install /tmp/libcompsky.deb'
+      - run:
           name: mkdirs
           command: 'mkdir -p build 3rdparty/include 3rdparty/src 3rdparty/cmake'
-      - run:
-          name: Install Dependencies
-          command: 'apt install -y wget libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
       - run:
           name: WGet libb64
           command: 'wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/76db2bce7a2f78d789fe3f13234be752b24c5404/libb64/cencode.c'
