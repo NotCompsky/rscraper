@@ -1,4 +1,5 @@
 [![CircleCI](https://circleci.com/gh/NotCompsky/rscraper.svg?style=svg)](https://circleci.com/gh/NotCompsky/rscraper)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9ee8e250c8f842559559e7a509e80971)](https://www.codacy.com/app/NotCompsky/rscraper?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=NotCompsky/rscraper&amp;utm_campaign=Badge_Grade)
 
 ![Icon](tagger/browser-addon/icons/64.png)
 
