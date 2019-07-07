@@ -25,8 +25,8 @@ func process(w http.ResponseWriter, r* http.Request){
 }
 
 func main(){
-    var port_n string
-    flag.StringVar(&port_n, "p", "8080", "Port number")
+    var portN string
+    flag.StringVar(&portN, "p", "8080", "Port number")
     flag.Parse()
     
     /* Exit MySQL on interrupt signals */
@@ -41,7 +41,7 @@ func main(){
     C.init()
     mux := http.NewServeMux()
     mux.HandleFunc("/", process)
-    http.ListenAndServe(":" + port_n,  mux)
+    http.ListenAndServe(":" + portN,  mux)
 }
 
 /*
