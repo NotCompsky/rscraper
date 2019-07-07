@@ -1,4 +1,4 @@
-languages:
-  mysql:
-    extensions:
-      - '.sql'
+exclude_paths:
+  - '*.sql'
+  - '*.js'
+  - 'man/*.md'
