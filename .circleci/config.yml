@@ -10,20 +10,17 @@ jobs:
           name: Update Apt Cache
           command: 'apt update'
       - run:
-          name: Install Dependencies
-          command: 'apt install -y curl wget libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
+          name: Install Curl and WGet
+          command: 'apt install -y curl wget'
       - run:
-          name: Install libcompsky - define regexp
-          command: 'regexp="https://github\.com/NotCompsky/libcompsky/releases/download/[0-9]+\.[0-9]+\.[0-9]+/libcompsky-[0-9]+\.[0-9]+\.[0-9]+-$(dpkg --print-architecture)\.deb"'
-      - run:
-          name: Install libcompsky - get package url
-          command: 'url=$(curl -s https://api.github.com/repos/NotCompsky/libcompsky/releases/latest  |  egrep "$regexp" | sed ''s%.*"\(https://.*\)"%\1%g'')'
-      - run:
-          name: Install libcompsky - download package
-          command: 'wget -O /tmp/libcompsky.deb "$url"'
+          name: Install libcompsky
+          command: 'wget -O /tmp/libcompsky.deb https://github.com/NotCompsky/libcompsky/releases/download/0.1.0/libcompsky-0.1.0-amd64.deb'
       - run:
           name: Install libcompsky - install package
-          command: 'sudo apt install /tmp/libcompsky.deb'
+          command: 'apt install /tmp/libcompsky.deb'
+      - run:
+          name: Install Dependencies
+          command: 'apt install -y libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
       - run:
           name: mkdirs
           command: 'mkdir -p build 3rdparty/include 3rdparty/src 3rdparty/cmake'
