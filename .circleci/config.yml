@@ -14,10 +14,7 @@ jobs:
           command: 'apt install -y curl wget'
       - run:
           name: Install libcompsky
-          command: 'wget -O /tmp/libcompsky.deb https://github.com/NotCompsky/libcompsky/releases/download/0.1.0/libcompsky-0.1.0-amd64.deb'
-      - run:
-          name: Install libcompsky - install package
-          command: 'apt install /tmp/libcompsky.deb'
+          command: 'tmp_pkg_fp=/tmp/libcompsky-0.1.0-amd64.deb  &&  wget -O "$tmp_pkg_fp" https://github.com/NotCompsky/libcompsky/releases/download/0.1.0/libcompsky-0.1.0-amd64.deb  &&  apt install "$tmp_pkg_fp"'
       - run:
           name: Install Dependencies
           command: 'apt install -y libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc'
