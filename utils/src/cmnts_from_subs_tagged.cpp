@@ -105,7 +105,6 @@ int main(const int argc,  const char** argv){
     char* username;
     char* reason;
     char dt_buf[200];
-    struct tm* dt;
     while (compsky::mysql::assign_next_row(RES, &ROW, &subname, &post_id, &cmnt_id, &t, f, &body_sz, &body, &username, &reason)){
         char post_id_str[10];
         char cmnt_id_str[10];
@@ -113,7 +112,7 @@ int main(const int argc,  const char** argv){
         cmnt_id_str[id2str(cmnt_id, cmnt_id_str)] = 0;
         
         const time_t tt = t;
-        dt = localtime(&tt);
+        const struct tm* dt = localtime(&tt);
         strftime(dt_buf, sizeof(dt_buf), "%Y %a %b %d %H:%M:%S", dt);
         
         compsky::asciify::asciify("https://www.reddit.com/r/",  subname,  "/comments/",  post_id_str,  "/_/",  cmnt_id_str,  '\n',  dt_buf,  '\t',  reason,  "\tby /u/", username,  '\n');
