@@ -16,7 +16,7 @@ In addition to those required for installing.
 
 #### Ubuntu, Raspbian, and other Debian-derived
 
-    sudo apt install libb64-dev libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev
+    sudo apt install libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev
 
 #### Windows (Cross Compiling from Linux)
 
