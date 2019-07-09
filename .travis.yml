@@ -16,7 +16,7 @@ before_install:
   - hub/qtdl.sh hub/src/3rdparty qtcharts donutbreakdown mainslice.cpp
   - hub/qtdl.sh hub/src/3rdparty qtcharts donutbreakdown donutbreakdownchart.h
   - hub/qtdl.sh hub/src/3rdparty qtcharts donutbreakdown donutbreakdownchart.cpp
-  - sed -i '1,/const auto slices/{/const auto slices/,/\}/s}' hub/src/3rdparty/donutbreakdownchart.cpp
+  - awk '/const auto slices/{a=1};{if(b||!a)print};/\}/{if(a)b=1}' hub/src/3rdparty/donutbreakdownchart.cpp > tmp  &&  mv tmp hub/src/3rdparty/donutbreakdownchart.cpp
   - sed -i -r '/private:/,/QPieSeries \*m_mainSeries;/c\public:\n    QPieSeries *m_mainSeries;' hub/src/3rdparty/donutbreakdownchart.h
   - sed -i 's/#include "moc_mainslice.cpp"//g' hub/src/3rdparty/mainslice.cpp
 

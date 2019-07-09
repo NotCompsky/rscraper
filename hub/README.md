@@ -14,7 +14,7 @@ Download the source code of [mainslice.h](https://doc.qt.io/archives/qt-5.11/qtc
 
 In `donutbreakdownchart.cpp`, delete the lines under `DonutBreakdownChart::addBreakdownSeries` that act on the `slices` (starting from line 38), and in `donutbreakdownchart.h` move `QPieSeries *m_mainSeries;` to `public`:
 
-    sed -i '1,/const auto slices/{/const auto slices/,/\}/s}' src/3rdparty/donutbreakdownchart.cpp
+    awk '/const auto slices/{a=1};{if(b||!a)print};/\}/{if(a)b=1}' src/3rdparty/donutbreakdownchart.cpp > tmp  &&  mv tmp src/3rdparty/donutbreakdownchart.cpp
     sed -i -r '/private:/,/QPieSeries \*m_mainSeries;/c\public:\n    QPieSeries *m_mainSeries;' src/3rdparty/donutbreakdownchart.h
 
 In `mainslice.cpp`, delete the `#include "moc_mainslice.cpp"` line:
