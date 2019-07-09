@@ -6,8 +6,8 @@
  */
 
 
-#ifndef __FILTER_USER__
-#define __FILTER_USER__
+#ifndef RSCRAPER_SCRAPER_FILTER_USER_HPP
+#define RSCRAPER_SCRAPER_FILTER_USER_HPP
 
 #include <inttypes.h> // for uint64_t
 

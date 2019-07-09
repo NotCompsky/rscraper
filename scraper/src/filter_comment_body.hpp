@@ -6,8 +6,8 @@
  */
 
 
-#ifndef __FILTER_COMMENT_BODY__
-#define __FILTER_COMMENT_BODY__
+#ifndef RSCRAPER_SCRAPER_FILTER_COMMENT_BODY_HPP
+#define RSCRAPER_SCRAPER_FILTER_COMMENT_BODY_HPP
 
 #include "structs.h" // for cmnt_meta
 

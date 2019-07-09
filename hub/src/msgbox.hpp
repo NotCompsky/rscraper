@@ -1,5 +1,5 @@
-#ifndef __MSGBOX_H__
-#define __MSGBOX_H__
+#ifndef RSCRAPER_HUB_MSGBOX_HPP
+#define RSCRAPER_HUB_MSGBOX_HPP
 
 #include <QMessageBox>
 #include <QResizeEvent>

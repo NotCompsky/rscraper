@@ -1,5 +1,5 @@
-#ifndef __NOTFOUND_H__
-#define __NOTFOUND_H__
+#ifndef RSCRAPER_HUB_NOTFOUND_HPP
+#define RSCRAPER_HUB_NOTFOUND_HPP
 
 #include <QString>
 #include <QWidget>

@@ -1,5 +1,5 @@
-#ifndef __CAT_PIE_H__
-#define __CAT_PIE_H__
+#ifndef RSCRAPER_HUB_CAT_PIE_HPP
+#define RSCRAPER_HUB_CAT_PIE_HPP
 
 #include <QChart>
 #include <QDialog>

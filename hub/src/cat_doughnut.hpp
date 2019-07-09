@@ -1,5 +1,5 @@
-#ifndef __CAT_DOUGHNUT_H__
-#define __CAT_DOUGHNUT_H__
+#ifndef RSCRAPER_HUB_CAT_DOUGHNUT_HPP
+#define RSCRAPER_HUB_CAT_DOUGHNUT_HPP
 
 #include <QDialog>
 

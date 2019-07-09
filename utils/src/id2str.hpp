@@ -5,8 +5,8 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __ID2STR_H__
-#define __ID2STR_H__
+#ifndef RSCRAPER_UTILS_ID2STR_HPP
+#define RSCRAPER_UTILS_ID2STR_HPP
 
 #include <inttypes.h> // for uint64_t
 #include <stddef.h> // for size_t

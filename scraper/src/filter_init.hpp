@@ -5,8 +5,8 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __FILTER_INIT_H__
-#define __FILTER_INIT_H__
+#ifndef RSCRAPER_SCRAPER_FILTER_INIT_HPP
+#define RSCRAPER_SCRAPER_FILTER_INIT_HPP
 
 #include <inttypes.h> // for uint64_t
 

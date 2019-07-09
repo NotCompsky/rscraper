@@ -5,8 +5,8 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __REGEX_EDITOR_H__
-#define __REGEX_EDITOR_H__
+#ifndef RSCRAPER_HUB_REGEX_EDITOR_HPP
+#define RSCRAPER_HUB_REGEX_EDITOR_HPP
 
 #include <QDialog>
 #include <QPlainTextEdit>

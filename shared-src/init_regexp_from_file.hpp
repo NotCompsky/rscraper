@@ -1,5 +1,5 @@
-#ifndef __INIT_REGEXP_FROM_FILE_H
-#define __INIT_REGEXP_FROM_FILE_H
+#ifndef RSCRAPER_SHARED_SRC_INIT_REGEXP_FROM_FILE_HPP
+#define RSCRAPER_SHARED_SRC_INIT_REGEXP_FROM_FILE_HPP
 
 #include <boost/regex.hpp>
 #include <vector>

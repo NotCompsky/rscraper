@@ -5,8 +5,8 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __SH_TAG_BTN_H__
-#define __SH_TAG_BTN_H__
+#ifndef RSCRAPER_HUB_SH_TAG_BTN_HPP
+#define RSCRAPER_HUB_SH_TAG_BTN_HPP
 
 #include <QMouseEvent>
 #include <QPushButton>

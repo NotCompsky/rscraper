@@ -6,8 +6,8 @@
  */
 
 
-#ifndef __MYERR__
-#define __MYERR__
+#ifndef RSCRAPER_SCRAPER_ERROR_CODES_HPP
+#define RSCRAPER_SCRAPER_ERROR_CODES_HPP
 
 namespace myerr {
 enum {

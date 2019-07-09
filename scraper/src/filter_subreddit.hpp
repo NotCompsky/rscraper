@@ -6,8 +6,8 @@
  */
 
 
-#ifndef __FILTER_SUBREDDIT__
-#define __FILTER_SUBREDDIT__
+#ifndef RSCRAPER_SCRAPER_FILTER_SUBREDDIT_HPP
+#define RSCRAPER_SCRAPER_FILTER_SUBREDDIT_HPP
 
 #include <inttypes.h> // for uint64_t
 

@@ -5,8 +5,8 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __WLBL_REASONWISE_LABEL_H__
-#define __WLBL_REASONWISE_LABEL_H__
+#ifndef RSCRAPER_HUB_WLBL_REASONWISE_LABEL_HPP
+#define RSCRAPER_HUB_WLBL_REASONWISE_LABEL_HPP
 
 #include "wlbl_label.hpp"
 

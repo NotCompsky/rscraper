@@ -6,6 +6,10 @@
  */
 
 
+#ifndef RSCRAPER_TAGGER_INCLUDE_RSCRAPER_TAGGER_HPP
+#define RSCRAPER_TAGGER_INCLUDE_RSCRAPER_TAGGER_HPP
+
+
 extern "C" char* DST;
 
 extern "C"
@@ -16,3 +20,6 @@ void exit_mysql();
 
 extern "C"
 void csv2cls(const char* csv);
+
+
+#endif

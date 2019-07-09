@@ -6,8 +6,8 @@
  */
 
 
-#ifndef CREATE_CHAR_WINDOW_H
-#define CREATE_CHAR_WINDOW_H
+#ifndef RSCRAPER_HUB_MAINWINDOW_HPP
+#define RSCRAPER_HUB_MAINWINDOW_HPP
 
 #include <QTabWidget>
 #include <QDialogButtonBox>

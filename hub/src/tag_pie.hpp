@@ -1,5 +1,5 @@
-#ifndef __TAG_PIE_H__
-#define __TAG_PIE_H__
+#ifndef RSCRAPER_HUB_TAG_PIE_HPP
+#define RSCRAPER_HUB_TAG_PIE_HPP
 
 #include <QChart>
 #include <QDialog>

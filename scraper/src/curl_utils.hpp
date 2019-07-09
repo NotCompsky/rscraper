@@ -6,8 +6,8 @@
  */
 
 
-#ifndef __MYCU__
-#define __MYCU__
+#ifndef RSCRAPER_SCRAPER_CURL_UTILS_HPP
+#define RSCRAPER_SCRAPER_CURL_UTILS_HPP
 
 #include <curl/curl.h>
 

@@ -5,8 +5,8 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef __MYRCU__
-#define __MYRCU__
+#ifndef RSCRAPER_SCRAPER_REDDITCURL_UTILS_HPP
+#define RSCRAPER_SCRAPER_REDDITCURL_UTILS_HPP
 
 #include "rapidjson/document.h" // for rapidjson::Document
 
