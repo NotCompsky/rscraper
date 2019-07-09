@@ -21,36 +21,6 @@ else()
 endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
-if (NOT WHICH_MYSQL_CLIENT)
-    find_library(FOUND_MYSQL_CLIENT mariadbclient)
-    if (FOUND_MYSQL_CLIENT)
-        set(WHICH_MYSQL_CLIENT mariadbclient)
-    endif()
-endif()
-if (NOT WHICH_MYSQL_CLIENT)
-    find_library(FOUND_MYSQL_CLIENT mysqlclient)
-    if (FOUND_MYSQL_CLIENT)
-        set(WHICH_MYSQL_CLIENT mysqlclient)
-    endif()
-endif()
-if (WHICH_MYSQL_CLIENT)
-    message(STATUS "WHICH_MYSQL_CLIENT: ${WHICH_MYSQL_CLIENT}")
-else()
-    message(FATAL_ERROR "Please specify the libmysqlclient equivalent with -DWHICH_MYSQL_CLIENT=...\nFor instance, for Ubuntu/Debian, you would specify -DWHICH_MYSQL_CLIENT=mariadbclient; for others, perhaps, -DWHICH_MYSQL_CLIENT=mysqlclient\nFor Ubuntu/Debian, you can discover this with the command:  apt list --installed | egrep 'lib(mysql|mariadb)client' | grep -v -- -dev | sed 's/^lib//g' | sed -r 's~[0-9]*/.*~~g'")
-endif()
-
-
-
-if(WHY_THIS_NECESSARY)
-    set(COMPSKY_INCLUDE_DIRS "${WHY_THIS_NECESSARY}/../include")
-    set(COMPSKY_BIN_DIRS "${WHY_THIS_NECESSARY}/../bin")
-    set(COMPSKY_LIB_DIRS "${WHY_THIS_NECESSARY}")
-else()
-    find_package(Compsky COMPONENTS asciify mysql REQUIRED)
-    # Gives that `*** No rule to make target 'compsky_asciify-NOTFOUND'` error if defined only in individual subdirectories' CMakeLists.
-endif()
-
-
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS "TRUE") # For Windows Visual Studio # Doesn't seem to do anything though!
 
 set(RSCRAPER_MAJOR_VERSION 0)
@@ -63,6 +33,7 @@ link_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/lib")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/shared-src")
 
+find_package(Compsky COMPONENTS asciify mysql REQUIRED)
 include_directories("${COMPSKY_INCLUDE_DIRS}")
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     link_directories("${COMPSKY_BIN_DIRS}")
@@ -132,7 +103,6 @@ foreach(p LIB BIN INCLUDE CMAKE)
   endif()
 endforeach()
 
-# set up include-directories
 include_directories("${PROJECT_SOURCE_DIR}")
 
 # Add sub-directories
@@ -147,7 +117,6 @@ if(BUILD_PACKAGES)
     add_subdirectory(packaging)
 endif()
 
-# Registers the build-tree with a global CMake-registry
 export(PACKAGE RScraper)
 
 
@@ -163,7 +132,6 @@ configure_file(RScraperConfig.cmake.in "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIREC
 # ... for both
 configure_file(RScraperConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/RScraperConfigVersion.cmake" @ONLY)
 
-# Install the RScraperConfig.cmake and RScraperConfigVersion.cmake
 install(
     FILES
     "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/RScraperConfig.cmake"
@@ -171,7 +139,6 @@ install(
     DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev
 )
 
-# Install the export set for use with the install-tree
 install(EXPORT RScraperTargets DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
 
 # END src: https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/How-to-create-a-ProjectConfig.cmake-file
