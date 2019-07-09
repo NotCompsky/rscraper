@@ -12,6 +12,6 @@ before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then  sudo apt install curl wget golang libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc;  fi
 
 script:
-  - mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. -DMYSQL_UNDER_DIR=/usr/include/mysql -DMYSQL_UNDER_DIR_OVERRIDE=1 -DBUILD_PACKAGES=1 -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=$(dpkg --print-architecture)  &&  cmake --target install --build .  &&  cd ..  # Build libcompsky
+  - mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. &&  cmake --target install --build .  &&  cd ..  # Build libcompsky
   - mkdir -p build 3rdparty/include 3rdparty/src 3rdparty/cmake  &&   wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/76db2bce7a2f78d789fe3f13234be752b24c5404/libb64/cencode.c  &&  cd build  &&  cmake .. -DBUILD_PACKAGES=1 -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=$(dpkg --print-architecture)  &&  sudo make package
 
