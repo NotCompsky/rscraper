@@ -38,6 +38,15 @@ Download `rapidjson`, and copy its `include` directory to `rscraper`'s `3rdparty
 
 *   boost::regex
 
+### GUI
+
+*   Qt5::Widgets
+*   Qt5::Charts
+
+#### Ubuntu, Raspbian, and other Debian-derived
+
+    qt5-default libqt5widgets5 libqt5charts5 libqt5charts5-dev
+
 #### Ubuntu, Raspbian, and other Debian-derived
 
     sudo apt install libboost-regex-dev
