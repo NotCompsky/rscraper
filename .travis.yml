@@ -11,7 +11,7 @@ before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then  sudo apt update  &&  sudo apt install -y mariadb-client default-libmysqlclient-dev qt5-default libqt5widgets5;  fi # libcompsky direct dependencies
   - git clone https://github.com/NotCompsky/libcompsky
   - if [ $TRAVIS_OS_NAME == linux ]; then  sudo apt install curl wget golang libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc qt5-default libqt5widgets5 libqt5charts5 libqt5charts5-dev;  fi # rscraper direct dependencies
-  - mkdir src/3rdparty
+  - mkdir hub/src/3rdparty
   - hub/qtdl.sh hub/src/3rdparty qtcharts donutbreakdown mainslice.h
   - hub/qtdl.sh hub/src/3rdparty qtcharts donutbreakdown mainslice.cpp
   - hub/qtdl.sh hub/src/3rdparty qtcharts donutbreakdown donutbreakdownchart.h
@@ -22,5 +22,5 @@ before_install:
 
 script:
   - mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. &&  cmake --target install --build .  &&  cd ..  # Build libcompsky
-  - mkdir -p build 3rdparty/include 3rdparty/src 3rdparty/cmake  &&   wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/76db2bce7a2f78d789fe3f13234be752b24c5404/libb64/cencode.c  &&  cd build  &&  cmake .. -DBUILD_PACKAGES=1 -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=$(dpkg --print-architecture)  &&  sudo make package
+  - mkdir -p build 3rdparty/include 3rdparty/src 3rdparty/cmake  &&   wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/76db2bce7a2f78d789fe3f13234be752b24c5404/libb64/cencode.c  &&  cd build  &&  cmake .. -DBUILD_PACKAGES=1 -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=$(dpkg --print-architecture)  &&  make package
 
