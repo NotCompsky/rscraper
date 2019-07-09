@@ -4,7 +4,22 @@
 
 # Building
 
-Download the source code of [mainslice.h](https://doc.qt.io/archives/qt-5.11/qtcharts-donutbreakdown-mainslice-h.html), [mainslice.cpp](https://doc.qt.io/archives/qt-5.11/qtcharts-donutbreakdown-mainslice-cpp.html), [donutbreakdownchart.h](https://doc.qt.io/archives/qt-5.11/qtcharts-donutbreakdown-donutbreakdownchart-h.html) and [donutbreakdownchart.cpp](https://doc.qt.io/archives/qt-5.11/qtcharts-donutbreakdown-donutbreakdownchart-cpp.html) into the 3rdparty directory. In `donutbreakdownchart.cpp`, delete the lines under `DonutBreakdownChart::addBreakdownSeries` that act on the `slices` (starting from line 38), and in `donutbreakdownchart.h` move `QPieSeries *m_mainSeries;` to `public`.
+Download the source code of [mainslice.h](https://doc.qt.io/archives/qt-5.11/qtcharts-donutbreakdown-mainslice-h.html), [mainslice.cpp](https://doc.qt.io/archives/qt-5.11/qtcharts-donutbreakdown-mainslice-cpp.html), [donutbreakdownchart.h](https://doc.qt.io/archives/qt-5.11/qtcharts-donutbreakdown-donutbreakdownchart-h.html) and [donutbreakdownchart.cpp](https://doc.qt.io/archives/qt-5.11/qtcharts-donutbreakdown-donutbreakdownchart-cpp.html) into the 3rdparty directory:
+
+    mkdir src/3rdparty
+    ./qtdl.sh src/3rdparty qtcharts donutbreakdown mainslice.h
+    ./qtdl.sh src/3rdparty qtcharts donutbreakdown mainslice.cpp
+    ./qtdl.sh src/3rdparty qtcharts donutbreakdown donutbreakdownchart.h
+    ./qtdl.sh src/3rdparty qtcharts donutbreakdown donutbreakdownchart.cpp
+
+In `donutbreakdownchart.cpp`, delete the lines under `DonutBreakdownChart::addBreakdownSeries` that act on the `slices` (starting from line 38), and in `donutbreakdownchart.h` move `QPieSeries *m_mainSeries;` to `public`:
+
+    sed -i '1,/const auto slices/{/const auto slices/,/\}/s}' src/3rdparty/donutbreakdownchart.cpp
+    sed -i -r '/private:/,/QPieSeries \*m_mainSeries;/c\public:\n    QPieSeries *m_mainSeries;' src/3rdparty/donutbreakdownchart.h
+
+In `mainslice.cpp`, delete the `#include "moc_mainslice.cpp"` line:
+
+    sed -i 's/#include "moc_mainslice.cpp"//g' src/3rdparty/mainslice.cpp
 
 # Usage
 
