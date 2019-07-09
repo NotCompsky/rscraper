@@ -22,7 +22,7 @@ jobs:
           command: 'git clone https://github.com/NotCompsky/libcompsky'
       - run:
           name: libcompsky - Install SQL Client Dev
-          command: 'apt install -y mariadb-client default-libmysqlclient-dev qt5-default libqt5widgets5'
+          command: 'apt install -y mariadb-client default-libmysqlclient-dev qt5-default libqt5widgets5 libqt5charts5 libqt5charts5-dev'
       - run:
           name: libcompsky - Install GCC
           command: 'apt install -y g++'
