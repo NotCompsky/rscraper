@@ -1,4 +1,7 @@
 version: 2
+general:
+  artifacts:
+    - "packages"
 jobs:
   build:
     docker:
@@ -43,8 +46,10 @@ jobs:
           name: WGet libb64
           command: 'wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/76db2bce7a2f78d789fe3f13234be752b24c5404/libb64/cencode.c'
       - run:
-          name: Generate build files
-          command: 'cd build  &&  cmake ..'
-      - run:
           name: Build
-          command: 'cmake --build build'
+          command: 'cd build  &&  cmake .. -DBUILD_PACKAGES=1 -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=$(dpkg --print-architecture)  &&  cmake --build . --target package'
+      - run:
+          name: Move packages to artifact storage
+          command: 'mkdir packages  &&  mv build/pkg/*.deb packages/'
+      - store_artifacts:
+          path: "packages"
