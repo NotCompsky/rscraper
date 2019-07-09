@@ -1,7 +1,3 @@
-if(NOT IS_DIRECTORY "${CMAKE_INSTALL_PREFIX}/man/man1")
-    return()
-endif()
-
 if( EXISTS "${CMAKE_BINARY_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "Refusing to run in-source build.")
 endif()
@@ -31,6 +27,6 @@ endforeach()
 add_custom_target(man ALL DEPENDS ${MAN_FILES})
 INSTALL(
     FILES ${MAN_FILES}
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/man/man1"
+    DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
     COMPONENT man
 )
