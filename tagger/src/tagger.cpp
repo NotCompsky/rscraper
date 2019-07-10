@@ -129,14 +129,10 @@ void csv2cls(const char* csv){
             "RIGHT JOIN ( "
                 "SELECT U2SCC.user_id, s2t.tag_id, SUM(U2SCC.count) as c, GROUP_CONCAT(U2SCC.name, \" \", U2SCC.count) as string "
                 "FROM subreddit2tag s2t "
-                "JOIN ( "
-                    "SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count, S.name "
-                    "FROM user2subreddit_cmnt_count u2scc "
-                    "JOIN ( "
-                        "SELECT id, name "
-                        "FROM subreddit "
-                    ") S ON S.id = u2scc.subreddit_id "
-                    "WHERE u2scc.user_id IN (";
+                "JOIN ("
+                    "SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count, s.name "
+                    "FROM user2subreddit_cmnt_count u2scc, subreddit s "
+                    "WHERE s.id=u2scc.subreddit_id AND u2scc.user_id IN (";
     
     memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_pre,  strlen_constexpr(stmt_pre));
     compsky::asciify::BUF_INDX += strlen_constexpr(stmt_pre);
