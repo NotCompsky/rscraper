@@ -7,7 +7,7 @@ package main
 extern char* DST;
 extern void init();
 extern void exit_mysql();
-extern void csv2cls(const char* csv);
+extern void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
 */
 import "C" // Pseudopackage
 import "flag"
@@ -18,15 +18,21 @@ import "syscall"
 import "os/signal"
 
 
+var tagfilter string
+var reasonfilter string
+
+
 func process(w http.ResponseWriter, r* http.Request){
     w.Header().Set("Content-Type", "application/json")
-    C.csv2cls(C.CString(r.URL.Path))
+    C.csv2cls(C.CString(r.URL.Path), C.CString(tagfilter), C.CString(reasonfilter))
     io.WriteString(w, C.GoString(C.DST))
 }
 
 func main(){
     var portN string
     flag.StringVar(&portN, "p", "8080", "Port number")
+    flag.StringVar(&tagfilter,    "t", "", "SQL condition that t.id (tag ID) must fulfil. If non-empty, must begin with 'AND'. E.g. 'AND t.id=3'")
+    flag.StringVar(&reasonfilter, "m", "", "SQL condition that m.id (reason_matched ID) must fulfil. If non-empty, must begin with 'AND'. E.g. 'AND m.id=3'")
     flag.Parse()
     
     /* Exit MySQL on interrupt signals */

@@ -6,7 +6,7 @@ import ctypes
 
 # One query
 def query(userids:bytes):
-    rtagger.csv2cls(userids)
+    rtagger.csv2cls(userids, b"", b"")
     s:bytes = ctypes.c_char_p.in_dll(rtagger, "DST")
     print(s.value)
 

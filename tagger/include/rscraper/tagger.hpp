@@ -5,9 +5,10 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-
 #ifndef RSCRAPER_TAGGER_INCLUDE_RSCRAPER_TAGGER_HPP
 #define RSCRAPER_TAGGER_INCLUDE_RSCRAPER_TAGGER_HPP
+
+#include <inttypes.h> // for uint64_t
 
 
 extern "C" char* DST;
@@ -18,8 +19,19 @@ void init();
 extern "C"
 void exit_mysql();
 
+/*
 extern "C"
-void csv2cls(const char* csv);
+void generate_id_list(const char* tblname,  const char** names,  uint64_t* ls);
+
+extern "C"
+uint64_t* generate_id_list_string(const char* tblname,  const char** names);
+*/
+
+extern "C"
+const char* generate_id_list_string(const char* tblname,  const char** names);
+
+extern "C"
+void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
 
 
 #endif
