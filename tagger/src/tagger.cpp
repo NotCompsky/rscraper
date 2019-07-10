@@ -120,16 +120,17 @@ void csv2cls(const char* csv){
     
     compsky::asciify::BUF_INDX = 0;
     
-    constexpr static const char* stmt_pre = 
+    constexpr static const char* stmt_a = 
+      "SELECT * FROM ("
         "SELECT A.user_id, SUM(A.c), SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), GROUP_CONCAT(A.tstr) "
         "FROM tag2category t2c "
         "JOIN ( "
-            "SELECT u2scc.user_id, s2t.tag_id, SUM(u2scc.count) AS c, t.r, t.g, t.b, t.a, GROUP_CONCAT(s.name, " ", u2scc.count) AS tstr "
+            "SELECT u2scc.user_id, s2t.tag_id, SUM(u2scc.count) AS c, t.r, t.g, t.b, t.a, GROUP_CONCAT(s.name, \" \", u2scc.count) AS tstr "
             "FROM user2subreddit_cmnt_count u2scc, subreddit s, subreddit2tag s2t, tag t "
             "WHERE s.id=u2scc.subreddit_id AND s.id=s2t.subreddit_id AND t.id=s2t.tag_id AND u2scc.user_id IN (";
     
-    memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_pre,  strlen_constexpr(stmt_pre));
-    compsky::asciify::BUF_INDX += strlen_constexpr(stmt_pre);
+    memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_a,  strlen_constexpr(stmt_a));
+    compsky::asciify::BUF_INDX += strlen_constexpr(stmt_a);
     
     {
     bool current_id_valid = (*csv == '_');
@@ -163,7 +164,9 @@ void csv2cls(const char* csv){
     
     goto_break:
     
-    if (compsky::asciify::BUF_INDX == strlen_constexpr(stmt_pre)){
+    {
+    const size_t n_bytes_of_IDs = compsky::asciify::BUF_INDX - strlen_constexpr(stmt_a);
+    if (n_bytes_of_IDs == 0){
         // No valid IDs were found
         DST = "{}";
         return;
@@ -172,13 +175,22 @@ void csv2cls(const char* csv){
     --compsky::asciify::BUF_INDX; // Remove trailing comma
     
     {
-    constexpr static const char* stmt_post =
+    constexpr static const char* stmt_b =
             ")"
             "GROUP BY u2scc.user_id, s2t.tag_id, t.r, t.g, t.b, t.a"
         ") A ON t2c.tag_id = A.tag_id "
-        "GROUP BY A.user_id, t2c.category_id";
-    memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_post,  strlen_constexpr(stmt_post));
-    compsky::asciify::BUF_INDX += strlen_constexpr(stmt_post);
+        "GROUP BY A.user_id, t2c.category_id "
+        "UNION ALL "
+        "SELECT c.author_id AS user_id, 1, 0, 0, 0, 1, CONCAT(m.name, ' ', COUNT(m.id)) "
+        "FROM comment c, reason_matched m "
+        "WHERE c.reason_matched=m.id AND c.author_id IN (";
+
+    memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_b,  strlen_constexpr(stmt_b));
+    compsky::asciify::BUF_INDX += strlen_constexpr(stmt_b);
+    memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  compsky::asciify::BUF + strlen_constexpr(stmt_a),  n_bytes_of_IDs);
+    compsky::asciify::BUF_INDX += n_bytes_of_IDs;
+    compsky::asciify::asciify(/* ")" */ " GROUP BY c.author_id, m.name) A ORDER BY user_id"); // First ')' is not necessary as it is already copied by 'n_bytes_of_IDs' - because the last trailing comma is not stripped, but simply replaced by the closing bracket.
+    }
     }
     
     printf("QRY: %.*s\n",  compsky::asciify::BUF_INDX,  compsky::asciify::BUF); // TMP
