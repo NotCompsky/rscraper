@@ -9,6 +9,7 @@ matrix:
 
 before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then  sudo apt update  &&  sudo apt install -y mariadb-client default-libmysqlclient-dev qt5-default libqt5widgets5;  fi # libcompsky direct dependencies
+  - mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. &&  cmake --target install --build .  &&  cd ..  # Build libcompsky
   - git clone https://github.com/NotCompsky/libcompsky
   - if [ $TRAVIS_OS_NAME == linux ]; then  sudo apt install curl wget golang libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc qt5-default libqt5widgets5 libqt5charts5 libqt5charts5-dev;  fi # rscraper direct dependencies
   - mkdir hub/src/3rdparty
@@ -17,10 +18,10 @@ before_install:
   - hub/qtdl.sh hub/src/3rdparty qtcharts donutbreakdown donutbreakdownchart.h
   - hub/qtdl.sh hub/src/3rdparty qtcharts donutbreakdown donutbreakdownchart.cpp
   - awk '/const auto slices/{a=1};{if(b||!a)print};/\}/{if(a)b=1}' hub/src/3rdparty/donutbreakdownchart.cpp > tmp  &&  mv tmp hub/src/3rdparty/donutbreakdownchart.cpp
-  - sed -i -r '/private:/,/QPieSeries \*m_mainSeries;/c\public:\n    QPieSeries *m_mainSeries;' hub/src/3rdparty/donutbreakdownchart.h
+  - sed -i 's/QPieSeries \*m_mainSeries;//g' hub/src/3rdparty/donutbreakdownchart.h  &&  sed -i 's/public:/public:\n    QPieSeries *m_mainSeries;/g' hub/src/3rdparty/donutbreakdownchart.h
   - sed -i 's/#include "moc_mainslice.cpp"//g' hub/src/3rdparty/mainslice.cpp
+  - mkdir -p build 3rdparty/include 3rdparty/src 3rdparty/cmake  &&   wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/76db2bce7a2f78d789fe3f13234be752b24c5404/libb64/cencode.c
 
 script:
-  - mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. &&  cmake --target install --build .  &&  cd ..  # Build libcompsky
-  - mkdir -p build 3rdparty/include 3rdparty/src 3rdparty/cmake  &&   wget -O 3rdparty/include/libb64.h https://raw.githubusercontent.com/cburstedde/libsc/b19431d87224c0d9e89e16f0f8dc381a9e11a1ea/libb64/libb64.h  &&  wget -O 3rdparty/src/base64.c https://raw.githubusercontent.com/cburstedde/libsc/76db2bce7a2f78d789fe3f13234be752b24c5404/libb64/cencode.c  &&  cd build  &&  cmake .. -DBUILD_PACKAGES=1 -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=$(dpkg --print-architecture)  &&  make package
+  - cd build  &&  cmake .. -DBUILD_PACKAGES=1 -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=$(dpkg --print-architecture)  &&  make package
 
