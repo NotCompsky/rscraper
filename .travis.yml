@@ -9,8 +9,8 @@ matrix:
 
 before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then  sudo apt update  &&  sudo apt install -y mariadb-client default-libmysqlclient-dev qt5-default libqt5widgets5;  fi # libcompsky direct dependencies
-  - mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. &&  cmake --target install --build .  &&  cd ..  # Build libcompsky
   - git clone https://github.com/NotCompsky/libcompsky
+  - mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. &&  cmake --target install --build .  &&  cd ..  # Build libcompsky
   - if [ $TRAVIS_OS_NAME == linux ]; then  sudo apt install curl wget golang libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc qt5-default libqt5widgets5 libqt5charts5 libqt5charts5-dev;  fi # rscraper direct dependencies
   - mkdir hub/src/3rdparty
   - hub/qtdl.sh hub/src/3rdparty qtcharts donutbreakdown mainslice.h
