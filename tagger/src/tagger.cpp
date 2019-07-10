@@ -121,18 +121,12 @@ void csv2cls(const char* csv){
     compsky::asciify::BUF_INDX = 0;
     
     constexpr static const char* stmt_pre = 
-        "SELECT A.user_id, SUM(A.c), SUM(A.r), SUM(A.g), SUM(A.b), SUM(A.a), GROUP_CONCAT(A.string) "
+        "SELECT A.user_id, SUM(A.c), SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), GROUP_CONCAT(A.tstr) "
         "FROM tag2category t2c "
         "JOIN ( "
-            "SELECT S2T.user_id, S2T.tag_id, S2T.c, S2T.c*t.r as r, S2T.c*t.g as g, S2T.c*t.b as b, S2T.c*t.a as a, string "
-            "FROM tag t "
-            "RIGHT JOIN ( "
-                "SELECT U2SCC.user_id, s2t.tag_id, SUM(U2SCC.count) as c, GROUP_CONCAT(U2SCC.name, \" \", U2SCC.count) as string "
-                "FROM subreddit2tag s2t "
-                "JOIN ("
-                    "SELECT u2scc.user_id, u2scc.subreddit_id, u2scc.count, s.name "
-                    "FROM user2subreddit_cmnt_count u2scc, subreddit s "
-                    "WHERE s.id=u2scc.subreddit_id AND u2scc.user_id IN (";
+            "SELECT u2scc.user_id, s2t.tag_id, SUM(u2scc.count) AS c, t.r, t.g, t.b, t.a, GROUP_CONCAT(s.name, " ", u2scc.count) AS tstr "
+            "FROM user2subreddit_cmnt_count u2scc, subreddit s, subreddit2tag s2t, tag t "
+            "WHERE s.id=u2scc.subreddit_id AND s.id=s2t.subreddit_id AND t.id=s2t.tag_id AND u2scc.user_id IN (";
     
     memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_pre,  strlen_constexpr(stmt_pre));
     compsky::asciify::BUF_INDX += strlen_constexpr(stmt_pre);
@@ -179,9 +173,8 @@ void csv2cls(const char* csv){
     
     {
     constexpr static const char* stmt_post =
-                ")) U2SCC ON U2SCC.subreddit_id = s2t.subreddit_id "
-                "GROUP BY U2SCC.user_id, s2t.tag_id "
-            ") S2T ON S2T.tag_id = t.id "
+            ")"
+            "GROUP BY u2scc.user_id, s2t.tag_id, t.r, t.g, t.b, t.a"
         ") A ON t2c.tag_id = A.tag_id "
         "GROUP BY A.user_id, t2c.category_id";
     memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  stmt_post,  strlen_constexpr(stmt_post));
