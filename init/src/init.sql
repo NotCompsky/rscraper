@@ -66,6 +66,10 @@ CREATE TABLE IF NOT EXISTS tag (
 CREATE TABLE IF NOT EXISTS reason_matched (
     id INT UNSIGNED NOT NULL,
     name VARBINARY(128) UNIQUE,
+    r FLOAT NOT NULL DEFAULT 0,
+    g FLOAT NOT NULL DEFAULT 0,
+    b FLOAT NOT NULL DEFAULT 0,
+    a FLOAT NOT NULL DEFAULT 0,
     UNIQUE KEY (name),
     PRIMARY KEY (id)
 );
@@ -145,7 +149,7 @@ CREATE TABLE IF NOT EXISTS reason_subreddit_whitelist (
 );
 
 
-INSERT IGNORE INTO reason_matched (id, name) VALUES (0, "None");
-INSERT IGNORE INTO reason_matched (id, name) VALUES (1, "Unknown");
+INSERT IGNORE INTO reason_matched (id, name)             VALUES (0, "None");
+INSERT IGNORE INTO reason_matched (id, name, r, g, b, a) VALUES (1, "Unknown", 0.5, 0.5, 0.5, 1);
 
 )====="

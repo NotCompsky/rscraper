@@ -17,11 +17,13 @@ class SelectColourButton : public QPushButton{
     Q_OBJECT
   private Q_SLOTS:
     void mousePressEvent(QMouseEvent* e);
+  private:
+    const char* tblname;
   public:
     const uint64_t tag_id;
     QColor colour;
-    explicit SelectColourButton(const uint64_t id,  const QColor& cl,  QWidget* parent);
-    explicit SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  QWidget* parent);
+    explicit SelectColourButton(const uint64_t id,  const QColor& cl,  QWidget* parent,  const char* tblname = "tag");
+    explicit SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  QWidget* parent,  const char* tblname = "tag");
   public Q_SLOTS:
     void set_colour();
 };

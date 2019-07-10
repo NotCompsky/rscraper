@@ -9,6 +9,7 @@
 #include "mainwindow.hpp"
 
 #include "categorytab.hpp"
+#include "reason_tab.hpp"
 #include "io_tab.hpp"
 #include "main_tab.hpp"
 #include "name_dialog.hpp"
@@ -61,8 +62,9 @@ MainWindow::MainWindow(QWidget* parent){
     this->tab_widget->addTab(new MainTab(this->tab_widget),             "__MAIN__");
     this->tab_widget->addTab(new ScraperTab(),                          "__SCRAPER__");
     this->tab_widget->addTab(new ViewMatchedComments(this->tab_widget), "__CMNTS__");
+    this->tab_widget->addTab(new ReasonTab(this->tab_widget),           "__REASONS__");
     this->tab_widget->addTab(new IOTab(this->tab_widget),               "__IO__");
-    #define N_NONCATEGORY_TABS 4
+    #define N_NONCATEGORY_TABS 5
     
     tag_name2id.clear();
     compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM tag");

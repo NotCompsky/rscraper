@@ -181,7 +181,7 @@ void csv2cls(const char* csv){
         ") A ON t2c.tag_id = A.tag_id "
         "GROUP BY A.user_id, t2c.category_id "
         "UNION ALL "
-        "SELECT c.author_id AS user_id, 1, 0, 0, 0, 1, CONCAT(m.name, ' ', COUNT(m.id)) "
+        "SELECT c.author_id AS user_id, 1, m.r, m.g, m.b, m.a, CONCAT(m.name, ' ', COUNT(m.id)) "
         "FROM comment c, reason_matched m "
         "WHERE c.reason_matched=m.id AND c.author_id IN (";
 
@@ -189,7 +189,7 @@ void csv2cls(const char* csv){
     compsky::asciify::BUF_INDX += strlen_constexpr(stmt_b);
     memcpy(compsky::asciify::BUF + compsky::asciify::BUF_INDX,  compsky::asciify::BUF + strlen_constexpr(stmt_a),  n_bytes_of_IDs);
     compsky::asciify::BUF_INDX += n_bytes_of_IDs;
-    compsky::asciify::asciify(/* ")" */ " GROUP BY c.author_id, m.name) A ORDER BY user_id"); // First ')' is not necessary as it is already copied by 'n_bytes_of_IDs' - because the last trailing comma is not stripped, but simply replaced by the closing bracket.
+    compsky::asciify::asciify(/* ")" */ " GROUP BY c.author_id, m.name, m.r, m.g, m.b, m.a) A ORDER BY user_id"); // First ')' is not necessary as it is already copied by 'n_bytes_of_IDs' - because the last trailing comma is not stripped, but simply replaced by the closing bracket.
     }
     }
     
