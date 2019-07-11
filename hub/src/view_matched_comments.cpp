@@ -35,7 +35,7 @@ namespace filter_comment_body {
 }
 
 namespace _f {
-    constexpr static const compsky::asciify::flag::ChangeBuffer chbuf;
+    constexpr static const compsky::asciify::flag::ChangeBufferTmp chbuf;
 }
 
 namespace details {
@@ -211,7 +211,7 @@ void ViewMatchedComments::init(){
     const QString tag    = this->tagname_input->text();
     const QString reason = this->reasonname_input->text();
     
-    compsky::asciify::asciify(_f::chbuf, compsky::asciify::BUF, 0);
+    compsky::asciify::reset_index();
     
     if (!tag.isEmpty())
         if (!reason.isEmpty())
@@ -227,7 +227,7 @@ void ViewMatchedComments::init(){
     compsky::asciify::asciify(" ORDER BY ", this->get_sort_column());
     compsky::asciify::asciify((this->is_ascending) ? " asc" : " desc");
     
-    compsky::mysql::query_buffer(&this->res1, compsky::asciify::BUF, compsky::asciify::BUF_INDX);
+    compsky::mysql::query_buffer(&this->res1, compsky::asciify::BUF, compsky::asciify::get_index());
     
     this->next();
 }
@@ -255,9 +255,10 @@ void ViewMatchedComments::next(){
         
         const time_t tt = t;
         const struct tm* dt = localtime(&tt);
-        char* dt_buf = compsky::asciify::BUF;
-        compsky::asciify::asciify(_f::chbuf, dt_buf, 0,  dt);
-        compsky::asciify::BUF[compsky::asciify::BUF_INDX] = 0;
+        char* const dt_buf = compsky::asciify::BUF;
+        compsky::asciify::reset_index();
+        compsky::asciify::asciify(dt);
+        compsky::asciify::append(0);
         
         this->subname->setText(subname);
         this->username->setText(username);

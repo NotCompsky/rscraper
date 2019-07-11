@@ -24,9 +24,9 @@ namespace compsky {
         constexpr static const size_t BUF_SZ = 80000;
             
         void ensure_buf_can_fit(size_t n){
-            if (BUF_INDX + n  >  BUF_SZ){
-                fwrite(BUF, 1, BUF_INDX, stderr);
-                BUF_INDX = 0;
+            if (get_index() + n  >  BUF_SZ){
+                fwrite(BUF, 1, get_index(), stderr);
+                reset_index();
             }
         }
     }
@@ -117,9 +117,9 @@ int main(const int argc,  const char** argv){
         
         compsky::asciify::asciify("https://www.reddit.com/r/",  subname,  "/comments/",  post_id_str,  "/_/",  cmnt_id_str,  '\n',  dt_buf,  '\t',  reason,  "\tby /u/", username,  '\n');
         
-        if (compsky::asciify::BUF_INDX + body_sz > compsky::asciify::BUF_SZ){
-            fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX, stdout);
-            compsky::asciify::BUF_INDX = 0;
+        if (compsky::asciify::get_index() + body_sz > compsky::asciify::BUF_SZ){
+            fwrite(compsky::asciify::BUF, 1, compsky::asciify::get_index(), stdout);
+            compsky::asciify::reset_index();
             if (body_sz + 3 + 256 > compsky::asciify::BUF_SZ){
                 fwrite(body, 1, body_sz, stdout);
                 continue;
@@ -127,6 +127,6 @@ int main(const int argc,  const char** argv){
         }
         compsky::asciify::asciify(body, "\n\n\n");
     }
-    fwrite(compsky::asciify::BUF, 1, compsky::asciify::BUF_INDX, stdout);
+    fwrite(compsky::asciify::BUF, 1, compsky::asciify::get_index(), stdout);
     compsky::mysql::exit_mysql();
 }

@@ -31,6 +31,7 @@
 namespace compsky {
     namespace asciify {
         char* BUF = (char*)malloc(4096);
+        char* ITR = BUF;
     }
 }
 
@@ -52,6 +53,9 @@ constexpr static const compsky::asciify::flag::Escape f_esc;
 
 
 MainWindow::MainWindow(QWidget* parent){
+    if (compsky::asciify::BUF == nullptr)
+        exit(4096);
+
     compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
     
     // TODO: Add status bar, to display messages such as "Executing query, might take a while"

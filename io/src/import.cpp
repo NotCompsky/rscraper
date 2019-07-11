@@ -28,6 +28,10 @@ constexpr size_t strlen_constexpr(const char* s){
     return  *s  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
 
+namespace _f {
+    constexpr static const compsky::asciify::flag::Escape esc;
+}
+
 
 namespace compsky {
     namespace asciify {
@@ -35,30 +39,27 @@ namespace compsky {
         char* BUF = (char*)malloc(BUF_SZ); // 4 MiB
             
         void ensure_buf_can_fit(const char* pre,  size_t n,  size_t trim_trailing_bytes = 1){
-            if (unlikely(BUF_INDX + n  >  BUF_SZ)){
-                compsky::mysql::exec_buffer(BUF,  BUF_INDX - trim_trailing_bytes);
+            if (unlikely(ITR + n  >  BUF + BUF_SZ)){
+                compsky::mysql::exec_buffer(BUF,  get_index() - trim_trailing_bytes);
                 // Usually a trailing comma
-                BUF_INDX = 0;
+                reset_index();
                 asciify(pre);
             }
         }
         
         void ensure_buf_can_fit(const char* pre,  size_t n,  const char* post,  size_t post_len){
-            if (unlikely(BUF_INDX + n + post_len  >  BUF_SZ)){
-                --BUF_INDX; // Overwrite trailing comma
-                memcpy(BUF + BUF_INDX,  post,  post_len);
-                BUF_INDX += post_len;
-                compsky::mysql::exec_buffer(BUF,  BUF_INDX);
-                BUF_INDX = 0;
+            if (unlikely(ITR + n + post_len  >  BUF + BUF_SZ)){
+                --ITR; // Overwrite trailing comma
+                memcpy(ITR,  post,  post_len);
+                ITR += post_len;
+                compsky::mysql::exec_buffer(BUF, get_index());
+                reset_index();
                 asciify(pre);
             }
         }
     }
 }
 
-namespace _f {
-    constexpr static const compsky::asciify::flag::Escape esc;
-}
 
 bool contains(const char** ls,  const int n,  const char* s){
     const size_t slen = strlen_constexpr(s);
@@ -70,37 +71,37 @@ bool contains(const char** ls,  const int n,  const char* s){
 
 void import_user_table(FILE* f){
     printf("Importing user table\n");
-    compsky::asciify::BUF_INDX = 0;
+    compsky::asciify::reset_index();
     constexpr static const char* pre = "INSERT IGNORE INTO user (id,name) VALUES ";
     compsky::asciify::asciify(pre);
     while(fscanf(f, "%[^\t\n]\t%[^\n]\n", uint64_a, str_a) != EOF){
         compsky::asciify::asciify('(', uint64_a, ',', '"', _f::esc, '"', str_a, '"', ')', ',');
         compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 1 + 1 + 2*128 + 1 + 1 + 1);
     }
-    if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
-        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
+    if (compsky::asciify::get_index() != strlen_constexpr(pre))
+        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Overwrite trailing comma
     fclose(f);
     printf("  Completed\n");
 }
 
 void import_subreddit_table(FILE* f){
     printf("Importing subreddit table\n");
-    compsky::asciify::BUF_INDX = 0;
+    compsky::asciify::reset_index();
     constexpr static const char* pre = "INSERT IGNORE INTO subreddit (id,name) VALUES ";
     compsky::asciify::asciify(pre);
     while(fscanf(f, "%[^\t\n]\t%[^\n]\n", uint64_a, str_a) != EOF){
         compsky::asciify::asciify('(', uint64_a, ',', '"', _f::esc, '"', str_a, '"', ')', ',');
         compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 1 + 1 + 2*128 + 1 + 1 + 1);
     }
-    if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
-        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
+    if (compsky::asciify::get_index() != strlen_constexpr(pre))
+        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Overwrite trailing comma
     fclose(f);
     printf("  Completed\n");
 }
 
 void import_tag_table(FILE* f){
     printf("Importing tag table\n");
-    compsky::asciify::BUF_INDX = 0;
+    compsky::asciify::reset_index();
     constexpr static const char* pre = "INSERT IGNORE INTO tag (name, r, g, b, a) VALUES ";
     compsky::asciify::asciify(pre);
     while(fscanf(f, "%[^\t\n]\t%[^\n]\n", str_a, str_b) != EOF){
@@ -108,30 +109,30 @@ void import_tag_table(FILE* f){
         compsky::asciify::asciify("(\"", _f::esc, '"', str_a, "\",", str_b, "),");
         compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 2 + 4*7 + 2);
     }
-    if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
-        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
+    if (compsky::asciify::get_index() != strlen_constexpr(pre))
+        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Overwrite trailing comma
     fclose(f);
     printf("  Completed\n");
 }
 
 void import_category_table(FILE* f){
     printf("Importing category table\n");
-    compsky::asciify::BUF_INDX = 0;
+    compsky::asciify::reset_index();
     constexpr static const char* pre = "INSERT IGNORE INTO category (name) VALUES ";
     compsky::asciify::asciify(pre);
     while(fscanf(f, "%[^\n]\n", str_a) != EOF){
         compsky::asciify::asciify("(\"", _f::esc, '"', str_a, "\"),");
         compsky::asciify::ensure_buf_can_fit(pre,  2 + 2*128 + 3);
     }
-    if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
-        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
+    if (compsky::asciify::get_index() != strlen_constexpr(pre))
+        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Overwrite trailing comma
     fclose(f);
     printf("  Completed\n");
 }
 
 void import_u2scc_table(FILE* f){
     printf("Importing user2subreddit_cmnt_count table\n");
-    compsky::asciify::BUF_INDX = 0;
+    compsky::asciify::reset_index();
     char* pre;
     char* post;
     size_t post_strlen;
@@ -149,7 +150,7 @@ void import_u2scc_table(FILE* f){
         compsky::asciify::asciify("(", uint64_a, ',', uint64_b, ',', uint64_c, "),");
         compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 19 + 1 + 19 + 2,  post, post_strlen);
     }
-    if (compsky::asciify::BUF_INDX != strlen(pre))
+    if (compsky::asciify::get_index() != strlen(pre))
         compsky::asciify::ensure_buf_can_fit(pre, compsky::asciify::BUF_SZ, post, post_strlen);
     fclose(f);
     printf("  Completed\n");
@@ -157,7 +158,7 @@ void import_u2scc_table(FILE* f){
 
 void import_subreddit2tag_table(FILE* f){
     printf("Importing subreddit2tag table\n");
-    compsky::asciify::BUF_INDX = 0;
+    compsky::asciify::reset_index();
     constexpr static const char* pre = "INSERT IGNORE INTO subreddit2tag (subreddit_id,tag_id) SELECT s.id,t.id FROM subreddit s, tag t WHERE ";
     compsky::asciify::asciify(pre);
     while(fscanf(f, "%[^\t\n]\t%[^\n]\n", str_a, str_b) != EOF){
@@ -165,8 +166,8 @@ void import_subreddit2tag_table(FILE* f){
         compsky::asciify::ensure_buf_can_fit(pre,  9 + 2*128 + 14 + 2*128 + 6,  4);
         // 6 being strlen_constexpr(" OR ")
     }
-    if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
-        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 4);
+    if (compsky::asciify::get_index() != strlen_constexpr(pre))
+        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 4);
     fclose(f);
     printf("  Completed\n");
 }
@@ -181,7 +182,7 @@ void import_tag2category_table(FILE* f){
 
 void import_subredditsbasic_table(FILE* f){
     printf("Importing subreddit2meta table (from subreddits_basic.csv)\n");
-    compsky::asciify::BUF_INDX = 0;
+    compsky::asciify::reset_index();
     constexpr static const char* pre = "INSERT IGNORE INTO subreddit2meta (id,subscribers,created_at) VALUES ";
     compsky::asciify::asciify(pre);
     while(fscanf(f, "%[^,],%[^,],%[^,],%[^,],%[^,\n]\n", uint64_a, uint64_b, uint64_c, str_a, str_b) != EOF){
@@ -192,8 +193,8 @@ void import_subredditsbasic_table(FILE* f){
         compsky::asciify::asciify("(", uint64_a, ',', str_b, ',', uint64_c, "),");
         compsky::asciify::ensure_buf_can_fit(pre,  1 + 19 + 1 + 19 + 1 + 19 + 2);
     }
-    if (compsky::asciify::BUF_INDX != strlen_constexpr(pre))
-        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Overwrite trailing comma
+    if (compsky::asciify::get_index() != strlen_constexpr(pre))
+        compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Overwrite trailing comma
     fclose(f);
     printf("  Completed\n");
 }

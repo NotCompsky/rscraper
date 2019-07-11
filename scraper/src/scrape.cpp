@@ -37,6 +37,10 @@ namespace compsky {
     }
 }
 
+namespace _f {
+    constexpr static const compsky::asciify::flag::ChangeBufferTmpCountFrom chbuftmpcntfrom;
+}
+
 
 constexpr size_t strlen_constexpr(const char* s){
     // GCC strlen is constexpr; this is apparently a bug
@@ -71,22 +75,8 @@ bool contains(uint64_t* list,  uint64_t item){
 
 
 void count_user_subreddit_cmnt(const uint64_t user_id,  const uint64_t subreddit_id, const char* subreddit_name){
-    char* dummy = compsky::asciify::BUF;
-    auto dummy_indx = compsky::asciify::BUF_INDX;
-    
-    compsky::asciify::BUF = SQL__INSERT_INTO_USER2SUBCNT;
-    compsky::asciify::BUF_INDX = SQL__INSERT_INTO_USER2SUBCNT_INDX;
-    compsky::asciify::asciify("(1,",  user_id,  ',',  subreddit_id,  "),");
-    SQL__INSERT_INTO_USER2SUBCNT_INDX = compsky::asciify::BUF_INDX;
-    
-    
-    compsky::asciify::BUF = SQL__INSERT_INTO_SUBREDDIT;
-    compsky::asciify::BUF_INDX = SQL__INSERT_INTO_SUBREDDIT_INDX;
-    compsky::asciify::asciify("(",  subreddit_id,  ",\"",  subreddit_name,  "\"),");
-    SQL__INSERT_INTO_SUBREDDIT_INDX = compsky::asciify::BUF_INDX;
-    
-    compsky::asciify::BUF = dummy;
-    compsky::asciify::BUF_INDX = dummy_indx;
+    compsky::asciify::asciify(_f::chbuftmpcntfrom,  SQL__INSERT_INTO_USER2SUBCNT,  &SQL__INSERT_INTO_USER2SUBCNT_INDX,  "(1,",  user_id,  ',',  subreddit_id,  "),");
+    compsky::asciify::asciify(_f::chbuftmpcntfrom,  SQL__INSERT_INTO_SUBREDDIT,  &SQL__INSERT_INTO_SUBREDDIT_INDX,  "(",  subreddit_id,  ",\"",  subreddit_name,  "\"),");
 }
 
 void process_this_comment(const rapidjson::Value& cmnt,  const uint64_t author_id,  const char* author_name,  const uint64_t cmnt_id,  const uint64_t subreddit_id,  const unsigned int reason_matched,  const bool is_submission_nsfw,  const bool to_record_contents){
@@ -118,16 +108,7 @@ void process_this_comment(const rapidjson::Value& cmnt,  const uint64_t author_i
     /*
     Checks if a submission entry exists, and if not, creates one (but is based only on the information visible from a comment entry)
     */
-    char* dummy = compsky::asciify::BUF;
-    auto dummy_indx = compsky::asciify::BUF_INDX;
-    
-    compsky::asciify::BUF = SQL__INSERT_SUBMISSION_FROM_CMNT;
-    compsky::asciify::BUF_INDX = SQL__INSERT_SUBMISSION_FROM_CMNT_INDX;
-    compsky::asciify::asciify("(",  submission_id,  ',',  subreddit_id,  ',',  '0' + is_submission_nsfw,  "),");
-    SQL__INSERT_SUBMISSION_FROM_CMNT_INDX = compsky::asciify::BUF_INDX;
-    
-    compsky::asciify::BUF = dummy;
-    compsky::asciify::BUF_INDX = dummy_indx;
+    compsky::asciify::asciify(_f::chbuftmpcntfrom,  SQL__INSERT_SUBMISSION_FROM_CMNT,  &SQL__INSERT_SUBMISSION_FROM_CMNT_INDX,  "(",  submission_id,  ',',  subreddit_id,  ',',  '0' + is_submission_nsfw,  "),");
 }
 
 void process_live_cmnt(const rapidjson::Value& cmnt,  const uint64_t cmnt_id){

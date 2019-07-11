@@ -92,8 +92,7 @@ void init(){
     
     for (auto i = 0;  i < reason_name2id.size();  ++i)
         compsky::asciify::asciify("(", i, ",\"", esc, '"', reason_name2id[i], "\"),");
-    
-    compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::BUF_INDX - 1); // Ignore trailing comma
+    compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Ignore trailing comma
 }
 
 

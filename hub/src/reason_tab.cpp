@@ -22,7 +22,7 @@ extern MYSQL_ROW ROW1;
 ReasonTab::ReasonTab(QWidget* parent) : QWidget(parent), row(0) {
     this->l = new QGridLayout;
     
-    compsky::mysql::query(&RES1,  "SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM reason_matched ORDER BY name");
+    compsky::mysql::query_buffer(&RES1,  "SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM reason_matched ORDER BY name");
     
     {
     uint64_t id;

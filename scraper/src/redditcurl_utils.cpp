@@ -145,8 +145,7 @@ void init_login(const char* fp){
     constexpr static const compsky::asciify::flag::ChangeBuffer chbf;
     LOGIN_POSTDATA = compsky::asciify::BUF;
     compsky::asciify::asciify(chbf, compsky::asciify::BUF, 0, "grant_type=password&password=", PWD, "&username=", USR, '\0');
-    compsky::asciify::BUF += compsky::asciify::BUF_INDX; // Permanently shift BUF, so that this login data is not overwritten
-    compsky::asciify::BUF_INDX = 0;
+    compsky::asciify::BUF = compsky::asciify::ITR; // Permanently shift BUF, so that this login data is not overwritten
     
     curl_easy_setopt(LOGIN_CURL, CURLOPT_POSTFIELDS, LOGIN_POSTDATA);
     

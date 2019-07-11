@@ -21,9 +21,9 @@ namespace compsky {
         constexpr static const size_t BUF_SZ = 4096 * 16;
             
         void ensure_buf_can_fit(size_t n){
-            if (BUF_INDX + n  >  BUF_SZ){
-                fwrite(BUF, 1, BUF_INDX, stderr);
-                BUF_INDX = 0;
+            if (get_index() + n  >  BUF_SZ){
+                fwrite(BUF, 1, get_index(), stderr);
+                reset_index();
             }
         }
     }
