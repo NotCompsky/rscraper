@@ -4,7 +4,7 @@
 
 ## Description
 
-RTagger is a browser extension or userscript that will tag users on Reddit according to their post history.
+RTagger is a browser extension or userscript that will tag users on Reddit according to their post history - the subreddits they have commented in, and/or the contents of their comments (the number of matches for each named capture group in the supplied regex).
 
 You can point it to your own installation of the server software - see [Configuration](#Configuration) section below.
 
@@ -18,11 +18,11 @@ Creating an extension for Chrome isn't a priority, but I'm open to PRs.
 
 ## Configuration
 
-By default, the addon and the userscript point towards a server at `http://104.197.15.19:8080`. This is only a proof of concept server - I won't be updating the database.
+By default, the addon and the userscript point towards a server at `http://104.197.15.19:8080`. This is only a proof of concept server - I won't be updating the database as a priority.
 
 It is running on a Google cloud instance, so the IP is a subset of Google cloud's. That means it may be caught by some domain filters, such as uBlock Origin.
 
-If you want customisation - such as more tagged subreddits, and different colours - you should edit your addon preferences (or userscript, whichever you installed) to make it point to another server.
+If you want customisation - such as more tagged subreddits, and different colours - you should edit your addon preferences (or userscript, whichever you installed) to make it point to a different server.
 
 To run your own instance of the `rscraper-tagger-server`, you would need to run the `rscraper-tagger` package. You would also need to point the server towards a MySQL/MariaDB database - for this, you'd need to install `rscraper-init` to (initialise it) and either `rscraper-scraper` or `rscraper-io` (to populate it). See the [root instructions](https://github.com/NotCompsky/rscraper) for how to do this.
 
