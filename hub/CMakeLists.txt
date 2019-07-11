@@ -74,7 +74,8 @@ add_executable(
     "${SRC_DIR}/rm_tag_btn.cpp"
     
     "${SRC_DIR}/regex_editor.cpp"
-    
+    "${SRC_DIR}/regex_editor_highlighter.cpp"
+   
     "${SRC_DIR}/cat_doughnut.cpp"
     "${SRC_DIR}/cat_pie.cpp"
     "${SRC_DIR}/tag_pie.cpp"

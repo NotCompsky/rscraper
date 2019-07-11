@@ -9,6 +9,7 @@
 
 #include "regex_editor.hpp"
 
+#include "regex_editor_highlighter.hpp"
 #include "msgbox.hpp"
 
 #include <compsky/regex/named_groups.hpp>
@@ -48,6 +49,7 @@ RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidg
     this->text_editor = new QPlainTextEdit;
     this->load_file();
     l->addWidget(this->text_editor);
+    RegexEditorHighlighter* highlighter = new RegexEditorHighlighter(this->text_editor->document());
     
     QPushButton* test_btn = new QPushButton("Test", this);
     connect(test_btn, &QPushButton::clicked, this, &RegexEditor::test_regex);
