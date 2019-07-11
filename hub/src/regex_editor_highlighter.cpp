@@ -4,13 +4,14 @@
 #include <QTextCharFormat>
 
 
-#define n_highlighting_rules 9
+#define n_highlighting_rules 10
 static const QRegularExpression highlighting_regex(
 	"(?<!\\\\)((?:\\\\\\\\)*)(?:"			// Allow an even number of escape characters before (#1)
 		"([({])([?]P<([^>]*)>)?|"	// (Capture group or var declaration) opening bracket (#2), and optionally name (inner: #4, outer: #3)
 		"([)}])|"			// (Capture group or var declaration) closing bracket (#5) // NOTE: [(] is a false positive; left and right brackets are not paired up
 		"(?<=^)([ \t]*)|"		// Whitespace after newline that is ignored by the hub's pre-processor (#6) // NOTE: Fails to not comment out lines preceded by an escape character - newlines work weirdly. // TODO: Fix this.
-		"(\\$\\{[^}]+\\})"		// Variable substitution (#7) (not implemented into regex pre-processor yet, but planned)
+		"(\\$\\{[^}]+\\})|"		// Variable substitution (#7) (not implemented into regex pre-processor yet, but planned)
+		"(\\[[^]]+\\])"			// Square bracket set
 	")|"
 	"((?:^|[ \t]+)#.*)|"			// Comment (#8)
 	"(\\\\[\\\\nrtv])"			// Escape sequence parsed by the hub's pre-processor (#9) // TODO: maybe ignore if preceded by an odd number of escape characters
@@ -38,6 +39,7 @@ RegexEditorHighlighter::RegexEditorHighlighter(QTextDocument* parent)
     highlighting_fmts[++i].setForeground(Qt::yellow);	// Variable substitution
     highlighting_fmts[ i ].setBackground(cl_varsub);	// Variable substitution
     highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Variable substitution
+    highlighting_fmts[++i].setFontWeight(Qt::cyan);	// Square bracket set
     highlighting_fmts[++i].setBackground(cl_comment);	// Comment
     highlighting_fmts[++i].setForeground(Qt::red);	// Escape characters parsed by pre-processor
 
