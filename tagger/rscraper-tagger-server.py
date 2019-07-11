@@ -14,7 +14,7 @@ def you_dont_need_this():
 
 @app.route('/<path:path>')
 def get_rtags(path:str):
-    rtagger.csv2cls(path.encode(), args.tagcondition.encode(), args.matchcondition.encode())
+    rtagger.csv2cls(path.encode(), args.tagcondition, args.matchcondition)
     res:str = ctypes.c_char_p.in_dll(rtagger, "DST").value.decode()
     return res
 
@@ -25,8 +25,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-p','--port', type=int, default=8080)
-    parser.add_argument('-t','--tagcondition', type=string, default="", help="SQL condition that t (tag) must fulfil. If non-empty, must begin with 'AND'. E.g. 'AND t.name=\"Unknown\"'")
-    parser.add_argument('-m','--matchcondition', type=string, default="", help="SQL condition that m (reason_matched) must fulfil. If non-empty, must begin with 'AND'. E.g. 'AND m.id>3 AND m.id<10'")
+    parser.add_argument('-t','--tagcondition', type=bytes, default=b"", help="SQL condition that t (tag) must fulfil. If non-empty, must begin with 'AND'. E.g. 'AND t.name=\"Unknown\"'")
+    parser.add_argument('-m','--matchcondition', type=bytes, default=b"", help="SQL condition that m (reason_matched) must fulfil. If non-empty, must begin with 'AND'. E.g. 'AND m.id>3 AND m.id<10'")
     args = parser.parse_args()
 
     rtagger = ctypes.cdll.LoadLibrary("librscraper-tagger.so")
