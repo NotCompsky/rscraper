@@ -4,22 +4,18 @@
 #include <QTextCharFormat>
 
 
-struct HighlightingRule {
-	QRegularExpression pattern;
-	QTextCharFormat    format;
-	HighlightingRule(const QRegularExpression& re) : pattern(re), format() {}
-};
+#define n_highlighting_rules 8
+static const QRegularExpression highlighting_regex(
+	"(?<!\\\\)(?:"
+		"([(])([?]P<([^>]*)>)?|"	// Capture group opening bracket (#1), and optionally name (inner: #3, outer: #2)
+		"([)])"				// Capture group closing bracket (#4) // NOTE: [(] is a false positive; left and right brackets are not paired up
+	")|"
+	"((?:^|[ \t]+)#.*)|"			// Comment (#5)
+	"(\\\\[\\\\nrtv])|"			// Escape sequence parsed by the hub's pre-processor (#6) // TODO: maybe ignore if preceded by an odd number of escape characters
+	"(?<!\\\\)(?<=^)([ \t]*)"		// Whitespace after newline that is ignored by the hub's pre-processor (#7) // NOTE: Fails to not comment out lines preceded by an escape character - newlines work weirdly. // TODO: Fix this.
+);
 
-
-#define n_highlighting_rules 6
-static HighlightingRule highlighting_rules[n_highlighting_rules] = {
-	QRegularExpression("(?:^|[^\\\\])[(]([?]P<[^>]*>)"),// Capture group name (outer) // TODO: Individual formatting of multiple capture groups
-	QRegularExpression("(?:^|[^\\\\])[(][?]P<([^>]*)>"),// Capture group name (inner)
-	QRegularExpression("(?:^|[^\\\\])([()])"),          // Capture group bracket // NOTE: [(] is a false positive; left and right brackets are not paired up
-	QRegularExpression("([ \t]+#.*)"),                  // Comment
-	QRegularExpression("(\\\\[\\\\nrtv])"),             // Escape sequence parsed by the hub's pre-processor
-	QRegularExpression("(?:^|[^\\\\]\n)([ \t]*)") // Whitespace after newline that is ignored by the hub's pre-processor // NOTE: Fails to not comment out lines preceded by a '\' - newlines work weirdly. // TODO: Fix this.
-};
+static QTextCharFormat highlighting_fmts[n_highlighting_rules];
 
 static const QColor cl_comment(0, 255, 0, 70);
 
@@ -27,23 +23,24 @@ static const QColor cl_comment(0, 255, 0, 70);
 RegexEditorHighlighter::RegexEditorHighlighter(QTextDocument* parent)
     : QSyntaxHighlighter(parent)
 {
-    highlighting_rules[0].format.setForeground(Qt::darkBlue);
-    highlighting_rules[1].format.setForeground(Qt::darkBlue);
-    highlighting_rules[1].format.setFontWeight(QFont::Bold);
-    highlighting_rules[2].format.setForeground(Qt::blue);
-    highlighting_rules[2].format.setFontWeight(QFont::Bold);
-    highlighting_rules[3].format.setBackground(cl_comment);
-    highlighting_rules[4].format.setForeground(Qt::red);
-    highlighting_rules[5].format.setBackground(cl_comment);
+    highlighting_fmts[1].setForeground(Qt::blue);	// Capture group opening bracket
+    highlighting_fmts[1].setFontWeight(QFont::Bold);	// Capture group opening bracket
+    highlighting_fmts[2].setForeground(Qt::darkBlue);
+    highlighting_fmts[3].setForeground(Qt::darkBlue);
+    highlighting_fmts[3].setFontWeight(QFont::Bold);
+    highlighting_fmts[4].setForeground(Qt::blue);	// Capture group closing bracket
+    highlighting_fmts[4].setFontWeight(QFont::Bold);	// Capture group closing bracket
+    highlighting_fmts[5].setBackground(cl_comment);
+    highlighting_fmts[6].setForeground(Qt::red);
+    highlighting_fmts[7].setBackground(cl_comment);
 }
 
 void RegexEditorHighlighter::highlightBlock(const QString& text) {
-    for (auto i = 0;  i < n_highlighting_rules;  ++i) {
-        const HighlightingRule rule = highlighting_rules[i];
-        QRegularExpressionMatchIterator match_itr = rule.pattern.globalMatch(text);
-        while (match_itr.hasNext()) {
-            QRegularExpressionMatch match = match_itr.next();
-            setFormat(match.capturedStart(1), match.capturedLength(1), rule.format);
+    QRegularExpressionMatchIterator match_itr = highlighting_regex.globalMatch(text);
+    while (match_itr.hasNext()) {
+        QRegularExpressionMatch match = match_itr.next();
+        for (auto i = 1;  i < n_highlighting_rules;  ++i) {
+            setFormat(match.capturedStart(i), match.capturedLength(i), highlighting_fmts[i]);
         }
     }
 }
