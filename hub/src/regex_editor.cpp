@@ -32,10 +32,21 @@ namespace filter_comment_body {
 static const QString help_text = 
     "Supports boost::regex Perl syntax, with Python named groups (?P<name>).\n"
     "The group syntax is more flexible than Python's - you can use whatever characters you please, save for '&' and '<', and can use the same group name for multiple groups.\n"
+    "Group names are indicated with bold blue text.\n"
     "\n"
     "The first spaces and tabs of each line are ignored, except if the newline was escaped.\n"
+    "This is indicated by green highlighting (NOTE: a bug currently means that space after escaped newlines are also (wrongly) highlighted, however this only affects the syntax highlighter and not the pre-processor itself).\n"
+    "\n"
     "All text after an unescaped # is ignored, and all unescaped preceding spaces and tabs too.\n"
+    "This is indicated by green highlighting.\n"
+    "\n"
     "Only \\\\, \\n, \\r, \\t, and \\v are recognised escapes sequences.\n"
+    "They are indicated in red.\n"
+    "\n"
+    "UNIMPLEMENTED: "
+    "Variable declarations have an almost identical syntax to named groups: {?P<varname>actual string that will be copied}\n"
+    "These encompass strings which can then be copy-pasted using an unescaped ${VARNAME}, substituting VARNAME for the exact name of the variable. This will copy everything (aside from the variable name) within the curly braces - for instance, {?P<foobar>hello}${foobar} would result in the string 'hellohello' appearing in the final regex.\n"
+    "Variable declarations must not share names with each other.\n"
 ;
 
 
