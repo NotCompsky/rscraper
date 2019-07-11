@@ -25,20 +25,23 @@ static const QColor cl_varsub(0, 0, 255, 70);
 RegexEditorHighlighter::RegexEditorHighlighter(QTextDocument* parent)
     : QSyntaxHighlighter(parent)
 {
-    highlighting_fmts[1].setForeground(Qt::red);	// Escape characters (even number preceding)
-    highlighting_fmts[2].setForeground(Qt::blue);	// Capture group opening bracket
-    highlighting_fmts[2].setFontWeight(QFont::Bold);	// Capture group opening bracket
-    highlighting_fmts[3].setForeground(Qt::darkBlue);	// Capture group name (outer)
-    highlighting_fmts[4].setForeground(Qt::darkBlue);	// Capture group name (inner)
-    highlighting_fmts[4].setFontWeight(QFont::Bold);	// Capture group name (inner)
-    highlighting_fmts[5].setForeground(Qt::blue);	// Capture group closing bracket
-    highlighting_fmts[5].setFontWeight(QFont::Bold);	// Capture group closing bracket
-    highlighting_fmts[8].setBackground(cl_comment);	// Comment
-    highlighting_fmts[9].setForeground(Qt::red);	// Escape characters parsed by pre-processor
-    highlighting_fmts[6].setBackground(cl_comment);	// Comment
-    highlighting_fmts[7].setForeground(Qt::yellow);	// Variable substitution
-    highlighting_fmts[7].setBackground(cl_varsub);	// Variable substitution
-    highlighting_fmts[7].setFontWeight(QFont::Bold);	// Variable substitution
+    int i = 0;
+    highlighting_fmts[++i].setForeground(Qt::red);	// Escape characters (even number preceding)
+    highlighting_fmts[++i].setForeground(Qt::blue);	// Capture group opening bracket
+    highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Capture group opening bracket
+    highlighting_fmts[++i].setForeground(Qt::darkBlue);	// Capture group name (outer)
+    highlighting_fmts[++i].setForeground(Qt::darkBlue);	// Capture group name (inner)
+    highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Capture group name (inner)
+    highlighting_fmts[++i].setForeground(Qt::blue);	// Capture group closing bracket
+    highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Capture group closing bracket
+    highlighting_fmts[++i].setBackground(cl_comment);	// Comment
+    highlighting_fmts[++i].setForeground(Qt::yellow);	// Variable substitution
+    highlighting_fmts[ i ].setBackground(cl_varsub);	// Variable substitution
+    highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Variable substitution
+    highlighting_fmts[++i].setBackground(cl_comment);	// Comment
+    highlighting_fmts[++i].setForeground(Qt::red);	// Escape characters parsed by pre-processor
+
+
     // NOTE: background highlights are used to indicate that the length of the resulting regex would be modified - either by removing whitespace, or pasting text with variable substitution.
 }
 
