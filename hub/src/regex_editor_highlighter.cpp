@@ -1,24 +1,32 @@
+/*
+ * rscraper Copyright (C) 2019 Adam Gray
+ * This program is licensed with GPLv3.0 and comes with absolutely no warranty.
+ * This code may be copied, modified, distributed etc. with accordance to the GPLv3.0 license (a copy of which is in the root project directory) under the following conditions:
+ *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
+ */
+
 #include "regex_editor_highlighter.hpp"
 
 #include <QRegularExpression>
 #include <QTextCharFormat>
 
 
-#define n_highlighting_rules 12
+#define n_highlighting_rules 11
 static const QRegularExpression highlighting_regex(
 	"((?:^|[ \t]+)#.*)|"			// Comment
-	"(?<!\\\\)((?:\\\\\\\\)*)(?:"			// Allow an even number of escape characters before (#1)
-		"([({])(?:"			// (Capture group or var declaration) opening bracket
-			"([?]P<([^>]*)>)|"	// (Capture group or var declaration) name (inner and outer)
-			"(\\?:)"		// Non-capturing group declaration
-		")?|"
-		"([)}])|"			// (Capture group or var declaration) closing bracket (#5) // NOTE: [(] is a false positive; left and right brackets are not paired up
-		"(?<=^)([ \t]*)|"		// Whitespace after newline that is ignored by the hub's pre-processor (#6) // NOTE: Fails to not comment out lines preceded by an escape character - newlines work weirdly. // TODO: Fix this.
-		"(\\$\\{[^}]+\\})|"		// Variable substitution (#7) (not implemented into regex pre-processor yet, but planned)
-		"(\\[[^]]+\\])|"		// Square bracket set
-		"(\\|)"				// OR operator
-	")|"
-	"(\\\\[\\\\nrtv])"			// Escape sequence parsed by the hub's pre-processor (#9) // TODO: maybe ignore if preceded by an odd number of escape characters
+	"(?<!\\\\)((?:\\\\[\\\\nrtv])*)(?:"			// Allow an even number of escape characters before (#1)
+		"(?:"
+			"([({])(?:"			// (Capture group or var declaration) opening bracket
+				"([?]P<([^>]*)>)|"	// (Capture group or var declaration) name (inner and outer)
+				"(\\?:)"		// Non-capturing group declaration
+			")?|"
+			"([)}])|"			// (Capture group or var declaration) closing bracket (#5) // NOTE: [(] is a false positive; left and right brackets are not paired up
+			"(?<=^)([ \t]*)|"		// Whitespace after newline that is ignored by the hub's pre-processor (#6) // NOTE: Fails to not comment out lines preceded by an escape character - newlines work weirdly. // TODO: Fix this.
+			"(\\$\\{[^}]+\\})|"		// Variable substitution (#7) (not implemented into regex pre-processor yet, but planned)
+			"(\\[[^]]+\\])|"		// Square bracket set
+			"(\\|)"				// OR operator
+		")|"					// Nothing (i.e. full match is an even number of escape characters)
+	")"
 );
 
 static QTextCharFormat highlighting_fmts[n_highlighting_rules+1];
@@ -47,7 +55,6 @@ RegexEditorHighlighter::RegexEditorHighlighter(QTextDocument* parent)
     highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Variable substitution
     highlighting_fmts[++i].setFontWeight(QFont::Light);	// Square bracket set
     highlighting_fmts[++i].setFontWeight(QFont::Bold);	// OR operator
-    highlighting_fmts[++i].setForeground(Qt::red);	// Escape characters parsed by pre-processor
 
 
     // NOTE: background highlights are used to indicate that the length of the resulting regex would be modified - either by removing whitespace, or pasting text with variable substitution.
