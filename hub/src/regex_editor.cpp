@@ -58,6 +58,14 @@ RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidg
     l->addWidget(help_btn);
     
     this->text_editor = new QPlainTextEdit;
+
+    QFont font;
+    font.setStyleHint(QFont::Monospace);
+    font.setFixedPitch(true);
+    this->text_editor->setFont(font);
+    QFontMetrics metrics(font);
+    this->text_editor->setTabStopWidth(metrics.width("    "));
+
     this->load_file();
     l->addWidget(this->text_editor);
     RegexEditorHighlighter* highlighter = new RegexEditorHighlighter(this->text_editor->document());
