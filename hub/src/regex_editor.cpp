@@ -104,11 +104,17 @@ void RegexEditor::find_text(){
         qstr = QRegularExpression::escape(qstr);
     const QRegularExpression expr(qstr);
     
-    const QRegularExpressionMatch match = expr.match(this->text_editor->toPlainText(), current_pos);
+    QRegularExpressionMatch match = expr.match(this->text_editor->toPlainText(), current_pos);
     
     if (!match.hasMatch()){
-        QMessageBox::information(this,  "Pattern not found",  qstr);
-        return;
+        if (current_pos != 0){
+            // If no match found, try again from the start of the document
+            match = expr.match(this->text_editor->toPlainText(), 0);
+        }
+        if (!match.hasMatch()){
+            QMessageBox::information(this,  "Pattern not found",  qstr);
+            return;
+        }
     }
     
     QTextCursor cursor = this->text_editor->textCursor();
