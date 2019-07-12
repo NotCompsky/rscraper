@@ -11,7 +11,7 @@
 #include <QTextCharFormat>
 
 
-#define n_highlighting_rules 11
+#define n_highlighting_rules 12
 static const QRegularExpression highlighting_regex(
 	"((?:^|[ \t]+)#.*)|"			// Comment
 	"(?<!\\\\)((?:\\\\[\\\\nrtv])*)(?:"			// Allow an even number of escape characters before (#1)
@@ -24,6 +24,7 @@ static const QRegularExpression highlighting_regex(
 			"(\\$\\{[^}]+\\})|"		// Variable substitution (#7) (not implemented into regex pre-processor yet, but planned)
 			"(\\[[^]]+\\])|"		// Square bracket set
 			"(\\|)|"			// OR operator
+			"([ \t]+$)|"			// Trailing whitespace
 			// NOTE: Last group should still end with "|", in order to match nothing (i.e. the full match is an even number of escape characters)
 	")"
 );
@@ -32,6 +33,7 @@ static QTextCharFormat highlighting_fmts[n_highlighting_rules+1];
 
 static const QColor cl_comment(0, 255, 0, 70);
 static const QColor cl_varsub(0, 0, 255, 70);
+static const QColor cl_cyan(0, 255, 255, 70);
 
 
 RegexEditorHighlighter::RegexEditorHighlighter(QTextDocument* parent)
@@ -54,6 +56,7 @@ RegexEditorHighlighter::RegexEditorHighlighter(QTextDocument* parent)
     highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Variable substitution
     highlighting_fmts[++i].setFontWeight(QFont::Light);	// Square bracket set
     highlighting_fmts[++i].setFontWeight(QFont::Bold);	// OR operator
+    highlighting_fmts[++i].setBackground(cl_cyan);	// OR operator
 
 
     // NOTE: background highlights are used to indicate that the length of the resulting regex would be modified - either by removing whitespace, or pasting text with variable substitution.
