@@ -15,17 +15,16 @@
 static const QRegularExpression highlighting_regex(
 	"((?:^|[ \t]+)#.*)|"			// Comment
 	"(?<!\\\\)((?:\\\\[\\\\nrtv])*)(?:"			// Allow an even number of escape characters before (#1)
-		"(?:"
 			"([({])(?:"			// (Capture group or var declaration) opening bracket
 				"([?]P<([^>]*)>)|"	// (Capture group or var declaration) name (inner and outer)
 				"(\\?:)"		// Non-capturing group declaration
 			")?|"
 			"([)}])|"			// (Capture group or var declaration) closing bracket (#5) // NOTE: [(] is a false positive; left and right brackets are not paired up
-			"(?<=^)([ \t]*)|"		// Whitespace after newline that is ignored by the hub's pre-processor (#6) // NOTE: Fails to not comment out lines preceded by an escape character - newlines work weirdly. // TODO: Fix this.
+			"(?<=^)([ \t]+)|"		// Whitespace after newline that is ignored by the hub's pre-processor (#6) // NOTE: Fails to not comment out lines preceded by an escape character - newlines work weirdly. // TODO: Fix this.
 			"(\\$\\{[^}]+\\})|"		// Variable substitution (#7) (not implemented into regex pre-processor yet, but planned)
 			"(\\[[^]]+\\])|"		// Square bracket set
-			"(\\|)"				// OR operator
-		")|"					// Nothing (i.e. full match is an even number of escape characters)
+			"(\\|)|"			// OR operator
+			// NOTE: Last group should still end with "|", in order to match nothing (i.e. the full match is an even number of escape characters)
 	")"
 );
 
@@ -64,7 +63,7 @@ void RegexEditorHighlighter::highlightBlock(const QString& text) {
     QRegularExpressionMatchIterator match_itr = highlighting_regex.globalMatch(text);
     while (match_itr.hasNext()) {
         QRegularExpressionMatch match = match_itr.next();
-        for (auto i = 1;  i < n_highlighting_rules;  ++i) {
+        for (auto i = 1;  i < n_highlighting_rules + 1;  ++i) {
             setFormat(match.capturedStart(i), match.capturedLength(i), highlighting_fmts[i]);
         }
     }
