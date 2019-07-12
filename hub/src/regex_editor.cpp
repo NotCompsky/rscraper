@@ -39,8 +39,10 @@ static const QString help_text =
     "The first spaces and tabs of each line are ignored, except if the newline was escaped.\n"
     "This is indicated by green highlighting (NOTE: a bug currently means that space after escaped newlines are also (wrongly) highlighted, however this only affects the syntax highlighter and not the pre-processor itself).\n"
     "\n"
-    "All text after an unescaped # is ignored, and all unescaped preceding spaces and tabs too.\n"
+    "All text after a (space or tab) followed by '#' is ignored, and all unescaped preceding spaces and tabs too.\n"
     "This is indicated by green highlighting.\n"
+    "\n"
+    "Unescaped trailing whitespace is NOT ignored; but since it may be accidental, is highlighted cyan.\n"
     "\n"
     "Only \\\\, \\n, \\r, \\t, and \\v are recognised escapes sequences.\n"
     "They are indicated in red.\n"
@@ -194,7 +196,7 @@ bool RegexEditor::to_final_format(QString& buf,  int j){ // Use seperate buffer 
                 ++i;
             continue;
         }
-        if (c == QChar('#')){
+        if (c == QChar('#')  &&  (q.at(i-1) == QChar(' ')  ||  q.at(i-1) == QChar('\t'))){
             ++i;
             do {
                 // Remove all preceding unescaped whitespace
