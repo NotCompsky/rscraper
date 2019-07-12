@@ -29,6 +29,8 @@ def guard_from_fp(fp):
 
 
 def overwrite_header(fp, ls):
+	if args.simulate:
+		return
 	open(fp, "w").write('\n'.join(ls))
 
 
@@ -58,7 +60,8 @@ if __name__ == "__main__":
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument("-p", "--project", help="Project name (must have same capitalisation as root directory of project")
-	parser.add_argument("-i", "--ignore", action="append", help="Directories to ignore (such as 'src')")
+	parser.add_argument("-i", "--ignore", default=[], action="append", help="Directories to ignore (such as 'src')")
+	parser.add_argument("-s", "--simulate", default=False, action="store_true", help="Do not modify files")
 	parser.add_argument("fps", nargs="+")
 	args = parser.parse_args()
 
