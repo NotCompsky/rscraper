@@ -23,6 +23,7 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QStringRef>
+#include <QHBoxLayout>
 #include <QVBoxLayout>
 
 
@@ -52,11 +53,7 @@ static const QString help_text =
 
 
 RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidget* parent) : QDialog(parent), f_human_fp(human_fp), f_raw_fp(raw_fp) {
-    QGridLayout* l = new QGridLayout;
-    
-    QPushButton* help_btn = new QPushButton("Help", this);
-    connect(help_btn, &QPushButton::clicked, this, &RegexEditor::display_help);
-    l->addWidget(help_btn);
+    QVBoxLayout* l = new QVBoxLayout;
     
     this->text_editor = new QPlainTextEdit;
 
@@ -71,17 +68,25 @@ RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidg
     l->addWidget(this->text_editor);
     RegexEditorHighlighter* highlighter = new RegexEditorHighlighter(this->text_editor->document());
 
+    QHBoxLayout* hbox = new QHBoxLayout;
+
+    QPushButton* help_btn = new QPushButton("Help", this);
+    connect(help_btn, &QPushButton::clicked, this, &RegexEditor::display_help);
+    hbox->addWidget(help_btn);
+
     QPushButton* find_btn = new QPushButton("Find", this);
     connect(find_btn, &QPushButton::clicked, this, &RegexEditor::find_text);
-    l->addWidget(find_btn);
+    hbox->addWidget(find_btn);
     
     QPushButton* test_btn = new QPushButton("Test", this);
     connect(test_btn, &QPushButton::clicked, this, &RegexEditor::test_regex);
-    l->addWidget(test_btn);
+    hbox->addWidget(test_btn);
     
     QPushButton* save_btn = new QPushButton("Save", this);
     connect(save_btn, &QPushButton::clicked, this, &RegexEditor::save_to_file);
-    l->addWidget(save_btn);
+    hbox->addWidget(save_btn);
+
+    l->addLayout(hbox);
     
     this->setLayout(l);
 }
