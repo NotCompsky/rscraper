@@ -20,6 +20,7 @@ class RegexEditor : public QDialog {
     void test_regex();
     void save_to_file();
   private:
+    void find_text();
     bool to_final_format(QString& buf,  int j = 0);
     void display_help();
     void load_file();

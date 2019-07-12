@@ -11,6 +11,7 @@
 
 #include "regex_editor_highlighter.hpp"
 #include "msgbox.hpp"
+#include "sql_name_dialog.hpp"
 
 #include <compsky/regex/named_groups.hpp>
 
@@ -69,6 +70,10 @@ RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidg
     this->load_file();
     l->addWidget(this->text_editor);
     RegexEditorHighlighter* highlighter = new RegexEditorHighlighter(this->text_editor->document());
+
+    QPushButton* find_btn = new QPushButton("Find", this);
+    connect(find_btn, &QPushButton::clicked, this, &RegexEditor::find_text);
+    l->addWidget(find_btn);
     
     QPushButton* test_btn = new QPushButton("Test", this);
     connect(test_btn, &QPushButton::clicked, this, &RegexEditor::test_regex);
@@ -79,6 +84,37 @@ RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidg
     l->addWidget(save_btn);
     
     this->setLayout(l);
+}
+
+void RegexEditor::find_text(){
+    SQLNameDialog* dialog = new SQLNameDialog("Find"); // TODO: Have PatternNameDialog, perhaps which SQLNameDialog inherits. SQLNameDialog also needs a case-insensitive option.
+    const int rc = dialog->exec();
+    const char* patternstr = dialog->get_pattern_str();
+    const bool is_pattern = !(patternstr[0] == '=');
+    QString qstr = dialog->name_edit->text();
+    
+    delete dialog;
+    
+    if (rc != QDialog::Accepted  ||  qstr.isEmpty())
+        return;
+    
+    const int current_pos = this->text_editor->textCursor().position();
+    
+    if (!is_pattern)
+        qstr = QRegularExpression::escape(qstr);
+    const QRegularExpression expr(qstr);
+    
+    const QRegularExpressionMatch match = expr.match(this->text_editor->toPlainText(), current_pos);
+    
+    if (!match.hasMatch()){
+        QMessageBox::information(this,  "Pattern not found",  qstr);
+        return;
+    }
+    
+    QTextCursor cursor = this->text_editor->textCursor();
+    cursor.setPosition(match.capturedStart());
+    cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, match.capturedLength());
+    this->text_editor->setTextCursor(cursor);
 }
 
 void RegexEditor::display_help(){
