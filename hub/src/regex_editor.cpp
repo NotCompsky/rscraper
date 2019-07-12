@@ -196,7 +196,7 @@ bool RegexEditor::to_final_format(QString& buf,  int j){ // Use seperate buffer 
                 ++i;
             continue;
         }
-        if (c == QChar('#')  &&  (q.at(i-1) == QChar(' ')  ||  q.at(i-1) == QChar('\t'))){
+        if (c == QChar('#')  &&  (i == 0  ||  q.at(i-1) == QChar(' ')  ||  q.at(i-1) == QChar('\t')  ||  q.at(i-1) == QChar('\n'))){
             ++i;
             do {
                 // Remove all preceding unescaped whitespace
