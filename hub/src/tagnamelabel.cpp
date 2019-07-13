@@ -38,15 +38,10 @@ void TagNameLabel::rename_tag(){
     NameDialog* tagdialog = new NameDialog("Rename Tag", this->text());
     QCompleter* tagcompleter = new QCompleter(tagslist);
     tagdialog->name_edit->setCompleter(tagcompleter);
-    if (tagdialog->exec() != QDialog::Accepted)
-        return;
+    const int rc = tagdialog->exec();
     QString tagstr = tagdialog->name_edit->text();
-    
     delete tagdialog;
-    
-    if (tagstr.isEmpty())
-        return;
-    if (tagstr == this->text())
+    if (rc != QDialog::Accepted  ||  tagstr.isEmpty()  ||  tagstr == this->text())
         return;
     
     const QByteArray ba = tagstr.toLocal8Bit();

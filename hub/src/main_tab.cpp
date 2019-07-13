@@ -56,12 +56,11 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
 void MainTab::add_category(){
     bool ok;
     NameDialog* catdialog = new NameDialog("New Category", "Avoid using '&'");
-    if (catdialog->exec() != QDialog::Accepted)
-        return;
+    const int rc = catdialog->exec();
     const QString cat_qstr = catdialog->name_edit->text();
-    if (cat_qstr.isEmpty())
-        return;
     delete catdialog;
+    if (rc != QDialog::Accepted  ||  cat_qstr.isEmpty())
+        return;
     
     compsky::mysql::exec("INSERT INTO category (name) VALUES (\"", _f::esc, '"', cat_qstr, "\")");
     

@@ -112,10 +112,11 @@ void ClTagsTab::add_tag(){
     NameDialog* tagdialog = new NameDialog("Tag", "");
     QCompleter* tagcompleter = new QCompleter(tagslist);
     tagdialog->name_edit->setCompleter(tagcompleter);
-    if (tagdialog->exec() != QDialog::Accepted)
-        return;
     QString tagstr = tagdialog->name_edit->text();
+    const int rc = tagdialog->exec();
     delete tagdialog;
+    if (rc != QDialog::Accepted)
+        return;
     if (tagstr.isEmpty())
         return;
     

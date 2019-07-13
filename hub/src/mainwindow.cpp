@@ -137,14 +137,11 @@ void MainWindow::rename_category(int indx){
         return;
     
     NameDialog* dialog = new NameDialog("Rename Category", this->tab_widget->tabText(indx));
-    if (dialog->exec() != QDialog::Accepted)
-        return;
-    QString qstr = dialog->name_edit->text();
-    if (qstr.isEmpty())
-        return;
-    
+    const int rc = dialog->exec();
     delete dialog;
-    
+    QString qstr = dialog->name_edit->text();
+    if (rc != QDialog::Accepted  ||  qstr.isEmpty())
+        return;
     this->tab_widget->setTabText(indx, qstr);
     
     const uint64_t cat_id = static_cast<ClTagsTab*>(static_cast<QScrollArea*>(this->tab_widget->widget(indx))->widget())->cat_id;
