@@ -50,6 +50,7 @@ static const QString help_text =
     "UNIMPLEMENTED: "
     "Variable declarations have an almost identical syntax to named groups: {?P<varname>actual string that will be copied}\n"
     "These encompass strings which can then be copy-pasted using an unescaped ${VARNAME}, substituting VARNAME for the exact name of the variable. This will copy everything (aside from the variable name) within the curly braces - for instance, {?P<foobar>hello}${foobar} would result in the string 'hellohello' appearing in the final regex.\n"
+    "Such variables can also be declared seperately to the regex file in the 'Vars' menu - this allows more advanced options, such as compressing an array of strings into a trie structure (for a significant performance boost).\n"
     "Variable declarations must not share names with each other.\n"
 ;
 
@@ -79,11 +80,15 @@ RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidg
     QPushButton* find_btn = new QPushButton("Find", this);
     connect(find_btn, &QPushButton::clicked, this, &RegexEditor::find_text);
     hbox->addWidget(find_btn);
-    
+
+    QPushButton* view_vars_btn = new QPushButton("Vars", this);
+    //connect(test_btn, &QPushButton::clicked, this, &RegexEditorVarsMenu::show);
+    hbox->addWidget(view_vars_btn);
+
     QPushButton* test_btn = new QPushButton("Test", this);
     connect(test_btn, &QPushButton::clicked, this, &RegexEditor::test_regex);
     hbox->addWidget(test_btn);
-    
+
     QPushButton* save_btn = new QPushButton("Save", this);
     connect(save_btn, &QPushButton::clicked, this, &RegexEditor::save_to_file);
     hbox->addWidget(save_btn);
