@@ -5,33 +5,29 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#ifndef RSCRAPER_HUB_REGEX_EDITOR_HPP
-#define RSCRAPER_HUB_REGEX_EDITOR_HPP
+#ifndef RSCRAPER_HUB_REGEX_EDITOR_VARS_MENU_HPP
+#define RSCRAPER_HUB_REGEX_EDITOR_VARS_MENU_HPP
 
+#include <QGridLayout>
+#include <QScrollArea>
+#include <QTabWidget>
 #include <QDialog>
-#include <QPlainTextEdit>
 
 
-class RegexEditorVarsMenu;
-
-
-class RegexEditor : public QDialog {
+class RegexEditorVarsMenu : public QDialog {
     Q_OBJECT
   public:
-    RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidget* parent = 0);
+    explicit RegexEditorVarsMenu(QWidget* parent = 0);
+    QGridLayout* l;
+  public Q_SLOTS:
+    void add_var();
+    void add_var_row(const QString name,  const QString type_name);
   private Q_SLOTS:
-    void test_regex();
-    void save_to_file();
+    void var_edit_btn_clicked();
+    void var_proc_btn_clicked();
   private:
-    void find_text();
-    bool to_final_format(QString& buf,  int j = 0);
-    void display_help();
-    void load_file();
-    RegexEditorVarsMenu* vars_menu;
-    QString f_human_fp;
-    QString f_raw_fp;
-    QPlainTextEdit* text_editor;
+    QTabWidget* tab_widget;
+    int row;
 };
-
 
 #endif

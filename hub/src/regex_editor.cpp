@@ -12,6 +12,7 @@
 #include "regex_editor_highlighter.hpp"
 #include "msgbox.hpp"
 #include "sql_name_dialog.hpp"
+#include "regex_editor_vars_menu.hpp"
 
 #include <compsky/regex/named_groups.hpp>
 
@@ -71,6 +72,8 @@ RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidg
     l->addWidget(this->text_editor);
     RegexEditorHighlighter* highlighter = new RegexEditorHighlighter(this->text_editor->document());
 
+    this->vars_menu = new RegexEditorVarsMenu(this);
+
     QHBoxLayout* hbox = new QHBoxLayout;
 
     QPushButton* help_btn = new QPushButton("Help", this);
@@ -82,7 +85,7 @@ RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidg
     hbox->addWidget(find_btn);
 
     QPushButton* view_vars_btn = new QPushButton("Vars", this);
-    //connect(test_btn, &QPushButton::clicked, this, &RegexEditorVarsMenu::show);
+    connect(view_vars_btn, &QPushButton::clicked, this->vars_menu, &RegexEditorVarsMenu::show);
     hbox->addWidget(view_vars_btn);
 
     QPushButton* test_btn = new QPushButton("Test", this);

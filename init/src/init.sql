@@ -148,6 +148,13 @@ CREATE TABLE IF NOT EXISTS reason_subreddit_whitelist (
     PRIMARY KEY `reason2subreddit` (reason, subreddit)
 );
 
+CREATE TABLE IF NOT EXISTS regex_vars (
+    name VARBINARY(128) NOT NULL,
+    type INT UNSIGNED NOT NULL,
+    data VARBINARY(40000) DEFAULT NULL,
+    PRIMARY KEY (name)
+);
+
 
 INSERT IGNORE INTO reason_matched (id, name)             VALUES (0, "None");
 INSERT IGNORE INTO reason_matched (id, name, r, g, b, a) VALUES (1, "Unknown", 0.5, 0.5, 0.5, 1);
