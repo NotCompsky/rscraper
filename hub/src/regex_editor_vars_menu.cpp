@@ -18,6 +18,7 @@ Why store variables in SQL? Laziness. Filesystem storage is ultimately the goal,
 #include <QInputDialog>
 #include <QLabel>
 #include <QMessageBox>
+#include <QProcess>
 #include <QPushButton>
 #include <QVBoxLayout>
 
@@ -131,12 +132,32 @@ void RegexEditorVarsMenu::var_proc_btn_clicked(){
     compsky::mysql::query(&RES1,  "SELECT data FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
     char* data;
     while(compsky::mysql::assign_next_row(RES1, &ROW1, &data)){
-        char* result;
+        QString result;
         switch(type){
-            case 1:
+            case 1: {
                 /* Create trie. Each line represents a member. */
-            default:
-                result = (data == nullptr) ? (char*)"<UNINITIALISED>" : data;
+                QProcess regtrie;
+                QString output;
+                QStringList args;
+                char* entry_start = data;
+                for (char* itr = data;  *itr != 0;  ++itr){
+                    if (*itr == '\n'){
+                        *itr = 0;
+                        args << entry_start;
+                        entry_start = itr + 1;
+                    }
+                }
+                args << entry_start;
+                regtrie.start("regtrie.py", args);
+                if (!regtrie.waitForFinished()){
+                    QMessageBox::warning(this,  "Error",  "Cannot execute regtrie.py");
+                    return;
+                }
+                result = regtrie.readAllStandardOutput();
+                regtrie.close();
+                break;
+            } default:
+                result = (data == nullptr) ? "<UNINITIALISED>" : data;
                 break;
         }
         QMessageBox::information(this,  "Result",  result);
