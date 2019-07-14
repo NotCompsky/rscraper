@@ -139,18 +139,15 @@ void RegexEditorVarsMenu::var_proc_btn_clicked(){
                 QProcess regtrie;
                 QString output;
                 QStringList args;
-                char* entry_start = data;
                 for (char* itr = data;  *itr != 0;  ++itr){
                     if (*itr == '\n'){
-                        *itr = 0;
-                        args << entry_start;
-                        entry_start = itr + 1;
+                        *itr = '|';
                     }
                 }
-                args << entry_start;
-                regtrie.start("regtrie.py", args);
+                args << data;
+                regtrie.start("regopt.pl", args);
                 if (!regtrie.waitForFinished()){
-                    QMessageBox::warning(this,  "Error",  "Cannot execute regtrie.py");
+                    QMessageBox::warning(this,  "Error",  "Cannot execute regopt.pl");
                     return;
                 }
                 result = regtrie.readAllStandardOutput();
