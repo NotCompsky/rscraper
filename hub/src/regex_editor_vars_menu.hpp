@@ -14,6 +14,9 @@
 #include <QDialog>
 
 
+void optimise_regex(QString& data,  QString& result);
+
+
 class RegexEditorVarsMenu : public QDialog {
     Q_OBJECT
   public:

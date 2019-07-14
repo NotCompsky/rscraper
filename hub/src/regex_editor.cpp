@@ -88,6 +88,9 @@ RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidg
     connect(view_vars_btn, &QPushButton::clicked, this->vars_menu, &RegexEditorVarsMenu::show);
     hbox->addWidget(view_vars_btn);
 
+    this->want_optimisations = new QCheckBox("Optimise", this);
+    l->addWidget(this->want_optimisations);
+
     QPushButton* test_btn = new QPushButton("Test", this);
     connect(test_btn, &QPushButton::clicked, this, &RegexEditor::test_regex);
     hbox->addWidget(test_btn);
@@ -161,13 +164,14 @@ int get_line_n(QString& s,  int end){
     return n;
 }
 
-bool RegexEditor::to_final_format(QString& buf,  int j){ // Use seperate buffer to avoid overwriting text_editor contents
+bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  int j,  int last_optimised_group_indx,  int var_depth){ // Use seperate buffer to avoid overwriting text_editor contents
     // WARNING: Does not currently support special encodings, i.e. non-ASCII characters are likely to be mangled.
     // TODO: Add utf8 support.
     QString q = this->text_editor->toPlainText();
-    buf.reserve(q.size() + j);
     
-    for(auto i = 0;  i < q.size();  ){
+    int group_start = 0;
+    int group_start_offset;
+    for(;  i < q.size();  ){
         QChar c = q.at(i);
         if (c == QChar('\\')){
             // Recognised escapes: \\, \n, \r, \t, \v
@@ -198,6 +202,20 @@ bool RegexEditor::to_final_format(QString& buf,  int j){ // Use seperate buffer 
             ++i;
             continue;
         }
+        if (c == QChar('{')){
+            if (q.at(i+1) == QChar('?')  &&  q.at(i+2) == QChar('P')  && q.at(i+3) == QChar('<')){
+                ++var_depth;
+                i += 4;
+                while(q.at(i++) != QChar('>'));
+                continue;
+            }
+        }
+        if (c == QChar('}')){
+            if (var_depth != 0){
+                ++i;
+                continue;
+            }
+        }
         if (c == QChar('\n')){
             ++i;
             while((i < q.size())  &&  (q.at(i) == QChar(' ')  ||  q.at(i) == QChar('\t')))
@@ -209,25 +227,50 @@ bool RegexEditor::to_final_format(QString& buf,  int j){ // Use seperate buffer 
             do {
                 // Remove all preceding unescaped whitespace
                 --j;
-            } while ((buf.at(j) == QChar(' ')  ||  buf.at(j) == QChar('\t'))  &&  (buf.at(j-1) != QChar('\\')));
+            } while (j >= 0  && buf.at(j) == QChar(' ')  ||  j >= 1  &&  buf.at(j) == QChar('\t')  &&  buf.at(j-1) != QChar('\\'));
             ++j;
             while((i < q.size())  &&  (q.at(i) != QChar('\n')))
                 ++i;
             continue;
         }
+        if (optimise){
+            if (c == QChar('(')  &&  j != last_optimised_group_indx){ // Minimum offset for non-trivial group: (ab|c)
+                group_start_offset = 0;
+                if (q.at(i+1) == QChar('?')  &&  q.at(i+2) == QChar(':'))
+                    group_start_offset += 3;
+                else if (q.at(i+1) == QChar('?')  &&  q.at(i+2) == QChar('P')  &&  q.at(i+3) == QChar('<')){
+                    group_start_offset += 4;
+                    while(q.at(i+group_start_offset) != QChar('>')){
+                        ++group_start_offset;
+                    }
+                    ++group_start_offset;
+                } else group_start_offset += 1;
+                group_start = j;
+            } else if (c == QChar(')')  &&  group_start != 0){
+                const int group_start_actual = group_start + group_start_offset;
+                const QStringRef group_text(&buf,  group_start_actual,  j - group_start_actual);
+                QString group_replacement;
+                const QString group_str = group_text.toString();
+                QString s = group_str;
+                optimise_regex(s, group_replacement);
+                buf.replace(group_start_actual,  j - group_start_actual,  group_replacement);
+                return to_final_format(optimise,  buf,  i,  group_start_actual + group_replacement.size(),  group_start,  var_depth);
+            }
+        }
         
-        buf[j++] = q.at(i);
+        buf[j++] = c;
         
         ++i;
     }
-    buf.resize(j);
+    buf.resize(j); // Strips excess space, as buf is guaranteed to be smaller than q (until variable substitution is implemented)
     
     return true;
 }
 
 void RegexEditor::test_regex(){
-    QString buf = "_"; // Dummy character to create space for 1 char at beginning
-    if (!this->to_final_format(buf, 1))
+    QString buf; // Dummy character to create space for 1 char at beginning
+    buf.reserve(this->text_editor->toPlainText().size());
+    if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
         return;
     
     QByteArray ba = buf.toLocal8Bit();
@@ -303,8 +346,9 @@ void RegexEditor::test_regex(){
 }
 
 void RegexEditor::save_to_file(){
-    QString buf;
-    if (!this->to_final_format(buf))
+    QString buf; // Dummy character to create space for 1 char at beginning
+    buf.reserve(this->text_editor->toPlainText().size());
+    if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
         return;
     
     QFile f_raw(this->f_raw_fp);
@@ -324,6 +368,10 @@ void RegexEditor::save_to_file(){
     f_human.close();
     
     this->close(); // Avoids issues with closing and reopening QFiles
+}
+
+bool RegexEditor::does_user_want_optimisations() const {
+	return this->want_optimisations->isChecked();
 }
 
 #endif
