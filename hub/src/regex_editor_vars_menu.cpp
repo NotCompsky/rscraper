@@ -100,6 +100,17 @@ void RegexEditorVarsMenu::add_var_row(const QString name,  const QString type_na
     proc_btn->setObjectName(QString("%1").arg(this->row));
     this->l->addWidget(proc_btn,                     this->row,  3);
     connect(proc_btn, &QPushButton::clicked, this, &RegexEditorVarsMenu::var_proc_btn_clicked);
+    QPushButton* del_btn = new QPushButton("deless", this);
+    del_btn->setObjectName(QString("%1").arg(this->row));
+    QPalette palette = del_btn->palette();
+    palette.setColor(QPalette::Button, QColor(Qt::red));
+    del_btn->setAutoFillBackground(true);
+    del_btn->setPalette(palette);
+    del_btn->setFlat(true);
+    del_btn->update();
+    this->l->addWidget(del_btn,                      this->row,  4);
+    connect(del_btn, &QPushButton::clicked, this, &RegexEditorVarsMenu::var_del_btn_clicked);
+#   define n_per_row 5
 }
 
 void RegexEditorVarsMenu::var_edit_btn_clicked(){
@@ -159,5 +170,17 @@ void RegexEditorVarsMenu::var_proc_btn_clicked(){
         }
         QMessageBox::information(this,  "Result",  result);
         /* Save result to database */
+    }
+}
+
+void RegexEditorVarsMenu::var_del_btn_clicked(){
+    QWidget* btn = static_cast<QPushButton*>(sender());
+    const int row = btn->objectName().toInt();
+    const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row, 0)->widget())->text();
+    compsky::mysql::exec("DELETE FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
+    for (auto i = 0;  i < n_per_row;  ++i){
+        QLayoutItem* a = this->l->itemAtPosition(row, i);
+        delete a->widget();
+        l->removeItem(a);
     }
 }
