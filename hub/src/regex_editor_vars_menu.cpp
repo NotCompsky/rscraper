@@ -29,7 +29,7 @@ extern MYSQL_ROW ROW1;
 
 static const QStringList type_id2name = {
 	"0:raw_string",
-	"1:trie_array", // i.e. a list - not a string
+	"1:array", // i.e. a list - not a string
 };
 
 namespace _f {
@@ -37,7 +37,7 @@ namespace _f {
 }
 
 
-RegexEditorVarsMenu::RegexEditorVarsMenu(QWidget* parent) : QDialog(parent) {
+RegexEditorVarsMenu::RegexEditorVarsMenu(QWidget* parent) : QDialog(parent), row(0) {
     this->l = new QGridLayout;
     
     {
@@ -96,11 +96,11 @@ void RegexEditorVarsMenu::add_var_row(const QString name,  const QString type_na
     edit_btn->setObjectName(QString("%1").arg(this->row));
     connect(edit_btn, &QPushButton::clicked, this, &RegexEditorVarsMenu::var_edit_btn_clicked);
     this->l->addWidget(edit_btn,                     this->row,  2);
-    QPushButton* proc_btn = new QPushButton("Process", this);
-    proc_btn->setObjectName(QString("%1").arg(this->row));
-    this->l->addWidget(proc_btn,                     this->row,  3);
-    connect(proc_btn, &QPushButton::clicked, this, &RegexEditorVarsMenu::var_proc_btn_clicked);
-    QPushButton* del_btn = new QPushButton("deless", this);
+    QPushButton* view_btn = new QPushButton("Preview", this);
+    view_btn->setObjectName(QString("%1").arg(this->row));
+    this->l->addWidget(view_btn,                     this->row,  3);
+    connect(view_btn, &QPushButton::clicked, this, &RegexEditorVarsMenu::var_view_btn_clicked);
+    QPushButton* del_btn = new QPushButton("Delete", this);
     del_btn->setObjectName(QString("%1").arg(this->row));
     QPalette palette = del_btn->palette();
     palette.setColor(QPalette::Button, QColor(Qt::red));
@@ -132,17 +132,10 @@ void RegexEditorVarsMenu::var_edit_btn_clicked(){
         return;
 
     compsky::mysql::exec("UPDATE regex_vars SET data=\"", _f::esc, '"', data, "\" WHERE name=\"", _f::esc, '"', name, "\"");
-}
 
-void RegexEditorVarsMenu::var_proc_btn_clicked(){
-    QWidget* btn = static_cast<QPushButton*>(sender());
-    const int row = btn->objectName().toInt();
-    const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row, 0)->widget())->text();
     const unsigned int type = this->l->itemAtPosition(row, 1)->widget()->objectName().toInt();
 
-    compsky::mysql::query(&RES1,  "SELECT data FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
-    char* data;
-    while(compsky::mysql::assign_next_row(RES1, &ROW1, &data)){
+    {
         QString result;
         switch(type){
             case 1: {
@@ -150,9 +143,10 @@ void RegexEditorVarsMenu::var_proc_btn_clicked(){
                 QProcess regtrie;
                 QString output;
                 QStringList args;
-                for (char* itr = data;  *itr != 0;  ++itr){
-                    if (*itr == '\n'){
-                        *itr = '|';
+                for (int i = data.length();  i != 0;  ){
+                    --i;
+                    if (data[i] == QChar('\n')){
+                        data[i] = QChar('|');
                     }
                 }
                 args << data;
@@ -162,6 +156,20 @@ void RegexEditorVarsMenu::var_proc_btn_clicked(){
                     return;
                 }
                 result = regtrie.readAllStandardOutput();
+
+                /* Code to replace the groups that match start of string '^' with groups that do not */
+                int i = 0;
+                while(result[i] == QChar('(')  &&  result[i+1] == QChar('?')  &&  result[i+2] == QChar('^')  && result[i+3] == QChar(':')){
+                    i += 4;
+                }
+                int j = i / 4;
+                for (auto k = j;  k != 0;  --k){
+                    result[--i] = QChar(':');
+                    result[--i] = QChar('?');
+                    result[--i] = QChar('(');
+                }
+                result.remove(0, j); // Remove (in-place) the now-unused characters
+
                 regtrie.close();
                 break;
             } default:
@@ -169,7 +177,20 @@ void RegexEditorVarsMenu::var_proc_btn_clicked(){
                 break;
         }
         QMessageBox::information(this,  "Result",  result);
-        /* Save result to database */
+        compsky::mysql::exec("UPDATE regex_vars SET result=\"", _f::esc, '"', result, "\" WHERE name=\"", name, "\"");
+    }
+}
+
+void RegexEditorVarsMenu::var_view_btn_clicked(){
+    QWidget* btn = static_cast<QPushButton*>(sender());
+    const int row = btn->objectName().toInt();
+    const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row, 0)->widget())->text();
+    const unsigned int type = this->l->itemAtPosition(row, 1)->widget()->objectName().toInt();
+
+    compsky::mysql::query(&RES1,  "SELECT result FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
+    char* result;
+    while(compsky::mysql::assign_next_row(RES1, &ROW1, &result)){
+        QMessageBox::information(this,  "Result",  result);
     }
 }
 

@@ -24,7 +24,7 @@ class RegexEditorVarsMenu : public QDialog {
     void add_var_row(const QString name,  const QString type_name);
   private Q_SLOTS:
     void var_edit_btn_clicked();
-    void var_proc_btn_clicked();
+    void var_view_btn_clicked();
     void var_del_btn_clicked();
   private:
     QTabWidget* tab_widget;
