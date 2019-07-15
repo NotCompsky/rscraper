@@ -48,10 +48,9 @@ static const QString help_text =
     "Only \\\\, \\n, \\r, \\t, and \\v are recognised escapes sequences.\n"
     "They are indicated in red.\n"
     "\n"
-    "UNIMPLEMENTED: "
     "Variable declarations have an almost identical syntax to named groups: {?P<varname>actual string that will be copied}\n"
     "These encompass strings which can then be copy-pasted using an unescaped ${VARNAME}, substituting VARNAME for the exact name of the variable. This will copy everything (aside from the variable name) within the curly braces - for instance, {?P<foobar>hello}${foobar} would result in the string 'hellohello' appearing in the final regex.\n"
-    "Such variables can also be declared seperately to the regex file in the 'Vars' menu - this allows more advanced options, such as compressing an array of strings into a trie structure (for a significant performance boost).\n"
+    "Such variables can also be declared seperately to the regex file in the 'Vars' menu.\n"
     "Variable declarations must not share names with each other.\n"
 ;
 
@@ -171,6 +170,10 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
     
     int group_start = 0;
     int group_start_offset;
+    static std::vector<QStringRef> var_names;
+    static std::vector<QStringRef> var_values;
+    static std::vector<int> var_depths;
+    static std::vector<int> var_starts;
     for(;  i < q.size();  ){
         QChar c = q.at(i);
         if (c == QChar('\\')){
@@ -195,24 +198,59 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
                     QStringRef(&q,  (i >= ctx) ? i - ctx : 0,  (i + ctx < q.size()) ? i + ctx : q.size() - 1).toString()
                 );
                 msgbox->exec();
-                return false;
+                goto goto_RE_tff_cleanup;
             }
             
             buf[j++] = ch;
             ++i;
             continue;
         }
+        if (c == QChar('$')  &&  q.at(i+1) == QChar('{')){
+            i += 2; // Skip ${
+            const int substitute_var_name_start = i;
+            while(q.at(i++) != QChar('}'));
+            const QStringRef substitute_var_name(&q,  substitute_var_name_start,  i - 1 /* backtrack } */ - substitute_var_name_start);
+            QStringRef var = nullptr;
+            for (size_t k = var_names.size();  k != 0;  ){
+                --k;
+                if (var_names[k] != substitute_var_name)
+                    continue;
+                var = var_values[k];
+            }
+            if (var == nullptr){
+                // Variable of the given name was not declared before
+                QString msg = "Undeclared variable encountered: " + substitute_var_name + "\nPreviously defined variables:";
+                for (size_t k = var_names.size();  k != 0;  ){
+                    msg += "\n";
+                    msg += var_names[--k];
+                }
+                QMessageBox::critical(this,  "Variable not declared before",  msg);
+                goto goto_RE_tff_cleanup;
+            }
+            buf += var;
+            j += var.size();
+            continue;
+        }
         if (c == QChar('{')){
             if (q.at(i+1) == QChar('?')  &&  q.at(i+2) == QChar('P')  && q.at(i+3) == QChar('<')){
-                ++var_depth;
                 i += 4;
+                const int var_name_start = i;
                 while(q.at(i++) != QChar('>'));
+                var_names.emplace_back(&q,  var_name_start,  i - 1 /* Backtrack > */ - var_name_start);
+                var_depths.push_back(++var_depth);
+                var_values.push_back(nullptr);
+                var_starts.push_back(j);
                 continue;
             }
         }
         if (c == QChar('}')){
             if (var_depth != 0){
+                bool placed = false;
+                size_t k = var_depths.size();
+                while (var_depths[--k] != var_depth); // k kannot be lower than 0
+                var_values[k] = QStringRef(&buf,  var_starts[k],  j - var_starts[k]);
                 ++i;
+                --var_depth;
                 continue;
             }
         }
@@ -264,7 +302,19 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
     }
     buf.resize(j); // Strips excess space, as buf is guaranteed to be smaller than q (until variable substitution is implemented)
     
+    var_names.clear();
+    var_values.clear();
+    var_depths.clear();
+    var_starts.clear();
+    
     return true;
+
+    goto_RE_tff_cleanup:
+    var_names.clear();
+    var_values.clear();
+    var_depths.clear();
+    var_starts.clear();
+    return false;
 }
 
 void RegexEditor::test_regex(){
