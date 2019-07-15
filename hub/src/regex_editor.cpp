@@ -219,12 +219,17 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
             }
             if (var == nullptr){
                 // Variable of the given name was not declared before
-                QString msg = "Undeclared variable encountered: " + substitute_var_name + "\nPreviously defined variables:";
+                QString msg = "Previously defined variables:";
                 for (size_t k = var_names.size();  k != 0;  ){
                     msg += "\n";
                     msg += var_names[--k];
                 }
-                QMessageBox::critical(this,  "Variable not declared before",  msg);
+                MsgBox* msgbox = new MsgBox(
+                    this,  
+                    "Undeclared variable: " + substitute_var_name + "\nAt line " + QString::number(get_line_n(q, i)),
+                    msg
+                );
+                msgbox->exec();
                 goto goto_RE_tff_cleanup;
             }
             buf += var;
@@ -347,7 +352,8 @@ void RegexEditor::test_regex(){
             delete filter_comment_body::regexpr;
         filter_comment_body::regexpr = new boost::basic_regex<char, boost::cpp_regex_traits<char>>(s,  boost::regex::perl);
     } catch (boost::regex_error& e){
-        QMessageBox::critical(this,  "Bad Regex",  e.what());
+        MsgBox* msgbox = new MsgBox(this, e.what(), s, 720);
+        msgbox->exec();
         //delete filter_comment_body::regexpr; // No need to delete, as object is not created when error is thrown.
         filter_comment_body::regexpr = nullptr;
         return;
