@@ -45,7 +45,7 @@ static const QString help_text =
     "\n"
     "Unescaped trailing whitespace is NOT ignored; but since it may be accidental, is highlighted cyan.\n"
     "\n"
-    "Only \\\\, \\n, \\r, \\t, and \\v are recognised escapes sequences.\n"
+    "Only \\\\, \\n, \\r, \\t and \\v are recognised escapes sequences. \\{, \\}, \\( and \\) are simply parsed as their latter character.\n"
     "They are indicated in red.\n"
     "\n"
     "Variable declarations have an almost identical syntax to named groups: {?P<varname>actual string that will be copied}\n"
@@ -172,7 +172,6 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
     int group_start_offset;
     static std::vector<QStringRef> var_names;
     static std::vector<QStringRef> var_values;
-    static std::vector<int> var_depths;
     static std::vector<int> var_starts;
     for(;  i < q.size();  ){
         QChar c = q.at(i);
@@ -190,6 +189,10 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
             else if (ch == QChar('\n'));
             else if (ch == QChar('\t'));
             else if (ch == QChar(' '));
+            else if (ch == QChar('{'));
+            else if (ch == QChar('}'));
+            else if (ch == QChar('('));
+            else if (ch == QChar(')'));
             else {
                 constexpr static const int ctx = 10;
                 MsgBox* msgbox = new MsgBox(
@@ -242,22 +245,17 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
                 const int var_name_start = i;
                 while(q.at(i++) != QChar('>'));
                 var_names.emplace_back(&q,  var_name_start,  i - 1 /* Backtrack > */ - var_name_start);
-                var_depths.push_back(++var_depth);
                 var_values.push_back(nullptr);
                 var_starts.push_back(j);
                 continue;
             }
         }
         if (c == QChar('}')){
-            if (var_depth != 0){
-                bool placed = false;
-                size_t k = var_depths.size();
-                while (var_depths[--k] != var_depth); // k kannot be lower than 0
-                var_values[k] = QStringRef(&buf,  var_starts[k],  j - var_starts[k]);
-                ++i;
-                --var_depth;
-                continue;
-            }
+            size_t k = var_values.size();
+            while(var_values[--k] != nullptr);
+            var_values[k] = QStringRef(&buf,  var_starts[k],  j - var_starts[k]);
+            ++i;
+            continue;
         }
         if (c == QChar('\n')){
             ++i;
@@ -309,7 +307,6 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
     
     var_names.clear();
     var_values.clear();
-    var_depths.clear();
     var_starts.clear();
     
     return true;
@@ -317,7 +314,6 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
     goto_RE_tff_cleanup:
     var_names.clear();
     var_values.clear();
-    var_depths.clear();
     var_starts.clear();
     return false;
 }
@@ -337,7 +333,7 @@ void RegexEditor::test_regex(){
     std::vector<char*> group_ends;
     std::vector<bool> record_contents;
     
-    char* regexpr_str_end = compsky::regex::convert_named_groups(s + 1,  s,  reason_name2id,  groupindx2reason, record_contents, group_starts, group_ends);
+    char* regexpr_str_end = compsky::regex::convert_named_groups(s,  s,  reason_name2id,  groupindx2reason, record_contents, group_starts, group_ends);
     // Add one to the first buffer (src) not second buffer (dst) to ensure it is never overwritten when writing dst
     
     if (*(regexpr_str_end - 1) == '\n')
@@ -360,7 +356,7 @@ void RegexEditor::test_regex(){
     }
     
     QString report = "";
-    
+
     bool try_exrex = true;
     report += "\nCapture Groups:";
     for (auto i = 1;  i < groupindx2reason.size();  ++i){
@@ -371,12 +367,19 @@ void RegexEditor::test_regex(){
         report += "\t";
         report += reason_name2id[groupindx2reason[i]];
         report += "\n\t";
+
+        // WARNING: The following calculates the number of bytes, NOT the number of characters. QStrings are UTF-16, so some characters are multiple bytes. This is also why QStringRef is not used shortly after.
         const int group_source_strlen = (uintptr_t)(group_ends[i]) - (uintptr_t)(group_starts[i]) - 1;
-        const QString group_source = QString::fromLocal8Bit(group_starts[i],  group_source_strlen);
-        if (group_source_strlen > 20){
-            report += QString::fromLocal8Bit(group_starts[i], 20);
-            report += "...";
-        } else report += group_source;
+
+        const char c = group_ends[i][0];
+        group_ends[i][0] = 0;
+        QString group_source = group_starts[i];
+        group_ends[i][0] = c;
+        group_source.resize(group_source_strlen);
+
+        // TODO: Optionally truncate large sources
+
+        report += group_source;
         
         if (try_exrex){
             QProcess exrex;
