@@ -348,7 +348,7 @@ void RegexEditor::test_regex(){
         filter_comment_body::regexpr = new boost::basic_regex<char, boost::cpp_regex_traits<char>>(s,  boost::regex::perl);
     } catch (boost::regex_error& e){
         QMessageBox::critical(this,  "Bad Regex",  e.what());
-        delete filter_comment_body::regexpr;
+        //delete filter_comment_body::regexpr; // No need to delete, as object is not created when error is thrown.
         filter_comment_body::regexpr = nullptr;
         return;
     }
