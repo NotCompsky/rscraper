@@ -61,6 +61,7 @@ add_executable(
     # 3rd party
     "${SRC_DIR}/3rdparty/donutbreakdownchart.cpp"
     "${SRC_DIR}/3rdparty/mainslice.cpp"
+    "${SRC_DIR}/3rdparty/codeeditor.cpp"
     
     # Tag Colour Picker tabs
     "${SRC_DIR}/categorytab.cpp"

@@ -10,9 +10,9 @@
 
 #include <QCheckBox>
 #include <QDialog>
-#include <QPlainTextEdit>
 
 
+class CodeEditor;
 class RegexEditorVarsMenu;
 
 
@@ -33,7 +33,7 @@ class RegexEditor : public QDialog {
     RegexEditorVarsMenu* vars_menu;
     QString f_human_fp;
     QString f_raw_fp;
-    QPlainTextEdit* text_editor;
+    CodeEditor* text_editor;
 };
 
 

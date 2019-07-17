@@ -13,6 +13,7 @@
 #include "msgbox.hpp"
 #include "sql_name_dialog.hpp"
 #include "regex_editor_vars_menu.hpp"
+#include "3rdparty/codeeditor.hpp"
 
 #include <compsky/regex/named_groups.hpp>
 
@@ -58,7 +59,7 @@ static const QString help_text =
 RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidget* parent) : QDialog(parent), f_human_fp(human_fp), f_raw_fp(raw_fp) {
     QVBoxLayout* l = new QVBoxLayout;
     
-    this->text_editor = new QPlainTextEdit;
+    this->text_editor = new CodeEditor(this);
 
     QFont font;
     font.setStyleHint(QFont::Monospace);
@@ -155,8 +156,8 @@ void RegexEditor::load_file(){
     f_human.close();
 }
 
-int get_line_n(QString& s,  int end){
-    int n = 0;
+int get_line_n(const QString& s,  int end){
+    int n = 1;
     for (auto i = 0;  i <= end;  ++i)
         if (s.at(i) == QChar('\n'))
             ++n;
