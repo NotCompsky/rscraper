@@ -60,8 +60,13 @@ int CodeEditor::lineNumberAreaWidth()
         ++digits;
     }
 
-    int space = 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
-
+    int space = 3 + digits*
+# if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
+    fontMetrics().width(QLatin1Char('g'));
+# else
+    fontMetrics().horizontalAdvance(QLatin1Char('9'));
+# endif
+    
     return space;
 }
 
