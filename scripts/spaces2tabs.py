@@ -25,7 +25,7 @@ def process(fp):
 		new_line = ""
 		while line.startswith(SPACES_STR):
 			new_line += '\t'
-			line = line[4:]
+			line = line[args.spaces_per_tab:]
 			is_modified = True
 		new_line += line
 		lines[i] = new_line
