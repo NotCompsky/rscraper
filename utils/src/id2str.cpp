@@ -7,8 +7,8 @@
 
 #include "id2str.hpp"
 
-#include <stdio.h> // for printf
 #ifdef DEBUG
+# include <stdio.h> // for printf
 # include <stdlib.h> // for exit
 #endif
 
@@ -59,6 +59,7 @@ uint64_t myatoi(const char* str){
 }
 
 #if defined(ID2STR_EXE) || defined(STR2ID_EXE)
+#include <stdio.h>
 int main(const int argc,  const char** argv){
 	char str[19 + 1];
 	for (auto j = 1;  j < argc;  ++j){
