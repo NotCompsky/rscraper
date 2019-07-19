@@ -12,12 +12,6 @@
 #include <cstring> // for memcpy
 #include <stdlib.h> // for realloc
 
-#ifndef DEBUG
-# define printf(...)
-#else
-# include <stdio.h> // for printf
-#endif
-
 
 namespace mycu {
 
@@ -50,10 +44,6 @@ size_t write_res_to_mem(void* content, size_t size, size_t n, void* buf){
 
 void request(const char* url){
 	// Writes response contents to MEMORY
-  #ifdef DEBUG
-	printf("GET %s\n", url);
-  #endif
-	
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	
 	MEMORY.size = 0; // 'Clear' last request
