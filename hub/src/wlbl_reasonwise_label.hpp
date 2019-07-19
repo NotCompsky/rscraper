@@ -12,11 +12,11 @@
 
 
 class WlBlReasonwiseLabel : public WlBlLabel {
-    Q_OBJECT
+	Q_OBJECT
   public:
-    explicit WlBlReasonwiseLabel(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname);
+	explicit WlBlReasonwiseLabel(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname);
   private:
-    void display_subs_w_tag() override;
+	void display_subs_w_tag() override;
 };
 
 

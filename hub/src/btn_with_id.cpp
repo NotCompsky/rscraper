@@ -26,9 +26,9 @@ extern QStringList category_names;
 BtnWithID::BtnWithID(const QString& title,  const uint64_t id,  QWidget* parent) : id(id), QPushButton(title, parent) {}
 
 void BtnWithID::mousePressEvent(QMouseEvent* e){
-    switch(e->button()){
-        case Qt::LeftButton:
-            emit(left_clicked(this->id));
-        default: return;
-    }
+	switch(e->button()){
+		case Qt::LeftButton:
+			emit(left_clicked(this->id));
+		default: return;
+	}
 }

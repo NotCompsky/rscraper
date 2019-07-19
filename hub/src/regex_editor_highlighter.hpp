@@ -7,11 +7,11 @@ Based on the example from the official Qt docs: https://doc.qt.io/qt-5/qtwidgets
 
 
 class RegexEditorHighlighter : public QSyntaxHighlighter {
-    Q_OBJECT
-    
+	Q_OBJECT
+	
   public:
-    RegexEditorHighlighter(QTextDocument* parent = 0);
-    
+	RegexEditorHighlighter(QTextDocument* parent = 0);
+	
   protected:
-    void highlightBlock(const QString& text) override;
+	void highlightBlock(const QString& text) override;
 };

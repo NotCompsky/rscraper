@@ -37,37 +37,37 @@ static const QColor cl_cyan(0, 255, 255, 70);
 
 
 RegexEditorHighlighter::RegexEditorHighlighter(QTextDocument* parent)
-    : QSyntaxHighlighter(parent)
+	: QSyntaxHighlighter(parent)
 {
-    int i = 0;
-    highlighting_fmts[++i].setBackground(cl_comment);	// Comment
-    highlighting_fmts[++i].setForeground(Qt::red);	// Escape characters (even number preceding)
-    highlighting_fmts[++i].setForeground(Qt::blue);	// Capture group opening bracket
-    highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Capture group opening bracket
-    highlighting_fmts[++i].setForeground(Qt::darkBlue);	// Capture group name (outer)
-    highlighting_fmts[++i].setForeground(Qt::darkBlue);	// Capture group name (inner)
-    highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Capture group name (inner)
-    highlighting_fmts[++i].setForeground(Qt::gray);	// Non-capturing group declaration
-    highlighting_fmts[++i].setForeground(Qt::blue);	// Capture group closing bracket
-    highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Capture group closing bracket
-    highlighting_fmts[++i].setBackground(cl_comment);	// Comment
-    highlighting_fmts[++i].setForeground(Qt::yellow);	// Variable substitution
-    highlighting_fmts[ i ].setBackground(cl_varsub);	// Variable substitution
-    highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Variable substitution
-    highlighting_fmts[++i].setFontWeight(QFont::Light);	// Square bracket set
-    highlighting_fmts[++i].setFontWeight(QFont::Bold);	// OR operator
-    highlighting_fmts[++i].setBackground(cl_cyan);	// OR operator
+	int i = 0;
+	highlighting_fmts[++i].setBackground(cl_comment);	// Comment
+	highlighting_fmts[++i].setForeground(Qt::red);	// Escape characters (even number preceding)
+	highlighting_fmts[++i].setForeground(Qt::blue);	// Capture group opening bracket
+	highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Capture group opening bracket
+	highlighting_fmts[++i].setForeground(Qt::darkBlue);	// Capture group name (outer)
+	highlighting_fmts[++i].setForeground(Qt::darkBlue);	// Capture group name (inner)
+	highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Capture group name (inner)
+	highlighting_fmts[++i].setForeground(Qt::gray);	// Non-capturing group declaration
+	highlighting_fmts[++i].setForeground(Qt::blue);	// Capture group closing bracket
+	highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Capture group closing bracket
+	highlighting_fmts[++i].setBackground(cl_comment);	// Comment
+	highlighting_fmts[++i].setForeground(Qt::yellow);	// Variable substitution
+	highlighting_fmts[ i ].setBackground(cl_varsub);	// Variable substitution
+	highlighting_fmts[ i ].setFontWeight(QFont::Bold);	// Variable substitution
+	highlighting_fmts[++i].setFontWeight(QFont::Light);	// Square bracket set
+	highlighting_fmts[++i].setFontWeight(QFont::Bold);	// OR operator
+	highlighting_fmts[++i].setBackground(cl_cyan);	// OR operator
 
 
-    // NOTE: background highlights are used to indicate that the length of the resulting regex would be modified - either by removing whitespace, or pasting text with variable substitution.
+	// NOTE: background highlights are used to indicate that the length of the resulting regex would be modified - either by removing whitespace, or pasting text with variable substitution.
 }
 
 void RegexEditorHighlighter::highlightBlock(const QString& text) {
-    QRegularExpressionMatchIterator match_itr = highlighting_regex.globalMatch(text);
-    while (match_itr.hasNext()) {
-        QRegularExpressionMatch match = match_itr.next();
-        for (auto i = 1;  i < n_highlighting_rules + 1;  ++i) {
-            setFormat(match.capturedStart(i), match.capturedLength(i), highlighting_fmts[i]);
-        }
-    }
+	QRegularExpressionMatchIterator match_itr = highlighting_regex.globalMatch(text);
+	while (match_itr.hasNext()) {
+		QRegularExpressionMatch match = match_itr.next();
+		for (auto i = 1;  i < n_highlighting_rules + 1;  ++i) {
+			setFormat(match.capturedStart(i), match.capturedLength(i), highlighting_fmts[i]);
+		}
+	}
 }

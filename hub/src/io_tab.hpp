@@ -12,9 +12,9 @@
 
 
 class IOTab : public QWidget {
-    Q_OBJECT
+	Q_OBJECT
   public:
-    explicit IOTab(QWidget* parent);
+	explicit IOTab(QWidget* parent);
 };
 
 

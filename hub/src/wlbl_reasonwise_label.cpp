@@ -17,29 +17,29 @@ extern MYSQL_ROW ROW1;
 
 
 namespace _f {
-    constexpr static const compsky::asciify::flag::Escape esc;
+	constexpr static const compsky::asciify::flag::Escape esc;
 }
 
 
 WlBlReasonwiseLabel::WlBlReasonwiseLabel(const char* name,  const char* typ,  const char* typ_id_varname,  const char* tblname)
 :
-    WlBlLabel(name, typ, typ_id_varname, tblname)
+	WlBlLabel(name, typ, typ_id_varname, tblname)
 {}
 
 
 void WlBlReasonwiseLabel::display_subs_w_tag(){
-    compsky::mysql::query(&RES1,  "SELECT m.name,b.name FROM reason_matched m,", this->tblname, " a,", this->typ, " b WHERE m.id=a.reason AND a.", this->typ_id_varname, "=b.id");
-    
-    char* reason_name;
-    char* subreddit_name;
-    QString s = this->text();
-    while (compsky::mysql::assign_next_row(RES1, &ROW1, &reason_name, &subreddit_name)){
-        s += '\n';
-        s += reason_name;
-        s += '\t';
-        s += subreddit_name;
-    }
-    
-    MsgBox* msgbox = new MsgBox(this, this->tblname, s, 720);
-    msgbox->exec();
+	compsky::mysql::query(&RES1,  "SELECT m.name,b.name FROM reason_matched m,", this->tblname, " a,", this->typ, " b WHERE m.id=a.reason AND a.", this->typ_id_varname, "=b.id");
+	
+	char* reason_name;
+	char* subreddit_name;
+	QString s = this->text();
+	while (compsky::mysql::assign_next_row(RES1, &ROW1, &reason_name, &subreddit_name)){
+		s += '\n';
+		s += reason_name;
+		s += '\t';
+		s += subreddit_name;
+	}
+	
+	MsgBox* msgbox = new MsgBox(this, this->tblname, s, 720);
+	msgbox->exec();
 }

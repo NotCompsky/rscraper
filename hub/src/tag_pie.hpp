@@ -6,9 +6,9 @@
 
 
 class TagPie : public QDialog {
-    Q_OBJECT
+	Q_OBJECT
   public:
-    explicit TagPie(const int tag_id,  QWidget* parent);
+	explicit TagPie(const int tag_id,  QWidget* parent);
 };
 
 

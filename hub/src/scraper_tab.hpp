@@ -20,39 +20,39 @@ typedef  void (ScraperTab::*ScraperTabMemberFnct)();
 
 
 class ScraperTab : public QWidget {
-    Q_OBJECT
+	Q_OBJECT
   public:
-    explicit ScraperTab(QWidget* parent = 0);
+	explicit ScraperTab(QWidget* parent = 0);
   private:
-    int add(ScraperTabMemberFnct f_add,  ScraperTabMemberFnct f_rm,  QGridLayout* l,  int row);
-    
-    void open_cmnt_body_re_editor();
-    
-    void add_subreddit_to(const char* tblname,          const bool delete_from);
-    void add_subreddit_to_reason(const char* tblname,   const bool delete_from);
-    void add_user_to(const char* tblname,               const bool delete_from);
-    
-    void add_to_subreddit_count_bl();
-    void rm_from_subreddit_count_bl();
-    
-    void add_to_user_count_bl();
-    void rm_from_user_count_bl();
-    
-    void add_to_subreddit_contents_wl();
-    void rm_from_subreddit_contents_wl();
-    void add_to_subreddit_contents_bl();
-    void rm_from_subreddit_contents_bl();
-    
-    void add_to_user_contents_wl();
-    void rm_from_user_contents_wl();
-    void add_to_user_contents_bl();
-    void rm_from_user_contents_bl();
-    
-    void add_to_reason_subreddit_wl();
-    void rm_from_reason_subreddit_wl();
-    
-    void add_to_reason_subreddit_bl();
-    void rm_from_reason_subreddit_bl();
+	int add(ScraperTabMemberFnct f_add,  ScraperTabMemberFnct f_rm,  QGridLayout* l,  int row);
+	
+	void open_cmnt_body_re_editor();
+	
+	void add_subreddit_to(const char* tblname,          const bool delete_from);
+	void add_subreddit_to_reason(const char* tblname,   const bool delete_from);
+	void add_user_to(const char* tblname,               const bool delete_from);
+	
+	void add_to_subreddit_count_bl();
+	void rm_from_subreddit_count_bl();
+	
+	void add_to_user_count_bl();
+	void rm_from_user_count_bl();
+	
+	void add_to_subreddit_contents_wl();
+	void rm_from_subreddit_contents_wl();
+	void add_to_subreddit_contents_bl();
+	void rm_from_subreddit_contents_bl();
+	
+	void add_to_user_contents_wl();
+	void rm_from_user_contents_wl();
+	void add_to_user_contents_bl();
+	void rm_from_user_contents_bl();
+	
+	void add_to_reason_subreddit_wl();
+	void rm_from_reason_subreddit_wl();
+	
+	void add_to_reason_subreddit_bl();
+	void rm_from_reason_subreddit_bl();
 };
 
 #endif

@@ -13,14 +13,14 @@
 
 
 class RmTagBtn : public QPushButton{
-    Q_OBJECT
+	Q_OBJECT
   private Q_SLOTS:
-    void mousePressEvent(QMouseEvent* e);
+	void mousePressEvent(QMouseEvent* e);
   public:
-    const uint64_t tag_id;
-    explicit RmTagBtn(const uint64_t id,  QWidget* parent);
+	const uint64_t tag_id;
+	explicit RmTagBtn(const uint64_t id,  QWidget* parent);
   public Q_SLOTS:
-    void rm_tag();
+	void rm_tag();
 };
 
 #endif

@@ -4,14 +4,14 @@ FIND_PACKAGE(Compsky COMPONENTS asciify mysql REQUIRED)
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    # e.g. cmake .. -DCMAKE_BUILD_TYPE=Debug
-    set(MY_DEFINITIONS "DEBUG")
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
-    endif()
+	# e.g. cmake .. -DCMAKE_BUILD_TYPE=Debug
+	set(MY_DEFINITIONS "DEBUG")
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
+	endif()
 else()
-    set(CMAKE_BUILD_TYPE "Release")
-    set(MY_DEFINITIONS "QT_NO_DEBUG" "QT_NO_DEBUG_OUTPUT")
+	set(CMAKE_BUILD_TYPE "Release")
+	set(MY_DEFINITIONS "QT_NO_DEBUG" "QT_NO_DEBUG_OUTPUT")
 endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
@@ -29,17 +29,17 @@ set_property(TARGET rscraper-tagger PROPERTY CXX_STANDARD 17)
 
 add_custom_target(rscraper-tagger-server ALL DEPENDS rscraper-tagger)
 add_custom_command(
-    TARGET rscraper-tagger-server
-    COMMAND
-        go build
-        -o "${CMAKE_CURRENT_BINARY_DIR}/rscraper-tagger-server"
-        "${SRC_DIR}/server.go"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+	TARGET rscraper-tagger-server
+	COMMAND
+		go build
+		-o "${CMAKE_CURRENT_BINARY_DIR}/rscraper-tagger-server"
+		"${SRC_DIR}/server.go"
+	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
 )
 install(
-    PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/rscraper-tagger-server"
-    DESTINATION "${CMAKE_INSTALL_BINDIR}"
-        COMPONENT tagger
+	PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/rscraper-tagger-server"
+	DESTINATION "${CMAKE_INSTALL_BINDIR}"
+	COMPONENT tagger
 )
 
 
@@ -54,14 +54,14 @@ install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/rscraper-tagger-server.py" DESTINA
 
 
 install(
-    TARGETS rscraper-tagger
-    EXPORT RScraperTargets
-    PUBLIC_HEADER DESTINATION
-        "${INSTALL_INCLUDE_DIR}/rscraper"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        COMPONENT tagger
+	TARGETS rscraper-tagger
+	EXPORT RScraperTargets
+	PUBLIC_HEADER DESTINATION
+		"${INSTALL_INCLUDE_DIR}/rscraper"
+	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	COMPONENT tagger
 )
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    target_link_libraries(rscraper-tagger z secur32 ssl crypto crypt32 ws2_32)
+	target_link_libraries(rscraper-tagger z secur32 ssl crypto crypt32 ws2_32)
 endif()

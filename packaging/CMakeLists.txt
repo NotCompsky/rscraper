@@ -32,7 +32,7 @@ set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/pkg")
 
 #set(CPACK_PACKAGE_FILE_NAME DEB-DEFAULT) # Incompatible with default CMake version on Ubuntu 18.04
 if("${CPACK_DEBIAN_PACKAGE_ARCHITECTURE} " STREQUAL " ")
-    message(FATAL_ERROR "Please set -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=$(dpkg --print-architecture)")
+	message(FATAL_ERROR "Please set -DCPACK_DEBIAN_PACKAGE_ARCHITECTURE=$(dpkg --print-architecture)")
 endif()
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 
@@ -41,38 +41,38 @@ set(CPACK_CREATE_DESKTOP_LINKS rscraper-hub)
 set(CPACK_STRIP_FILES TRUE)
 
 if(APPLE OR NOT UNIX)
-    message(FATAL_ERROR "I haven't written the CMake to package on non-Linux systems yet")
+	message(FATAL_ERROR "I haven't written the CMake to package on non-Linux systems yet")
 else()
-    #-----------------------------------------------------------------------------
-    # Linux specific
-    set(CPACK_GENERATOR "DEB")
-    message(STATUS "Package generation - UNIX")
-    message(STATUS "   + DEB                                  YES ")
+	#-----------------------------------------------------------------------------
+	# Linux specific
+	set(CPACK_GENERATOR "DEB")
+	message(STATUS "Package generation - UNIX")
+	message(STATUS "   + DEB	YES ")
 
-    set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
-    set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${HOMEPAGE}")
+	set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
+	set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${HOMEPAGE}")
 
-    # Icon and app shortcut for Linux systems
-    # Note: .desktop file must have same name as executable
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/rscraper-hub.desktop
-        DESTINATION share/applications/
-        PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-        )
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/rscraper-hub.png
-        DESTINATION share/icons/hicolor/64x64/apps/
-        PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-        )
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/rscraper-hub.png
-        DESTINATION share/icons/gnome/64x64/apps/
-        PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-        )
-    # License file
-    install(FILES ${PROJECT_SOURCE_DIR}/LICENSE
-        DESTINATION "${CMAKE_INSTALL_DOCDIR}"
-        PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-        RENAME copyright)
-    # set package icon
-    set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/tagger/browser-addon/icons/64.png")
+	# Icon and app shortcut for Linux systems
+	# Note: .desktop file must have same name as executable
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/rscraper-hub.desktop
+		DESTINATION share/applications/
+		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+		)
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/rscraper-hub.png
+		DESTINATION share/icons/hicolor/64x64/apps/
+		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+		)
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/rscraper-hub.png
+		DESTINATION share/icons/gnome/64x64/apps/
+		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+		)
+	# License file
+	install(FILES ${PROJECT_SOURCE_DIR}/LICENSE
+		DESTINATION "${CMAKE_INSTALL_DOCDIR}"
+		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+		RENAME copyright)
+	# set package icon
+	set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/tagger/browser-addon/icons/64.png")
 endif()
 
 

@@ -12,16 +12,16 @@
 #include <QMouseEvent>
 
 class TagNameLabel : public QLabel {
-    Q_OBJECT
+	Q_OBJECT
   private:
-    void display_subs_w_tag();
-    void rename_tag();
-    const uint64_t tag_id;
+	void display_subs_w_tag();
+	void rename_tag();
+	const uint64_t tag_id;
   private Q_SLOTS:
-    void mousePressEvent(QMouseEvent* e);
+	void mousePressEvent(QMouseEvent* e);
   public:
-    explicit TagNameLabel(const uint64_t tag_id,  char* name,      QWidget* parent);
-    explicit TagNameLabel(const uint64_t tag_id,  QString& qname,  QWidget* parent);
+	explicit TagNameLabel(const uint64_t tag_id,  char* name,      QWidget* parent);
+	explicit TagNameLabel(const uint64_t tag_id,  QString& qname,  QWidget* parent);
 };
 
 

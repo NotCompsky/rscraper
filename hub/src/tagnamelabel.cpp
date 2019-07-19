@@ -22,7 +22,7 @@ extern MYSQL_ROW ROW1;
 
 
 namespace _f {
-    constexpr static const compsky::asciify::flag::Escape esc;
+	constexpr static const compsky::asciify::flag::Escape esc;
 }
 
 
@@ -34,50 +34,50 @@ TagNameLabel::TagNameLabel(const uint64_t tag_id,  QString& qname,  QWidget* par
 
 
 void TagNameLabel::rename_tag(){
-    bool ok;
-    NameDialog* tagdialog = new NameDialog("Rename Tag", this->text());
-    QCompleter* tagcompleter = new QCompleter(tagslist);
-    tagdialog->name_edit->setCompleter(tagcompleter);
-    const int rc = tagdialog->exec();
-    QString tagstr = tagdialog->name_edit->text();
-    delete tagdialog;
-    if (rc != QDialog::Accepted  ||  tagstr.isEmpty()  ||  tagstr == this->text())
-        return;
-    
-    const QByteArray ba = tagstr.toLocal8Bit();
-    const char* tag_str = ba.data();
-    
-    tagslist[tagslist.indexOf(this->text())] = tagstr;
-    
-    compsky::mysql::exec("UPDATE tag SET name=\"", _f::esc, '"', tag_str, "\" WHERE id=",  this->tag_id);
-    
-    this->setText(tagstr);
+	bool ok;
+	NameDialog* tagdialog = new NameDialog("Rename Tag", this->text());
+	QCompleter* tagcompleter = new QCompleter(tagslist);
+	tagdialog->name_edit->setCompleter(tagcompleter);
+	const int rc = tagdialog->exec();
+	QString tagstr = tagdialog->name_edit->text();
+	delete tagdialog;
+	if (rc != QDialog::Accepted  ||  tagstr.isEmpty()  ||  tagstr == this->text())
+		return;
+	
+	const QByteArray ba = tagstr.toLocal8Bit();
+	const char* tag_str = ba.data();
+	
+	tagslist[tagslist.indexOf(this->text())] = tagstr;
+	
+	compsky::mysql::exec("UPDATE tag SET name=\"", _f::esc, '"', tag_str, "\" WHERE id=",  this->tag_id);
+	
+	this->setText(tagstr);
 }
 
 
 void TagNameLabel::display_subs_w_tag(){
-    compsky::mysql::query(&RES1,  "SELECT r.name FROM subreddit r, subreddit2tag s WHERE s.subreddit_id=r.id AND  s.tag_id=",  this->tag_id,  " ORDER BY r.name");
-    
-    char* name;
-    QString DISPLAY_TAGS_RES = "";
-    while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
-        DISPLAY_TAGS_RES += name;
-        DISPLAY_TAGS_RES += '\n';
-    }
-    
-    MsgBox* msgbox = new MsgBox(this,  "Tagged Subreddits",  DISPLAY_TAGS_RES);
-    msgbox->exec();
+	compsky::mysql::query(&RES1,  "SELECT r.name FROM subreddit r, subreddit2tag s WHERE s.subreddit_id=r.id AND  s.tag_id=",  this->tag_id,  " ORDER BY r.name");
+	
+	char* name;
+	QString DISPLAY_TAGS_RES = "";
+	while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
+		DISPLAY_TAGS_RES += name;
+		DISPLAY_TAGS_RES += '\n';
+	}
+	
+	MsgBox* msgbox = new MsgBox(this,  "Tagged Subreddits",  DISPLAY_TAGS_RES);
+	msgbox->exec();
 }
 
 
 void TagNameLabel::mousePressEvent(QMouseEvent* e){
-    switch(e->button()){
-        case Qt::LeftButton:
-            this->rename_tag();
-            return;
-        case Qt::RightButton:
-            this->display_subs_w_tag();
-            return;
-        default: return;
-    }
+	switch(e->button()){
+		case Qt::LeftButton:
+			this->rename_tag();
+			return;
+		case Qt::RightButton:
+			this->display_subs_w_tag();
+			return;
+		default: return;
+	}
 }

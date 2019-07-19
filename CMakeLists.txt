@@ -4,16 +4,15 @@ project(RScraper C CXX) # WARNING: Sets some important variables about the plarf
 
 
 
-
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    # e.g. cmake .. -DCMAKE_BUILD_TYPE=Debug
-    set(MY_DEFINITIONS "DEBUG")
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fsanitize=undefined -Wall -Wextra -Wshadow -Wstrict-aliasing -Wfloat-equal -Wpointer-arith -Wwrite-strings -Wformat=2 -Wstrict-overflow -Wunreachable-code") # -Wredundant-decls -Wmissing-declarations
-    endif()
+	# e.g. cmake .. -DCMAKE_BUILD_TYPE=Debug
+	set(MY_DEFINITIONS "DEBUG")
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fsanitize=undefined -Wall -Wextra -Wshadow -Wstrict-aliasing -Wfloat-equal -Wpointer-arith -Wwrite-strings -Wformat=2 -Wstrict-overflow -Wunreachable-code") # -Wredundant-decls -Wmissing-declarations
+	endif()
 else()
-    set(CMAKE_BUILD_TYPE "Release")
-    set(MY_DEFINITIONS "QT_NO_DEBUG" "QT_NO_DEBUG_OUTPUT")
+	set(CMAKE_BUILD_TYPE "Release")
+	set(MY_DEFINITIONS "QT_NO_DEBUG" "QT_NO_DEBUG_OUTPUT")
 endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
@@ -32,51 +31,51 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/shared-src")
 find_package(Compsky COMPONENTS asciify mysql REQUIRED)
 include_directories("${COMPSKY_INCLUDE_DIRS}")
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    link_directories("${COMPSKY_BIN_DIRS}")
+	link_directories("${COMPSKY_BIN_DIRS}")
 else()
-    link_directories("${COMPSKY_LIB_DIRS}")
+	link_directories("${COMPSKY_LIB_DIRS}")
 endif()
 
 include(GNUInstallDirs) # To define CMAKE_INSTALL_*DIR
 
 if(BUILD_PACKAGES)
-    set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
-    SET(CPACK_RPM_COMPONENT_INSTALL     ON)
-    SET(CPACK_DEB_COMPONENT_INSTALL     ON)
-    set(CPACK_DEBIAN_ENABLE_COMPONENT_DEPENDS ON)
+	set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+	SET(CPACK_RPM_COMPONENT_INSTALL     ON)
+	SET(CPACK_DEB_COMPONENT_INSTALL     ON)
+	set(CPACK_DEBIAN_ENABLE_COMPONENT_DEPENDS ON)
 
 
-    if("${BUILD_PACKAGES}" STREQUAL "1")
-        set(CPACK_COMPONENTS_ALL utils init io man scraper tagger gui)
-        message(STATUS "Note: You can specify the packages to build with -DBUILD_PACKAGES=<package_name>")
-    else()
-        set(CPACK_COMPONENTS_ALL ${BUILD_PACKAGES})
-    endif()
+	if("${BUILD_PACKAGES}" STREQUAL "1")
+		set(CPACK_COMPONENTS_ALL utils init io man scraper tagger gui)
+		message(STATUS "Note: You can specify the packages to build with -DBUILD_PACKAGES=<package_name>")
+	else()
+		set(CPACK_COMPONENTS_ALL ${BUILD_PACKAGES})
+	endif()
 
 
-    set(CPACK_COMPONENT_UTILS_DESCRIPTION
-        "Slightly useful utilities for rscraper")
-    set(CPACK_COMPONENT_INIT_DESCRIPTION
-        "Utility for initialising the database necessary for all rscraper packages")
-    set(CPACK_COMPONENT_IO_DESCRIPTION
-        "Utility for importing to and exporting from the RScraper database")
-    set(CPACK_COMPONENT_MAN_DESCRIPTION
-        "Man pages for all binaries")
-    set(CPACK_COMPONENT_SCRAPER_DESCRIPTION
-        "Tools for scraping Reddit")
-    set(CPACK_COMPONENT_TAGGER_DESCRIPTION
-        "Server for RTagger")
-    set(CPACK_COMPONENT_GUI_DESCRIPTION
-        "Qt5-based GUI for managing the scraper and tagger")
-    
-    set(Boost_USE_STATIC_LIBS ON) # Different repos have different libboost-regex versions that different repositories include, just easier to avoid this dependency for packages.
-    set(CPACK_DEBIAN_UTILS_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0)")
-    set(CPACK_DEBIAN_INIT_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0)")
-    set(CPACK_DEBIAN_IO_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0)")
-    set(CPACK_DEBIAN_MAN_PACKAGE_DEPENDS "")
-    set(CPACK_DEBIAN_SCRAPER_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0),  libcurl4 | libcurl3, libcurl4-gnutls-dev | libcurl3-gnutls")
-    set(CPACK_DEBIAN_TAGGER_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0)")
-    set(CPACK_DEBIAN_GUI_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0), libqt5widgets5, libqt5charts5")
+	set(CPACK_COMPONENT_UTILS_DESCRIPTION
+		"Slightly useful utilities for rscraper")
+	set(CPACK_COMPONENT_INIT_DESCRIPTION
+		"Utility for initialising the database necessary for all rscraper packages")
+	set(CPACK_COMPONENT_IO_DESCRIPTION
+		"Utility for importing to and exporting from the RScraper database")
+	set(CPACK_COMPONENT_MAN_DESCRIPTION
+		"Man pages for all binaries")
+	set(CPACK_COMPONENT_SCRAPER_DESCRIPTION
+		"Tools for scraping Reddit")
+	set(CPACK_COMPONENT_TAGGER_DESCRIPTION
+		"Server for RTagger")
+	set(CPACK_COMPONENT_GUI_DESCRIPTION
+		"Qt5-based GUI for managing the scraper and tagger")
+	
+	set(Boost_USE_STATIC_LIBS ON) # Different repos have different libboost-regex versions that different repositories include, just easier to avoid this dependency for packages.
+	set(CPACK_DEBIAN_UTILS_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0)")
+	set(CPACK_DEBIAN_INIT_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0)")
+	set(CPACK_DEBIAN_IO_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0)")
+	set(CPACK_DEBIAN_MAN_PACKAGE_DEPENDS "")
+	set(CPACK_DEBIAN_SCRAPER_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0),  libcurl4 | libcurl3, libcurl4-gnutls-dev | libcurl3-gnutls")
+	set(CPACK_DEBIAN_TAGGER_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0)")
+	set(CPACK_DEBIAN_GUI_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0), libqt5widgets5, libqt5charts5")
 endif()
 
 include(CheckCXXSourceCompiles)
@@ -96,7 +95,7 @@ set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation director
 foreach(p LIB BIN INCLUDE CMAKE)
   set(var INSTALL_${p}_DIR)
   if(NOT IS_ABSOLUTE "${${var}}")
-    set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
+	set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
   endif()
 endforeach()
 
@@ -111,7 +110,7 @@ add_subdirectory(utils)
 add_subdirectory(io)
 add_subdirectory(man)
 if(BUILD_PACKAGES)
-    add_subdirectory(packaging)
+	add_subdirectory(packaging)
 endif()
 
 export(PACKAGE RScraper)
@@ -130,10 +129,10 @@ configure_file(RScraperConfig.cmake.in "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIREC
 configure_file(RScraperConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/RScraperConfigVersion.cmake" @ONLY)
 
 install(
-    FILES
-    "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/RScraperConfig.cmake"
-    "${PROJECT_BINARY_DIR}/RScraperConfigVersion.cmake"
-    DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev
+	FILES
+	"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/RScraperConfig.cmake"
+	"${PROJECT_BINARY_DIR}/RScraperConfigVersion.cmake"
+	DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev
 )
 
 install(EXPORT RScraperTargets DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)

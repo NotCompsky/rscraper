@@ -17,24 +17,24 @@
 UnlinkTagBtn::UnlinkTagBtn(const uint64_t id,  QWidget* parent) : QPushButton("Unlink", parent), tag_id(id) {}
 
 void UnlinkTagBtn::exec(){
-    compsky::mysql::exec("DELETE FROM tag2category WHERE tag_id=", this->tag_id, " AND category_id=", static_cast<ClTagsTab*>(this->parent())->cat_id);
-    
-    const QWidget* par = reinterpret_cast<QWidget*>(this->parent());
-    QGridLayout* l = reinterpret_cast<QGridLayout*>(par->layout());
-    int row, col, rowspan, colspan;
-    l->getItemPosition(l->indexOf(this), &row, &col, &rowspan, &colspan); // Last position
-    
-    for (auto i = 0;  i < 8;  ++i){
-        QLayoutItem* a = l->itemAtPosition(row, i);
-        delete a->widget();
-        l->removeItem(a);
-    }
+	compsky::mysql::exec("DELETE FROM tag2category WHERE tag_id=", this->tag_id, " AND category_id=", static_cast<ClTagsTab*>(this->parent())->cat_id);
+	
+	const QWidget* par = reinterpret_cast<QWidget*>(this->parent());
+	QGridLayout* l = reinterpret_cast<QGridLayout*>(par->layout());
+	int row, col, rowspan, colspan;
+	l->getItemPosition(l->indexOf(this), &row, &col, &rowspan, &colspan); // Last position
+	
+	for (auto i = 0;  i < 8;  ++i){
+		QLayoutItem* a = l->itemAtPosition(row, i);
+		delete a->widget();
+		l->removeItem(a);
+	}
 }
 
 void UnlinkTagBtn::mousePressEvent(QMouseEvent* e){
-    switch(e->button()){
-        case Qt::LeftButton:
-            return this->exec();
-        default: return;
-    }
+	switch(e->button()){
+		case Qt::LeftButton:
+			return this->exec();
+		default: return;
+	}
 }

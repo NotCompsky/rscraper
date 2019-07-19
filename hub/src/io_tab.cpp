@@ -13,12 +13,12 @@
 
 
 IOTab::IOTab(QWidget* parent) : QWidget(parent) {
-    QVBoxLayout* l = new QVBoxLayout(this);
-    
-    l->addWidget(new QLabel("Placeholder Tab", this));
-    l->addWidget(new QLabel("To export tables, navigate to the output directory and use rscraper-export", this));
-    l->addWidget(new QLabel("To import tables, navigate to the directory and use rscraper-import", this));
-    l->addWidget(new QLineEdit("Check https://notcompsky.github.io/RScraper/Tagger/ for links to data dumps that you can import", this));
-    
-    this->setLayout(l);
+	QVBoxLayout* l = new QVBoxLayout(this);
+	
+	l->addWidget(new QLabel("Placeholder Tab", this));
+	l->addWidget(new QLabel("To export tables, navigate to the output directory and use rscraper-export", this));
+	l->addWidget(new QLabel("To import tables, navigate to the directory and use rscraper-import", this));
+	l->addWidget(new QLineEdit("Check https://notcompsky.github.io/RScraper/Tagger/ for links to data dumps that you can import", this));
+	
+	this->setLayout(l);
 }

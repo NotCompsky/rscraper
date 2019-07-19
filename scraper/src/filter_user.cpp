@@ -17,9 +17,9 @@ uint64_t* BLACKLIST_BODY;
 uint64_t* WHITELIST_BODY;
 
 void init(){
-    filter::init("user_count_bl", &BLACKLIST_COUNT);
-    filter::init("user_contents_bl",  &BLACKLIST_BODY);
-    filter::init("user_contents_wl",  &WHITELIST_BODY);
+	filter::init("user_count_bl", &BLACKLIST_COUNT);
+	filter::init("user_contents_bl",  &BLACKLIST_BODY);
+	filter::init("user_contents_wl",  &WHITELIST_BODY);
 }
 
 }

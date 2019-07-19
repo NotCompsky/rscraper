@@ -24,59 +24,59 @@ extern QCompleter* subreddit_name_completer;
 
 AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  const bool _delete_from,  QWidget* parent)
 :
-    QPushButton(QString(_delete_from?"-":"+") + "Subreddits",  parent),
-    tag_id(id),
-    delete_from(_delete_from)
+	QPushButton(QString(_delete_from?"-":"+") + "Subreddits",  parent),
+	tag_id(id),
+	delete_from(_delete_from)
 {}
 
 void AddSub2TagBtn::add_subreddit(){
-    while(true){
-        SQLNameDialog* namedialog = new SQLNameDialog("Subreddit Name");
-        
-        if (!this->delete_from)
-            namedialog->name_edit->setCompleter(subreddit_name_completer);
-        else {
-            QStringList tag_subreddits_names;
-            compsky::mysql::query(&RES1, "SELECT name FROM subreddit s, subreddit2tag s2t WHERE s2t.subreddit_id=s.id AND s2t.tag_id=", this->tag_id);
-            char* name;
-            while(compsky::mysql::assign_next_row(RES1, &ROW1, &name))
-                tag_subreddits_names << name;
-            QCompleter* tag_subreddits_names_completer = new QCompleter(tag_subreddits_names, namedialog);
-            namedialog->name_edit->setCompleter(tag_subreddits_names_completer);
-        }
-        
-        const int rc = namedialog->exec();
-        const char* patternstr = namedialog->get_pattern_str();
-        const bool is_pattern = !(patternstr[0] == '=');
-        const QString qstr = namedialog->name_edit->text();
-        
-        delete namedialog;
-        
-        if (rc != QDialog::Accepted)
-            return;
-        
-        if (qstr.isEmpty())
-            return;
-        
-        
-        
-        if (!is_pattern  &&  !subreddit_names.contains(qstr))
-            return notfound::subreddit(this, qstr);
-        
-        compsky::mysql::exec(
-            (this->delete_from) ? "DELETE s2t FROM subreddit2tag s2t LEFT JOIN subreddit s ON s2t.subreddit_id=s.id WHERE tag_id=" : "INSERT IGNORE INTO subreddit2tag SELECT id,",
-            this->tag_id,
-            (this->delete_from) ? " AND s.name" : " FROM subreddit WHERE name",
-            patternstr,
-            '"',  qstr,  '"'
-        );
-    }
+	while(true){
+		SQLNameDialog* namedialog = new SQLNameDialog("Subreddit Name");
+		
+		if (!this->delete_from)
+			namedialog->name_edit->setCompleter(subreddit_name_completer);
+		else {
+			QStringList tag_subreddits_names;
+			compsky::mysql::query(&RES1, "SELECT name FROM subreddit s, subreddit2tag s2t WHERE s2t.subreddit_id=s.id AND s2t.tag_id=", this->tag_id);
+			char* name;
+			while(compsky::mysql::assign_next_row(RES1, &ROW1, &name))
+				tag_subreddits_names << name;
+			QCompleter* tag_subreddits_names_completer = new QCompleter(tag_subreddits_names, namedialog);
+			namedialog->name_edit->setCompleter(tag_subreddits_names_completer);
+		}
+		
+		const int rc = namedialog->exec();
+		const char* patternstr = namedialog->get_pattern_str();
+		const bool is_pattern = !(patternstr[0] == '=');
+		const QString qstr = namedialog->name_edit->text();
+		
+		delete namedialog;
+		
+		if (rc != QDialog::Accepted)
+			return;
+		
+		if (qstr.isEmpty())
+			return;
+		
+		
+		
+		if (!is_pattern  &&  !subreddit_names.contains(qstr))
+			return notfound::subreddit(this, qstr);
+		
+		compsky::mysql::exec(
+			(this->delete_from) ? "DELETE s2t FROM subreddit2tag s2t LEFT JOIN subreddit s ON s2t.subreddit_id=s.id WHERE tag_id=" : "INSERT IGNORE INTO subreddit2tag SELECT id,",
+			this->tag_id,
+			(this->delete_from) ? " AND s.name" : " FROM subreddit WHERE name",
+			patternstr,
+			'"',  qstr,  '"'
+		);
+	}
 }
 
 void AddSub2TagBtn::mousePressEvent(QMouseEvent* e){
-    switch(e->button()){
-        case Qt::LeftButton:
-            return this->add_subreddit();
-        default: return;
-    }
+	switch(e->button()){
+		case Qt::LeftButton:
+			return this->add_subreddit();
+		default: return;
+	}
 }

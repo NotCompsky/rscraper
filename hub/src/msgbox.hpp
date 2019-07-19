@@ -8,11 +8,11 @@
 
 class MsgBox : public QMessageBox {
   public:
-    explicit MsgBox(QWidget* parent,  const QString& text,  const QString& details,  int w = 0);
+	explicit MsgBox(QWidget* parent,  const QString& text,  const QString& details,  int w = 0);
   private:
-    void showEvent(QShowEvent* e);
-    void resizeEvent(QResizeEvent* e);
-    int w;
+	void showEvent(QShowEvent* e);
+	void resizeEvent(QResizeEvent* e);
+	int w;
 };
 
 

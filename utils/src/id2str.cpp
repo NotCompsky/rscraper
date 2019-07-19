@@ -14,61 +14,61 @@
 
 
 size_t id2str(uint64_t id_orig,  char* buf){
-    size_t n_digits = 0;
-    uint64_t id = id_orig;
-    while (id != 0){
-        ++n_digits;
-        id /= 36;
-    }
-    const size_t to_return = n_digits;
-    while (id_orig != 0){ // Note that a subreddit id should never be 0
-        char digit = id_orig % 36;
-        buf[--n_digits] = digit + ((digit<10) ? '0' : 'a' - 10);
-        id_orig /= 36;
-    }
-    return to_return;
+	size_t n_digits = 0;
+	uint64_t id = id_orig;
+	while (id != 0){
+		++n_digits;
+		id /= 36;
+	}
+	const size_t to_return = n_digits;
+	while (id_orig != 0){ // Note that a subreddit id should never be 0
+		char digit = id_orig % 36;
+		buf[--n_digits] = digit + ((digit<10) ? '0' : 'a' - 10);
+		id_orig /= 36;
+	}
+	return to_return;
 }
 
 uint64_t str2id(const char* str){
-    uint64_t n = 0;
-    while (*str != 0){
-        n *= (10 + 26);
-        if (*str >= '0'  &&  *str <= '9')
-            n += *str - '0';
+	uint64_t n = 0;
+	while (*str != 0){
+		n *= (10 + 26);
+		if (*str >= '0'  &&  *str <= '9')
+			n += *str - '0';
 #ifdef DEBUG
-        else if (*str < 'a'  ||  *str > 'z'){
-            printf("ERROR: Bad alphanumeric: %s\n", str);
-            exit(1);
-        }
+		else if (*str < 'a'  ||  *str > 'z'){
+			printf("ERROR: Bad alphanumeric: %s\n", str);
+			exit(1);
+		}
 #endif
-        else
-            n += *str - 'a' + 10;
-        ++str;
-    }
-    return n;
+		else
+			n += *str - 'a' + 10;
+		++str;
+	}
+	return n;
 }
 
 uint64_t myatoi(const char* str){
-    uint64_t n = 0;
-    while (*str != 0){
-        n *= 10;
-        n += *str - '0';
-        ++str;
-    }
-    return n;
+	uint64_t n = 0;
+	while (*str != 0){
+		n *= 10;
+		n += *str - '0';
+		++str;
+	}
+	return n;
 }
 
 #if defined(ID2STR_EXE) || defined(STR2ID_EXE)
 int main(const int argc,  const char** argv){
-    char str[19 + 1];
-    for (auto j = 1;  j < argc;  ++j){
+	char str[19 + 1];
+	for (auto j = 1;  j < argc;  ++j){
 #ifdef ID2STR_EXE
-        str[id2str(myatoi(argv[j]), str)] = 0;
-        printf("%s\n", str);
+		str[id2str(myatoi(argv[j]), str)] = 0;
+		printf("%s\n", str);
 #else
-        uint64_t n = str2id(argv[j]);
-        printf("%lu\n", n);
+		uint64_t n = str2id(argv[j]);
+		printf("%lu\n", n);
 #endif
-    }
+	}
 }
 #endif

@@ -13,7 +13,7 @@ target_link_libraries(rscraper-import compsky_mysql compsky_asciify ${WHICH_MYSQ
 set_property(TARGET rscraper-import PROPERTY CXX_STANDARD 17)
 
 install(
-    TARGETS rscraper-export rscraper-import
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-        COMPONENT io
+	TARGETS rscraper-export rscraper-import
+	RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+	COMPONENT io
 )

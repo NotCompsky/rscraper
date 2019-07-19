@@ -13,13 +13,13 @@
 
 
 class ReasonTab : public QWidget{
-    Q_OBJECT
+	Q_OBJECT
   public:
-    explicit ReasonTab(QWidget* parent = 0);
-    QGridLayout* l;
+	explicit ReasonTab(QWidget* parent = 0);
+	QGridLayout* l;
   private:
-    void add_tag_row(const uint64_t tag_id,  QString tagstr,  const QColor& cl);
-    int row;
+	void add_tag_row(const uint64_t tag_id,  QString tagstr,  const QColor& cl);
+	int row;
 };
 
 #endif

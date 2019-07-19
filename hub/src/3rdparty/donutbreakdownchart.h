@@ -40,13 +40,13 @@ QT_CHARTS_USE_NAMESPACE
 class DonutBreakdownChart : public QChart
 {
 public:
-    QPieSeries *m_mainSeries;
-    DonutBreakdownChart(QGraphicsItem *parent = 0, Qt::WindowFlags wFlags = 0);
-    void addBreakdownSeries(QPieSeries *series, QColor color);
-    
+	QPieSeries *m_mainSeries;
+	DonutBreakdownChart(QGraphicsItem *parent = 0, Qt::WindowFlags wFlags = 0);
+	void addBreakdownSeries(QPieSeries *series, QColor color);
+	
 private:
-    void recalculateAngles();
-    void updateLegendMarkers();
+	void recalculateAngles();
+	void updateLegendMarkers();
 };
 
 #endif // DONUTBREAKDOWNCHART_H

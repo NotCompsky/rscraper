@@ -6,23 +6,23 @@ set(MAN_FILES)
 
 find_program(PANDOC NAMES pandoc)
 if(PANDOC STREQUAL "PANDOC-NOTFOUND")
-    return()
+	return()
 endif()
 
 foreach(basename ${MAN_PAGES_BASENAMES})
-    set(tgt "${basename}")
-    add_custom_command(
-        COMMAND "${PANDOC}" -s -t man "${DOC_DIR}/${basename}.md" -o "${CMAKE_CURRENT_BINARY_DIR}/${basename}"
-        COMMENT "Generating manpage from markdown doc: ${basename}"
-        DEPENDS "${DOC_DIR}/${basename}.md"
-        OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${basename}"
-    )
-    list(APPEND MAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/${basename}")
+	set(tgt "${basename}")
+	add_custom_command(
+		COMMAND "${PANDOC}" -s -t man "${DOC_DIR}/${basename}.md" -o "${CMAKE_CURRENT_BINARY_DIR}/${basename}"
+		COMMENT "Generating manpage from markdown doc: ${basename}"
+		DEPENDS "${DOC_DIR}/${basename}.md"
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${basename}"
+	)
+	list(APPEND MAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/${basename}")
 endforeach()
 
 add_custom_target(man ALL DEPENDS ${MAN_FILES})
 INSTALL(
-    FILES ${MAN_FILES}
-    DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
-    COMPONENT man
+	FILES ${MAN_FILES}
+	DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
+	COMPONENT man
 )

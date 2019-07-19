@@ -17,14 +17,14 @@
 
 
 class MainWindow : public QDialog{
-    Q_OBJECT
+	Q_OBJECT
   public:
-    ~MainWindow();
-    explicit MainWindow(QWidget* parent = 0);
+	~MainWindow();
+	explicit MainWindow(QWidget* parent = 0);
   private Q_SLOTS:
-    void rename_category(int indx);
+	void rename_category(int indx);
   private:
-    QTabWidget* tab_widget;
-    void insert_category(const uint64_t id,  const char* name);
+	QTabWidget* tab_widget;
+	void insert_category(const uint64_t id,  const char* name);
 };
 #endif

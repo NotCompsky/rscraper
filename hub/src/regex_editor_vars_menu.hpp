@@ -18,20 +18,20 @@ void optimise_regex(QString& data,  QString& result);
 
 
 class RegexEditorVarsMenu : public QDialog {
-    Q_OBJECT
+	Q_OBJECT
   public:
-    explicit RegexEditorVarsMenu(QWidget* parent = 0);
-    QGridLayout* l;
+	explicit RegexEditorVarsMenu(QWidget* parent = 0);
+	QGridLayout* l;
   public Q_SLOTS:
-    void add_var();
-    void add_var_row(const QString name,  const QString type_name);
+	void add_var();
+	void add_var_row(const QString name,  const QString type_name);
   private Q_SLOTS:
-    void var_edit_btn_clicked();
-    void var_view_btn_clicked();
-    void var_del_btn_clicked();
+	void var_edit_btn_clicked();
+	void var_view_btn_clicked();
+	void var_del_btn_clicked();
   private:
-    QTabWidget* tab_widget;
-    int row;
+	QTabWidget* tab_widget;
+	int row;
 };
 
 #endif

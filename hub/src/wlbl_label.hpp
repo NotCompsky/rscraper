@@ -12,16 +12,16 @@
 #include <QMouseEvent>
 
 class WlBlLabel : public QLabel {
-    Q_OBJECT
+	Q_OBJECT
   private:
-    virtual void display_subs_w_tag();
+	virtual void display_subs_w_tag();
   private Q_SLOTS:
-    void mousePressEvent(QMouseEvent* e);
+	void mousePressEvent(QMouseEvent* e);
   public:
-    const char* tblname;
-    const char* typ;
-    const char* typ_id_varname; // Most likely "id".
-    explicit WlBlLabel(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname);
+	const char* tblname;
+	const char* typ;
+	const char* typ_id_varname; // Most likely "id".
+	explicit WlBlLabel(const char* title,  const char* typ,  const char* typ_id_varname,  const char* tblname);
 };
 
 

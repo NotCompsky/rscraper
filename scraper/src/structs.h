@@ -11,12 +11,12 @@
 #include <inttypes.h> // for uint64_t
 
 struct cmnt_meta {
-    const char* author_name;
-    const char* subreddit_name;
-    
-    // ID comparison should be faster for filtering based on exact matches
-    const uint64_t author_id;
-    const uint64_t subreddit_id;
+	const char* author_name;
+	const char* subreddit_name;
+	
+	// ID comparison should be faster for filtering based on exact matches
+	const uint64_t author_id;
+	const uint64_t subreddit_id;
 };
 
 #endif

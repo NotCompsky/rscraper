@@ -17,23 +17,23 @@ class RegexEditorVarsMenu;
 
 
 class RegexEditor : public QDialog {
-    Q_OBJECT
+	Q_OBJECT
   public:
-    RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidget* parent = 0);
+	RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidget* parent = 0);
   private Q_SLOTS:
-    void test_regex();
-    void save_to_file();
+	void test_regex();
+	void save_to_file();
   private:
-    void find_text();
-    bool does_user_want_optimisations() const;
-    bool to_final_format(const bool optimise,  QString& buf,  int i = 0,  int j = 1,  int last_optimised_group_indx = 0,  int var_depth = 0);
-    void display_help();
-    void load_file();
-    QCheckBox* want_optimisations;
-    RegexEditorVarsMenu* vars_menu;
-    QString f_human_fp;
-    QString f_raw_fp;
-    CodeEditor* text_editor;
+	void find_text();
+	bool does_user_want_optimisations() const;
+	bool to_final_format(const bool optimise,  QString& buf,  int i = 0,  int j = 1,  int last_optimised_group_indx = 0,  int var_depth = 0);
+	void display_help();
+	void load_file();
+	QCheckBox* want_optimisations;
+	RegexEditorVarsMenu* vars_menu;
+	QString f_human_fp;
+	QString f_raw_fp;
+	CodeEditor* text_editor;
 };
 
 

@@ -14,7 +14,7 @@
 
 /* Defined in redditcurl_utils.hpp */
 namespace myrcu {
-    extern void handler(int n);
+	extern void handler(int n);
 }
 
 
@@ -26,9 +26,9 @@ extern CURL* curl;
 extern struct curl_slist* HEADERS;
 
 struct MemoryStruct {
-    char* memory;
-    size_t size;
-    size_t n_allocated;
+	char* memory;
+	size_t size;
+	size_t n_allocated;
 };
 
 extern struct MemoryStruct MEMORY;

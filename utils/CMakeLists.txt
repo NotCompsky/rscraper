@@ -17,7 +17,7 @@ add_executable(rscraped-reason   "${SRC_DIR}/cmnts_from_subs_tagged.cpp" "${SRC_
 set_property(TARGET rscraped-reason PROPERTY CXX_STANDARD 17)
 target_link_libraries(rscraped-reason ${WHICH_MYSQL_CLIENT} compsky_asciify compsky_mysql)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    target_link_libraries(rscraped-reason z secur32 ssl crypto crypt32 ws2_32)
+	target_link_libraries(rscraped-reason z secur32 ssl crypto crypt32 ws2_32)
 endif()
 
 add_executable(rscraped-tagged-subs "${SRC_DIR}/cmnts_from_subs_tagged.cpp" "${SRC_DIR}/id2str.cpp")
@@ -25,12 +25,12 @@ set_property(TARGET rscraped-tagged-subs PROPERTY CXX_STANDARD 17)
 target_link_libraries(rscraped-tagged-subs ${WHICH_MYSQL_CLIENT} compsky_asciify compsky_mysql)
 target_compile_definitions(rscraped-tagged-subs PRIVATE SUB2TAG)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    target_link_libraries(rscraped-tagged-subs z secur32 ssl crypto crypt32 ws2_32)
+	target_link_libraries(rscraped-tagged-subs z secur32 ssl crypto crypt32 ws2_32)
 endif()
 
 
 install(
-    TARGETS rscraper-id2str rscraper-str2id rscraped-reason rscraped-tagged-subs
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-        COMPONENT utils
+	TARGETS rscraper-id2str rscraper-str2id rscraped-reason rscraped-tagged-subs
+	RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+	COMPONENT utils
 )

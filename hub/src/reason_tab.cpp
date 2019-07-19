@@ -20,25 +20,25 @@ extern MYSQL_ROW ROW1;
 
 
 ReasonTab::ReasonTab(QWidget* parent) : QWidget(parent), row(0) {
-    this->l = new QGridLayout;
-    
-    compsky::mysql::query_buffer(&RES1,  "SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM reason_matched ORDER BY name");
-    
-    {
-    uint64_t id;
-    char* name;
-    uint8_t r, g, b, a;
-    
-    while (compsky::mysql::assign_next_row(RES1, &ROW1, &id, &name, &r, &g, &b, &a))
-        add_tag_row(id, name, QColor(r, g, b, a));
-    }
-    
-    setLayout(this->l);
+	this->l = new QGridLayout;
+	
+	compsky::mysql::query_buffer(&RES1,  "SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM reason_matched ORDER BY name");
+	
+	{
+	uint64_t id;
+	char* name;
+	uint8_t r, g, b, a;
+	
+	while (compsky::mysql::assign_next_row(RES1, &ROW1, &id, &name, &r, &g, &b, &a))
+		add_tag_row(id, name, QColor(r, g, b, a));
+	}
+	
+	setLayout(this->l);
 }
 
 void ReasonTab::add_tag_row(const uint64_t tag_id,  QString tagstr,  const QColor& cl){
-    ++this->row;
-    
-    this->l->addWidget(new QLabel(tagstr, this),                                       this->row,  0);
-    this->l->addWidget(new SelectColourButton(tag_id,  cl,  this,  "reason_matched"),  this->row,  1);
+	++this->row;
+	
+	this->l->addWidget(new QLabel(tagstr, this),                                       this->row,  0);
+	this->l->addWidget(new SelectColourButton(tag_id,  cl,  this,  "reason_matched"),  this->row,  1);
 }

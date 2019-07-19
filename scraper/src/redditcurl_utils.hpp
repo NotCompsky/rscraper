@@ -12,7 +12,7 @@
 
 
 namespace myrcu {
-    
+	
 constexpr int REDDIT_REQUEST_DELAY = 1;
 
 

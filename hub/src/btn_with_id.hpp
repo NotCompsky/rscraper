@@ -14,14 +14,14 @@
 
 
 class BtnWithID : public QPushButton {
-    Q_OBJECT
+	Q_OBJECT
   private Q_SLOTS:
-    void mousePressEvent(QMouseEvent* e);
+	void mousePressEvent(QMouseEvent* e);
   public:
-    explicit BtnWithID(const QString& title,  const uint64_t id,  QWidget* parent);
-    const uint64_t id;
+	explicit BtnWithID(const QString& title,  const uint64_t id,  QWidget* parent);
+	const uint64_t id;
   Q_SIGNALS:
-    void left_clicked(const int id);
+	void left_clicked(const int id);
 };
 
 #endif

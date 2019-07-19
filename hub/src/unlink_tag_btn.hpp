@@ -13,14 +13,14 @@
 
 
 class UnlinkTagBtn : public QPushButton{
-    Q_OBJECT
+	Q_OBJECT
   private Q_SLOTS:
-    void mousePressEvent(QMouseEvent* e);
+	void mousePressEvent(QMouseEvent* e);
   public:
-    const uint64_t tag_id;
-    explicit UnlinkTagBtn(const uint64_t id,  QWidget* parent);
+	const uint64_t tag_id;
+	explicit UnlinkTagBtn(const uint64_t id,  QWidget* parent);
   public Q_SLOTS:
-    void exec();
+	void exec();
 };
 
 #endif

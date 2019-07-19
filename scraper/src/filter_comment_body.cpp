@@ -17,7 +17,7 @@ void init(){
 }
 
 unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len){
-    return 0;
+	return 0;
 }
 #else
 boost::match_results<const char*> what;
@@ -25,28 +25,28 @@ boost::match_results<const char*> what;
 
 template<typename A,  typename B>
 bool contains(A& ls,  B x){
-    return (std::end(ls) != std::find(std::begin(ls), std::end(ls), x));
+	return (std::end(ls) != std::find(std::begin(ls), std::end(ls), x));
 };
 
 
 unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len, bool& to_record_contents){
-    if (!boost::regex_search(str,  str + str_len,  what,  *regexpr))
-        return 0;
-    
-    for (auto i = 1;  i < what.size();  ++i){
-        // Ignore first index - it is the entire match, not a regex group.
-        if (!what[i].matched)
-            continue;
-        auto reason_id = groupindx2reason[i];
-        if (SUBREDDIT_WHITELISTS[reason_id].size() != 0  &&  !contains(SUBREDDIT_WHITELISTS[reason_id], metadata.subreddit_id))
-            continue;
-        if (SUBREDDIT_BLACKLISTS[reason_id].size() != 0  &&  contains(SUBREDDIT_BLACKLISTS[reason_id], metadata.subreddit_id))
-            continue; // Not return - might be later matches that are not blacklisted
-        to_record_contents = record_contents[i]; // Whether to leave the comment content blank in our database, or to copy its contents.
-        return reason_id;
-    }
-    
-    return 0;
+	if (!boost::regex_search(str,  str + str_len,  what,  *regexpr))
+		return 0;
+	
+	for (auto i = 1;  i < what.size();  ++i){
+		// Ignore first index - it is the entire match, not a regex group.
+		if (!what[i].matched)
+			continue;
+		auto reason_id = groupindx2reason[i];
+		if (SUBREDDIT_WHITELISTS[reason_id].size() != 0  &&  !contains(SUBREDDIT_WHITELISTS[reason_id], metadata.subreddit_id))
+			continue;
+		if (SUBREDDIT_BLACKLISTS[reason_id].size() != 0  &&  contains(SUBREDDIT_BLACKLISTS[reason_id], metadata.subreddit_id))
+			continue; // Not return - might be later matches that are not blacklisted
+		to_record_contents = record_contents[i]; // Whether to leave the comment content blank in our database, or to copy its contents.
+		return reason_id;
+	}
+	
+	return 0;
 }
 #endif
 

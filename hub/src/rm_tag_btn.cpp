@@ -22,34 +22,34 @@ extern MYSQL_ROW ROW1;
 
 
 RmTagBtn::RmTagBtn(const uint64_t id,  QWidget* parent) : QPushButton("Delete", parent), tag_id(id) {
-    QPalette palette = this->palette();
-    palette.setColor(QPalette::Button, QColor(Qt::red));
-    this->setAutoFillBackground(true);
-    this->setPalette(palette);
-    this->setFlat(true);
-    this->update();
+	QPalette palette = this->palette();
+	palette.setColor(QPalette::Button, QColor(Qt::red));
+	this->setAutoFillBackground(true);
+	this->setPalette(palette);
+	this->setFlat(true);
+	this->update();
 }
 
 void RmTagBtn::rm_tag(){
-    compsky::mysql::exec("DELETE FROM subreddit2tag WHERE tag_id=", this->tag_id);
-    compsky::mysql::exec("DELETE FROM tag WHERE id=", this->tag_id);
-    compsky::mysql::exec("DELETE FROM tag2category WHERE tag_id=", this->tag_id);
-    
-    ClTagsTab* cat_tab = reinterpret_cast<ClTagsTab*>(this->parent());
-    const int indx = cat_tab->l->indexOf(this);
-    
-    int row, col, rowspan, colspan;
-    cat_tab->l->getItemPosition(indx, &row, &col, &rowspan, &colspan);
-    
-    QMessageBox::information(this,  "Success",  "The tag has been deleted, but will still appear in other previous categories - if it was assigned to them - until rscraper-hub is restarted");
-    
-    reinterpret_cast<UnlinkTagBtn*>(cat_tab->l->itemAtPosition(row, 6)->widget())->exec(); // unlink, which removes the row from the layout (includes deleting this object) // TODO: Rename exec to unlink_tag, for safety
+	compsky::mysql::exec("DELETE FROM subreddit2tag WHERE tag_id=", this->tag_id);
+	compsky::mysql::exec("DELETE FROM tag WHERE id=", this->tag_id);
+	compsky::mysql::exec("DELETE FROM tag2category WHERE tag_id=", this->tag_id);
+	
+	ClTagsTab* cat_tab = reinterpret_cast<ClTagsTab*>(this->parent());
+	const int indx = cat_tab->l->indexOf(this);
+	
+	int row, col, rowspan, colspan;
+	cat_tab->l->getItemPosition(indx, &row, &col, &rowspan, &colspan);
+	
+	QMessageBox::information(this,  "Success",  "The tag has been deleted, but will still appear in other previous categories - if it was assigned to them - until rscraper-hub is restarted");
+	
+	reinterpret_cast<UnlinkTagBtn*>(cat_tab->l->itemAtPosition(row, 6)->widget())->exec(); // unlink, which removes the row from the layout (includes deleting this object) // TODO: Rename exec to unlink_tag, for safety
 }
 
 void RmTagBtn::mousePressEvent(QMouseEvent* e){
-    switch(e->button()){
-        case Qt::LeftButton:
-            return this->rm_tag();
-        default: return;
-    }
+	switch(e->button()){
+		case Qt::LeftButton:
+			return this->rm_tag();
+		default: return;
+	}
 }

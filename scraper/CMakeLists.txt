@@ -6,26 +6,26 @@ FIND_PACKAGE(CURL)
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    # e.g. cmake .. -DCMAKE_BUILD_TYPE=Debug
-    set(MY_DEFINITIONS "DEBUG")
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
-    endif()
+	# e.g. cmake .. -DCMAKE_BUILD_TYPE=Debug
+	set(MY_DEFINITIONS "DEBUG")
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
+	endif()
 else()
-    set(CMAKE_BUILD_TYPE "Release")
-    set(MY_DEFINITIONS "QT_NO_DEBUG" "QT_NO_DEBUG_OUTPUT")
+	set(CMAKE_BUILD_TYPE "Release")
+	set(MY_DEFINITIONS "QT_NO_DEBUG" "QT_NO_DEBUG_OUTPUT")
 endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 
 if(IS_DIRECTORY "C:/Program Files (x86)/CURL")
-    include_directories("C:/Program Files (x86)/CURL/include")
+	include_directories("C:/Program Files (x86)/CURL/include")
 endif()
 
 
 if(WIN32)
-    include_directories("${MYSQL_INCLUDE_DIR}")
-    link_directories("${MYSQL_LIBRARIES}")
+	include_directories("${MYSQL_INCLUDE_DIR}")
+	link_directories("${MYSQL_LIBRARIES}")
 endif()
 
 message(STATUS "COMPSKY_INCLUDE_DIRS: ${COMPSKY_INCLUDE_DIRS}")
@@ -34,7 +34,7 @@ link_directories("C:/Program Files/Compsky/bin")
 
 
 if("${MY_TARGETS} " STREQUAL " ")
-    set(MY_TARGETS "rscrape-cmnts" "rscraper-init-scraper")
+	set(MY_TARGETS "rscrape-cmnts" "rscraper-init-scraper")
 endif()
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -43,7 +43,7 @@ set(ID2STR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../utils/src")
 include_directories("${ID2STR_DIR}")
 
 if(NOT Boost_FOUND)
-    message(WARNING "boost::regex not found, so there will be no regex matching in the examples")
+	message(WARNING "boost::regex not found, so there will be no regex matching in the examples")
 endif()
 
 # Rename example files
@@ -52,39 +52,39 @@ set(SRC_FILES "${SRC_DIR}/filter_comment_body_regexp.cpp" "${SRC_DIR}/filter_com
 set(BASE64_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/src/base64.c")
 
 if("rscraper-init-scraper" IN_LIST MY_TARGETS)
-    add_executable(rscraper-init-scraper "${SRC_DIR}/init.cpp")
-    target_include_directories(rscraper-init-scraper PRIVATE ${COMPSKY_INCLUDE_DIRS})
+	add_executable(rscraper-init-scraper "${SRC_DIR}/init.cpp")
+	target_include_directories(rscraper-init-scraper PRIVATE ${COMPSKY_INCLUDE_DIRS})
 endif()
 
 if("rscrape-cmnts" IN_LIST MY_TARGETS)
-    add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${SRC_FILES} "${ID2STR_DIR}/id2str.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../shared-src/init_regexp_from_file")
-    set_property(TARGET rscrape-cmnts PROPERTY CXX_STANDARD 17)
-    if(NOT FS_NOT_EXPERIMENTAL)
-        target_compile_definitions(rscrape-cmnts PRIVATE FS_EXPERIMENTAL=1)
-        target_link_libraries(rscrape-cmnts stdc++fs)
-    endif()
-    target_link_libraries(rscrape-cmnts curl)
-    target_link_libraries(rscrape-cmnts compsky_mysql)
-    target_link_libraries(rscrape-cmnts ${WHICH_MYSQL_CLIENT})
-    target_link_libraries(rscrape-cmnts compsky_asciify)
-    #target_link_libraries(rscrape-cmnts stdc++fs)
-    if(Boost_FOUND)
-        target_link_libraries(rscrape-cmnts ${Boost_REGEX_LIBRARY})
-        target_compile_definitions(rscrape-cmnts PRIVATE USE_BOOST_REGEX)
-    endif()
-    if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-        target_compile_definitions(rscrape-cmnts PUBLIC CURL_STATICLIB)
-        target_link_libraries(rscrape-cmnts ssh2 gnutls idn2 nettle hogweed gcrypt gpg-error unistring iconv ssl crypto z ws2_32 crypt32 wldap32 gmp pthread)
-    endif()
+	add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${SRC_FILES} "${ID2STR_DIR}/id2str.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../shared-src/init_regexp_from_file")
+	set_property(TARGET rscrape-cmnts PROPERTY CXX_STANDARD 17)
+	if(NOT FS_NOT_EXPERIMENTAL)
+		target_compile_definitions(rscrape-cmnts PRIVATE FS_EXPERIMENTAL=1)
+		target_link_libraries(rscrape-cmnts stdc++fs)
+	endif()
+	target_link_libraries(rscrape-cmnts curl)
+	target_link_libraries(rscrape-cmnts compsky_mysql)
+	target_link_libraries(rscrape-cmnts ${WHICH_MYSQL_CLIENT})
+	target_link_libraries(rscrape-cmnts compsky_asciify)
+	#target_link_libraries(rscrape-cmnts stdc++fs)
+	if(Boost_FOUND)
+		target_link_libraries(rscrape-cmnts ${Boost_REGEX_LIBRARY})
+		target_compile_definitions(rscrape-cmnts PRIVATE USE_BOOST_REGEX)
+	endif()
+	if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+		target_compile_definitions(rscrape-cmnts PUBLIC CURL_STATICLIB)
+		target_link_libraries(rscrape-cmnts ssh2 gnutls idn2 nettle hogweed gcrypt gpg-error unistring iconv ssl crypto z ws2_32 crypt32 wldap32 gmp pthread)
+	endif()
 endif()
 
 foreach(tgt ${MY_TARGETS})
-    target_compile_definitions("${tgt}" PRIVATE "${MY_DEFINITIONS}")
+	target_compile_definitions("${tgt}" PRIVATE "${MY_DEFINITIONS}")
 endforeach(tgt)
 
 
 install(
-    TARGETS ${MY_TARGETS}
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-        COMPONENT scraper
+	TARGETS ${MY_TARGETS}
+	RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+	COMPONENT scraper
 )

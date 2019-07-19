@@ -27,15 +27,15 @@ MYSQL_ROW ROW;
 extern "C" char* DST = NULL; // alias for BUF
 
 namespace compsky {
-    namespace asciify {
-        char* BUF;
-        constexpr const size_t BUF_SZ = 4096 * 1024;
-    }
+	namespace asciify {
+		char* BUF;
+		constexpr const size_t BUF_SZ = 4096 * 1024;
+	}
 }
 
 namespace _f {
-    constexpr static const compsky::asciify::flag::concat::Start cc_start;
-    constexpr static const compsky::asciify::flag::concat::End   cc_end;
+	constexpr static const compsky::asciify::flag::concat::Start cc_start;
+	constexpr static const compsky::asciify::flag::concat::End   cc_end;
 }
 
 
@@ -43,8 +43,8 @@ constexpr static const char* id_t2_ = "id-t2_";
 
 
 constexpr size_t strlen_constexpr(const char* s){
-    // GCC strlen is constexpr; this is apparently a bug
-    return (*s)  ?  1 + strlen_constexpr(s + 1)  :  0;
+	// GCC strlen is constexpr; this is apparently a bug
+	return (*s)  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
 
 
@@ -52,32 +52,32 @@ constexpr size_t strlen_constexpr(const char* s){
 
 
 size_t id2str(uint64_t id_orig,  char* buf){
-    size_t n_digits = 0;
-    uint64_t id = id_orig;
-    while (id != 0){
-        ++n_digits;
-        id /= 36;
-    }
-    const size_t to_return = n_digits;
-    while (id_orig != 0){ // Note that a subreddit id should never be 0
-        char digit = id_orig % 36;
-        buf[--n_digits] = digit + ((digit<10) ? '0' : 'a' - 10);
-        id_orig /= 36;
-    }
-    return to_return;
+	size_t n_digits = 0;
+	uint64_t id = id_orig;
+	while (id != 0){
+		++n_digits;
+		id /= 36;
+	}
+	const size_t to_return = n_digits;
+	while (id_orig != 0){ // Note that a subreddit id should never be 0
+		char digit = id_orig % 36;
+		buf[--n_digits] = digit + ((digit<10) ? '0' : 'a' - 10);
+		id_orig /= 36;
+	}
+	return to_return;
 }
 
 constexpr uint64_t str2id(const char* start,  const char* end){
-    // End points to the comma after the id
-    uint64_t n = 0;
-    for (const char* str = start;  str != end;  ++str){
-        n *= (10 + 26);
-        if (*str >= '0'  &&  *str <= '9')
-            n += *str - '0';
-        else
-            n += *str - 'a' + 10;
-    }
-    return n;
+	// End points to the comma after the id
+	uint64_t n = 0;
+	for (const char* str = start;  str != end;  ++str){
+		n *= (10 + 26);
+		if (*str >= '0'  &&  *str <= '9')
+			n += *str - '0';
+		else
+			n += *str - 'a' + 10;
+	}
+	return n;
 }
 
 //static_assert(str2id("6l4z3", 0, 5) == 11063919); // /u/AutoModerator
@@ -87,253 +87,253 @@ constexpr uint64_t str2id(const char* start,  const char* end){
 
 extern "C"
 void init(){
-    compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
-    compsky::asciify::BUF = (char*)malloc(compsky::asciify::BUF_SZ);
-    if (compsky::asciify::BUF == nullptr)
-        abort();
+	compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
+	compsky::asciify::BUF = (char*)malloc(compsky::asciify::BUF_SZ);
+	if (compsky::asciify::BUF == nullptr)
+		abort();
 }
 
 extern "C"
 void exit_mysql(){
-    compsky::mysql::exit_mysql();
+	compsky::mysql::exit_mysql();
 }
 
 size_t generate_user_id_list_string(const char* csv){
-    char* const buf_init = compsky::asciify::ITR;
-    bool current_id_valid = (*csv == '_');
-    printf("%c\n", *csv);
-    ++csv; // Skip last character of first prefix (no need to check for 0 - done in switch)
-    const char* current_id_start = csv;
-    while (true){
-        switch(*csv){
-            case 0:
-            case ',':
-                if (current_id_valid){
-                    const uint64_t id = str2id(current_id_start, csv);
-                    
-                    compsky::asciify::asciify(id);
-                    compsky::asciify::asciify(',');
-                }
-                for (auto i = 0;  i < 6;  ++i)
-                    // Safely skip the prefix ("id-t2_")
-                    if (*(++csv) == 0)
-                        // Good input would end only on k = 0 (corresponding to 'case 0')
-                        // Otherwise, there was not the expected prefix in after the comma
-                        return (uintptr_t)compsky::asciify::ITR - (uintptr_t)buf_init;
-                current_id_valid = (*csv == '_');
-                printf("%c\n", *csv);
-                current_id_start = csv + 1; // Start at character after comma
-                break;
-        }
-        ++csv;
-    }
+	char* const buf_init = compsky::asciify::ITR;
+	bool current_id_valid = (*csv == '_');
+	printf("%c\n", *csv);
+	++csv; // Skip last character of first prefix (no need to check for 0 - done in switch)
+	const char* current_id_start = csv;
+	while (true){
+		switch(*csv){
+			case 0:
+			case ',':
+				if (current_id_valid){
+					const uint64_t id = str2id(current_id_start, csv);
+					
+					compsky::asciify::asciify(id);
+					compsky::asciify::asciify(',');
+				}
+				for (auto i = 0;  i < 6;  ++i)
+					// Safely skip the prefix ("id-t2_")
+					if (*(++csv) == 0)
+						// Good input would end only on k = 0 (corresponding to 'case 0')
+						// Otherwise, there was not the expected prefix in after the comma
+						return (uintptr_t)compsky::asciify::ITR - (uintptr_t)buf_init;
+				current_id_valid = (*csv == '_');
+				printf("%c\n", *csv);
+				current_id_start = csv + 1; // Start at character after comma
+				break;
+		}
+		++csv;
+	}
 }
 
 /*
 extern "C"
 void generate_id_list(const char* tblname,  const char** names,  uint64_t* ls){
-    // NOTE: Maximum length of ls is known when this function is called (it is equal to length of names)
-    compsky::mysql::query(&RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", names, _f::cc_end,  "')");
-    uint64_t id;
-    while(compsky::mysql::assign_next_row(RES, &ROW, &id))
-        *(ls++) = id;
+	// NOTE: Maximum length of ls is known when this function is called (it is equal to length of names)
+	compsky::mysql::query(&RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", names, _f::cc_end,  "')");
+	uint64_t id;
+	while(compsky::mysql::assign_next_row(RES, &ROW, &id))
+		*(ls++) = id;
 }
 
 extern "C"
 uint64_t* generate_id_list_string(const char* tblname,  const char** names){
-    size_t max_n_IDs = 1; // For trailing null
-    for (const char** itr = names;  itr != nullptr;  ++itr)
-        ++max_n_IDs;
-    void* dummy = malloc(sizeof(uint64_t) * max_n_IDs);
-    if (dummy == nullptr)
-        exit(1036);
-    uint64_t* const ls_start = (uint64_t*)dummy;
-    uint64_t* ls = ls_start;
-    compsky::mysql::query(&RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", names, _f::cc_end,  "')");
-    uint64_t id;
-    while(compsky::mysql::assign_next_row(RES, &ROW, &id))
-        *(ls++) = id;
-    *ls = 0;
-    return ls_start;
+	size_t max_n_IDs = 1; // For trailing null
+	for (const char** itr = names;  itr != nullptr;  ++itr)
+		++max_n_IDs;
+	void* dummy = malloc(sizeof(uint64_t) * max_n_IDs);
+	if (dummy == nullptr)
+		exit(1036);
+	uint64_t* const ls_start = (uint64_t*)dummy;
+	uint64_t* ls = ls_start;
+	compsky::mysql::query(&RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", names, _f::cc_end,  "')");
+	uint64_t id;
+	while(compsky::mysql::assign_next_row(RES, &ROW, &id))
+		*(ls++) = id;
+	*ls = 0;
+	return ls_start;
 }
 */
 
 extern "C"
 const char* generate_id_list_string(const char* tblname,  const char** names){
-    size_t max_n_IDs = 1; // For trailing null
-    for (const char** itr = names;  itr != nullptr;  ++itr)
-        ++max_n_IDs;
-    void* const dummy = malloc(strlen_constexpr(" WHERE id IN (")  +  20 * max_n_IDs  +  2); // uint64_t has 19 digits maximum; add 1 for comma. Trailing close bracket and null byte.
-    if (dummy == nullptr)
-        exit(1036);
-    char* const start = (char* const)dummy;
-    char* itr = start;
-    compsky::mysql::query(&RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", 3, names, max_n_IDs, _f::cc_end,  "')");
-    char* id;
-    while(compsky::mysql::assign_next_row(RES, &ROW, &id)){
-        memcpy(itr,  id,  strlen(id));
-        itr += strlen(id);
-        *(itr++) = ',';
-    }
-    *(itr++) = ')';
-    *itr = 0;
-    return start;
+	size_t max_n_IDs = 1; // For trailing null
+	for (const char** itr = names;  itr != nullptr;  ++itr)
+		++max_n_IDs;
+	void* const dummy = malloc(strlen_constexpr(" WHERE id IN (")  +  20 * max_n_IDs  +  2); // uint64_t has 19 digits maximum; add 1 for comma. Trailing close bracket and null byte.
+	if (dummy == nullptr)
+		exit(1036);
+	char* const start = (char* const)dummy;
+	char* itr = start;
+	compsky::mysql::query(&RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", 3, names, max_n_IDs, _f::cc_end,  "')");
+	char* id;
+	while(compsky::mysql::assign_next_row(RES, &ROW, &id)){
+		memcpy(itr,  id,  strlen(id));
+		itr += strlen(id);
+		*(itr++) = ',';
+	}
+	*(itr++) = ')';
+	*itr = 0;
+	return start;
 }
 
 extern "C"
 void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition){
-    /*
-    Both 'tagcondition' and 'reasoncondition' are arrays of IDs used to filter the objects that populate the users' tag flair.
-    E.g. if tagcondition==nullptr, all tags are ignored.
-    If tagcondition=="", all tags are used.
-    If tagcondition=="AND id=1", only the tag with ID of 1 is used when generating the flair.
-    There is no effort to account for the case where both tags and reasons are null. There is no use case for such a configuration.
-    */
-    /*
-    The input id-t2_IDSTR,id-t2_IDSTR2,id-t2_IDSTR3, ... maps to {"IDSTR":"#0123456", ... }
-    
-    id_t2_ cancels out 0123456 on all values seperated by commas
-    
-    So IDSTR,IDSTR2,IDSTR3 ... maps to {"IDSTR":"#","IDSTR2":"#", ... }
-    
-    So ,, ... maps to {"":"#","":"#", ... }
-    
-    So strlen(output)  =  2 + n_commas(csv)*6 + strlen(output)
-    */
-    
-    // Convert id-t2_ABCDEF,id-t2_abcdefg,id-t2_12345  to  colour hex codes
-    // The former is longer than the latter, so can reuse the same string as the final output
-    // SQL statement might still be longer though, so have to create new string for it
-    
-    for (auto i = 0;  i < 5;  ++i){
-        // Safely skip first prefix bar the last character
-        if (*(csv++) == 0){
-            compsky::asciify::ITR = compsky::asciify::BUF + 1;
-            goto goto_results;
-        }
-    }
-    
-    compsky::asciify::reset_index();
-    compsky::asciify::asciify("SELECT * FROM (");
+	/*
+	Both 'tagcondition' and 'reasoncondition' are arrays of IDs used to filter the objects that populate the users' tag flair.
+	E.g. if tagcondition==nullptr, all tags are ignored.
+	If tagcondition=="", all tags are used.
+	If tagcondition=="AND id=1", only the tag with ID of 1 is used when generating the flair.
+	There is no effort to account for the case where both tags and reasons are null. There is no use case for such a configuration.
+	*/
+	/*
+	The input id-t2_IDSTR,id-t2_IDSTR2,id-t2_IDSTR3, ... maps to {"IDSTR":"#0123456", ... }
+	
+	id_t2_ cancels out 0123456 on all values seperated by commas
+	
+	So IDSTR,IDSTR2,IDSTR3 ... maps to {"IDSTR":"#","IDSTR2":"#", ... }
+	
+	So ,, ... maps to {"":"#","":"#", ... }
+	
+	So strlen(output)  =  2 + n_commas(csv)*6 + strlen(output)
+	*/
+	
+	// Convert id-t2_ABCDEF,id-t2_abcdefg,id-t2_12345  to  colour hex codes
+	// The former is longer than the latter, so can reuse the same string as the final output
+	// SQL statement might still be longer though, so have to create new string for it
+	
+	for (auto i = 0;  i < 5;  ++i){
+		// Safely skip first prefix bar the last character
+		if (*(csv++) == 0){
+			compsky::asciify::ITR = compsky::asciify::BUF + 1;
+			goto goto_results;
+		}
+	}
+	
+	compsky::asciify::reset_index();
+	compsky::asciify::asciify("SELECT * FROM (");
 
-    constexpr static const char* stmt_t_1 = 
-        "SELECT A.user_id, SUM(A.c), SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), GROUP_CONCAT(A.tstr) "
-        "FROM tag2category t2c "
-        "JOIN ( "
-            "SELECT u2scc.user_id, s2t.tag_id, SUM(u2scc.count) AS c, t.r, t.g, t.b, t.a, GROUP_CONCAT(s.name, \" \", u2scc.count) AS tstr "
-            "FROM user2subreddit_cmnt_count u2scc, subreddit s, subreddit2tag s2t, tag t "
-            "WHERE s.id=u2scc.subreddit_id AND s.id=s2t.subreddit_id AND t.id=s2t.tag_id AND u2scc.user_id IN (";
+	constexpr static const char* stmt_t_1 = 
+		"SELECT A.user_id, SUM(A.c), SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), GROUP_CONCAT(A.tstr) "
+		"FROM tag2category t2c "
+		"JOIN ( "
+			"SELECT u2scc.user_id, s2t.tag_id, SUM(u2scc.count) AS c, t.r, t.g, t.b, t.a, GROUP_CONCAT(s.name, \" \", u2scc.count) AS tstr "
+			"FROM user2subreddit_cmnt_count u2scc, subreddit s, subreddit2tag s2t, tag t "
+			"WHERE s.id=u2scc.subreddit_id AND s.id=s2t.subreddit_id AND t.id=s2t.tag_id AND u2scc.user_id IN (";
 
-    constexpr static const char* stmt_t_2 =
-            // ")" // Closing bracket added seperately 
-            " GROUP BY u2scc.user_id, s2t.tag_id, t.r, t.g, t.b, t.a"
-        ") A ON t2c.tag_id = A.tag_id "
-        "GROUP BY A.user_id, t2c.category_id";
+	constexpr static const char* stmt_t_2 =
+			// ")" // Closing bracket added seperately 
+			" GROUP BY u2scc.user_id, s2t.tag_id, t.r, t.g, t.b, t.a"
+		") A ON t2c.tag_id = A.tag_id "
+		"GROUP BY A.user_id, t2c.category_id";
 
-    constexpr static const char* stmt_m_1 =
-        "SELECT c.author_id AS user_id, 1, m.r, m.g, m.b, m.a, CONCAT(m.name, ' ', COUNT(m.id)) "
-        "FROM comment c, reason_matched m "
-        "WHERE c.reason_matched=m.id AND c.author_id IN (";
+	constexpr static const char* stmt_m_1 =
+		"SELECT c.author_id AS user_id, 1, m.r, m.g, m.b, m.a, CONCAT(m.name, ' ', COUNT(m.id)) "
+		"FROM comment c, reason_matched m "
+		"WHERE c.reason_matched=m.id AND c.author_id IN (";
 
-    constexpr static const char* stmt_m_2 =
-        /* ) */ " GROUP BY c.author_id, m.name, m.r, m.g, m.b, m.a"; // First ')' is not necessary as it is already copied by 'n_bytes_of_IDs' - because the last trailing comma is recorded by n_bytes_of_IDs as the comma is not stripped before then. This is slightly undesirable only for readability, but the alternative is to decrement BUF_INDX within the generate_user_id_list_string function, which would greatly complicate it.
+	constexpr static const char* stmt_m_2 =
+		/* ) */ " GROUP BY c.author_id, m.name, m.r, m.g, m.b, m.a"; // First ')' is not necessary as it is already copied by 'n_bytes_of_IDs' - because the last trailing comma is recorded by n_bytes_of_IDs as the comma is not stripped before then. This is slightly undesirable only for readability, but the alternative is to decrement BUF_INDX within the generate_user_id_list_string function, which would greatly complicate it.
 
-    if (tagcondition != nullptr){
-        memcpy(compsky::asciify::ITR,  stmt_t_1,  strlen_constexpr(stmt_t_1));
-        compsky::asciify::ITR += strlen_constexpr(stmt_t_1);
-        char* const start_of_user_IDs = compsky::asciify::ITR;
-        const size_t n_bytes_of_IDs = generate_user_id_list_string(csv);
-        if (n_bytes_of_IDs == 0){
-            // No valid IDs were found
-            DST = "{}";
-            return;
-        }
-        --compsky::asciify::ITR; // Remove trailing comma
-        compsky::asciify::asciify(')'); // Close 'WHERE id IN (' condition
-        compsky::asciify::asciify(tagcondition); // Could be empty string, or "AND t.id IN (...)", etc.
-        memcpy(compsky::asciify::ITR,  stmt_t_2,  strlen_constexpr(stmt_t_2));
-        compsky::asciify::ITR += strlen_constexpr(stmt_t_2);
-        if (reasoncondition != nullptr){
-            compsky::asciify::asciify(" UNION ALL ");
-            memcpy(compsky::asciify::ITR,  stmt_m_1,  strlen_constexpr(stmt_m_1));
-            compsky::asciify::ITR += strlen_constexpr(stmt_m_1);
-            memcpy(compsky::asciify::ITR,  start_of_user_IDs,  n_bytes_of_IDs);
-            compsky::asciify::ITR += n_bytes_of_IDs;
-            // No need to add closing bracket - copied by the above
-            compsky::asciify::asciify(reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
-            memcpy(compsky::asciify::ITR,  stmt_m_2,  strlen_constexpr(stmt_m_2));
-            compsky::asciify::ITR += strlen_constexpr(stmt_m_2);
-        }
-    } else { // Realistically, this should be 'reasons != nullptr' - though no effort is made to check that this holds
-        memcpy(compsky::asciify::ITR,  stmt_m_1,  strlen_constexpr(stmt_m_1));
-        compsky::asciify::ITR += strlen_constexpr(stmt_m_1);
-        const size_t n_bytes_of_IDs = generate_user_id_list_string(csv);
-        if (n_bytes_of_IDs == 0){
-            // No valid IDs were found
-            DST = "{}";
-            return;
-        }
-        --compsky::asciify::ITR; // Remove trailing comma
-        compsky::asciify::asciify(')');
-        compsky::asciify::asciify(reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
-        memcpy(compsky::asciify::ITR,  stmt_m_2,  strlen_constexpr(stmt_m_2));
-        compsky::asciify::ITR += strlen_constexpr(stmt_m_2);
-    }
-    compsky::asciify::asciify(") A ORDER BY user_id");
-    
-    printf("QRY: %.*s\n",  compsky::asciify::get_index(),  compsky::asciify::BUF); // TMP
-    
-    compsky::mysql::query_buffer(&RES, compsky::asciify::BUF, compsky::asciify::get_index());
-    
-    
-    compsky::asciify::ITR = compsky::asciify::BUF + 1;
-    
-    //compsky::asciify::BUF[compsky::asciify::BUF_INDX++] = '{'; We obtain an (erroneous) prefix of "]," in the following loop
-    // To avoid adding another branch, we simply skip the first character, and overwrite the second with "{" later
-    {
-    uint64_t last_id = 0;
-    uint64_t id;
-    uint64_t n_cmnts;
-    double r, g, b, a;
-    char* s;
-    char id_str[20];
-    size_t id_str_len;
-    size_t s_len;
-    constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f;
-    constexpr static const compsky::asciify::flag::StrLen ff;
-    while (compsky::mysql::assign_next_row(RES, &ROW, &id, &n_cmnts, &r, &g, &b, &a, ff, &s_len, &s)){
-        const size_t max_new_entry_size = strlen_constexpr("],\"id-t2_abcdefghijklm\":[[\"rgba(255,255,255,1.000)\",\"") + s_len + strlen_constexpr("\"],");
-        
-        if (compsky::asciify::get_index() + max_new_entry_size + 1 > compsky::asciify::BUF_SZ )
-            // +1 is to account for the terminating '}' char.
-            break;
-        
-        if (id != last_id){
-            --compsky::asciify::ITR;  // Overwrite trailing comma left by RGBs
-            id_str_len = id2str(id, id_str);
-            compsky::asciify::asciify("],\"id-t2_",  ff, id_str, id_str_len,  "\":[");
-            last_id = id;
-        }
-        
-        compsky::asciify::asciify(
-            "[\"rgba(",
-            +(uint8_t)(255.0 * r / (double)n_cmnts),  ',',
-            +(uint8_t)(255.0 * g / (double)n_cmnts),  ',',
-            +(uint8_t)(255.0 * b / (double)n_cmnts),  ',',
-            f, (double)(a / (double)n_cmnts), 3,
-            ")\",\"",
-            ff, s, s_len,
-            "\"],"
-        );
-    }
-    }
-    goto_results:
-    DST = compsky::asciify::BUF;
-    if (compsky::asciify::get_index() != 1){
-        *(--compsky::asciify::ITR) = ']'; // Overwrite trailing comma
-        ++DST; // Skip preceding comma
-    } else compsky::asciify::reset_index();
-    DST[0] = '{';
-    *(++compsky::asciify::ITR) = '}';
-    *(++compsky::asciify::ITR) = 0;
+	if (tagcondition != nullptr){
+		memcpy(compsky::asciify::ITR,  stmt_t_1,  strlen_constexpr(stmt_t_1));
+		compsky::asciify::ITR += strlen_constexpr(stmt_t_1);
+		char* const start_of_user_IDs = compsky::asciify::ITR;
+		const size_t n_bytes_of_IDs = generate_user_id_list_string(csv);
+		if (n_bytes_of_IDs == 0){
+			// No valid IDs were found
+			DST = "{}";
+			return;
+		}
+		--compsky::asciify::ITR; // Remove trailing comma
+		compsky::asciify::asciify(')'); // Close 'WHERE id IN (' condition
+		compsky::asciify::asciify(tagcondition); // Could be empty string, or "AND t.id IN (...)", etc.
+		memcpy(compsky::asciify::ITR,  stmt_t_2,  strlen_constexpr(stmt_t_2));
+		compsky::asciify::ITR += strlen_constexpr(stmt_t_2);
+		if (reasoncondition != nullptr){
+			compsky::asciify::asciify(" UNION ALL ");
+			memcpy(compsky::asciify::ITR,  stmt_m_1,  strlen_constexpr(stmt_m_1));
+			compsky::asciify::ITR += strlen_constexpr(stmt_m_1);
+			memcpy(compsky::asciify::ITR,  start_of_user_IDs,  n_bytes_of_IDs);
+			compsky::asciify::ITR += n_bytes_of_IDs;
+			// No need to add closing bracket - copied by the above
+			compsky::asciify::asciify(reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
+			memcpy(compsky::asciify::ITR,  stmt_m_2,  strlen_constexpr(stmt_m_2));
+			compsky::asciify::ITR += strlen_constexpr(stmt_m_2);
+		}
+	} else { // Realistically, this should be 'reasons != nullptr' - though no effort is made to check that this holds
+		memcpy(compsky::asciify::ITR,  stmt_m_1,  strlen_constexpr(stmt_m_1));
+		compsky::asciify::ITR += strlen_constexpr(stmt_m_1);
+		const size_t n_bytes_of_IDs = generate_user_id_list_string(csv);
+		if (n_bytes_of_IDs == 0){
+			// No valid IDs were found
+			DST = "{}";
+			return;
+		}
+		--compsky::asciify::ITR; // Remove trailing comma
+		compsky::asciify::asciify(')');
+		compsky::asciify::asciify(reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
+		memcpy(compsky::asciify::ITR,  stmt_m_2,  strlen_constexpr(stmt_m_2));
+		compsky::asciify::ITR += strlen_constexpr(stmt_m_2);
+	}
+	compsky::asciify::asciify(") A ORDER BY user_id");
+	
+	printf("QRY: %.*s\n",  compsky::asciify::get_index(),  compsky::asciify::BUF); // TMP
+	
+	compsky::mysql::query_buffer(&RES, compsky::asciify::BUF, compsky::asciify::get_index());
+	
+	
+	compsky::asciify::ITR = compsky::asciify::BUF + 1;
+	
+	//compsky::asciify::BUF[compsky::asciify::BUF_INDX++] = '{'; We obtain an (erroneous) prefix of "]," in the following loop
+	// To avoid adding another branch, we simply skip the first character, and overwrite the second with "{" later
+	{
+	uint64_t last_id = 0;
+	uint64_t id;
+	uint64_t n_cmnts;
+	double r, g, b, a;
+	char* s;
+	char id_str[20];
+	size_t id_str_len;
+	size_t s_len;
+	constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f;
+	constexpr static const compsky::asciify::flag::StrLen ff;
+	while (compsky::mysql::assign_next_row(RES, &ROW, &id, &n_cmnts, &r, &g, &b, &a, ff, &s_len, &s)){
+		const size_t max_new_entry_size = strlen_constexpr("],\"id-t2_abcdefghijklm\":[[\"rgba(255,255,255,1.000)\",\"") + s_len + strlen_constexpr("\"],");
+		
+		if (compsky::asciify::get_index() + max_new_entry_size + 1 > compsky::asciify::BUF_SZ )
+			// +1 is to account for the terminating '}' char.
+			break;
+		
+		if (id != last_id){
+			--compsky::asciify::ITR;  // Overwrite trailing comma left by RGBs
+			id_str_len = id2str(id, id_str);
+			compsky::asciify::asciify("],\"id-t2_",  ff, id_str, id_str_len,  "\":[");
+			last_id = id;
+		}
+		
+		compsky::asciify::asciify(
+			"[\"rgba(",
+			+(uint8_t)(255.0 * r / (double)n_cmnts),  ',',
+			+(uint8_t)(255.0 * g / (double)n_cmnts),  ',',
+			+(uint8_t)(255.0 * b / (double)n_cmnts),  ',',
+			f, (double)(a / (double)n_cmnts), 3,
+			")\",\"",
+			ff, s, s_len,
+			"\"],"
+		);
+	}
+	}
+	goto_results:
+	DST = compsky::asciify::BUF;
+	if (compsky::asciify::get_index() != 1){
+		*(--compsky::asciify::ITR) = ']'; // Overwrite trailing comma
+		++DST; // Skip preceding comma
+	} else compsky::asciify::reset_index();
+	DST[0] = '{';
+	*(++compsky::asciify::ITR) = '}';
+	*(++compsky::asciify::ITR) = 0;
 }

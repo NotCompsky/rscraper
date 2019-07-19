@@ -15,14 +15,14 @@
 
 
 class MainTab : public QWidget {
-    Q_OBJECT
+	Q_OBJECT
   public:
-    explicit MainTab(QTabWidget* tab_widget,  QWidget* parent = 0);
+	explicit MainTab(QTabWidget* tab_widget,  QWidget* parent = 0);
   public Q_SLOTS:
-    void add_category();
+	void add_category();
   private:
-    QTabWidget* tab_widget;
-    CatDoughnut* cat_doughnut;
+	QTabWidget* tab_widget;
+	CatDoughnut* cat_doughnut;
 };
 
 #endif

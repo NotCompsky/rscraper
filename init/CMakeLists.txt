@@ -11,9 +11,8 @@ target_link_libraries(rscraper-init compsky_mysql_create_config compsky_asciify)
 set_property(TARGET rscraper-init PROPERTY CXX_STANDARD 17)
 
 
-
 install(
-    TARGETS rscraper-init
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-        COMPONENT init
+	TARGETS rscraper-init
+	RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+	COMPONENT init
 )

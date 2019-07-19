@@ -18,35 +18,35 @@
 
 
 class ViewMatchedComments : public QWidget {
-    Q_OBJECT
+	Q_OBJECT
   public:
-    explicit ViewMatchedComments(QWidget* parent);
-    ~ViewMatchedComments();
+	explicit ViewMatchedComments(QWidget* parent);
+	~ViewMatchedComments();
   private:
-    void next();
-    void del_cmnt();
-    void init();
-    void toggle_order_btns();
-    void view_matches();
-    const char* get_sort_column();
-    QLineEdit* tagname_input;
-    QLineEdit* reasonname_input;
-    QPlainTextEdit* textarea;
-    QLabel* subname;
-    QLabel* username;
-    QLabel* reasonname;
-    QLabel* datetime;
-    QLineEdit* permalink;
-    QRadioButton* sorting_column_btns[6];
-    char post_id_str[10];
-    char cmnt_id_str[10];
-    char dt_buf[200];
-    uint64_t cmnt_id;
-    char* cmnt_body;
-    size_t cmnt_body_sz;
-    MYSQL_RES* res1;
-    MYSQL_ROW row1;
-    bool is_ascending;
+	void next();
+	void del_cmnt();
+	void init();
+	void toggle_order_btns();
+	void view_matches();
+	const char* get_sort_column();
+	QLineEdit* tagname_input;
+	QLineEdit* reasonname_input;
+	QPlainTextEdit* textarea;
+	QLabel* subname;
+	QLabel* username;
+	QLabel* reasonname;
+	QLabel* datetime;
+	QLineEdit* permalink;
+	QRadioButton* sorting_column_btns[6];
+	char post_id_str[10];
+	char cmnt_id_str[10];
+	char dt_buf[200];
+	uint64_t cmnt_id;
+	char* cmnt_body;
+	size_t cmnt_body_sz;
+	MYSQL_RES* res1;
+	MYSQL_ROW row1;
+	bool is_ascending;
 };
 
 

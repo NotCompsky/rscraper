@@ -19,36 +19,36 @@ extern MYSQL_ROW ROW1;
 
 
 namespace _f {
-    constexpr static const compsky::asciify::flag::Escape esc;
+	constexpr static const compsky::asciify::flag::Escape esc;
 }
 
 
 WlBlLabel::WlBlLabel(const char* name,  const char* typ,  const char* typ_id_varname,  const char* tblname)
 :
-    tblname(tblname), typ(typ), typ_id_varname(typ_id_varname), QLabel(name)
+	tblname(tblname), typ(typ), typ_id_varname(typ_id_varname), QLabel(name)
 {}
 
 
 void WlBlLabel::display_subs_w_tag(){
-    compsky::mysql::query(&RES1,  "SELECT IFNULL(b.name, CONCAT('<ID>', a.id)) FROM ", this->tblname, " a LEFT JOIN ", this->typ, " b ON a.", this->typ_id_varname, "=b.id");
-    
-    char* name;
-    QString s = "";
-    while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
-        s += '\n';
-        s += name;
-    }
-    
-    MsgBox* msgbox = new MsgBox(this, this->text(), s);
-    msgbox->exec();
+	compsky::mysql::query(&RES1,  "SELECT IFNULL(b.name, CONCAT('<ID>', a.id)) FROM ", this->tblname, " a LEFT JOIN ", this->typ, " b ON a.", this->typ_id_varname, "=b.id");
+	
+	char* name;
+	QString s = "";
+	while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
+		s += '\n';
+		s += name;
+	}
+	
+	MsgBox* msgbox = new MsgBox(this, this->text(), s);
+	msgbox->exec();
 }
 
 
 void WlBlLabel::mousePressEvent(QMouseEvent* e){
-    switch(e->button()){
-        case Qt::RightButton:
-            this->display_subs_w_tag();
-            return;
-        default: return;
-    }
+	switch(e->button()){
+		case Qt::RightButton:
+			this->display_subs_w_tag();
+			return;
+		default: return;
+	}
 }
