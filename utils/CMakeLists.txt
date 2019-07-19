@@ -31,6 +31,6 @@ endif()
 
 install(
     TARGETS rscraper-id2str rscraper-str2id rscraped-reason rscraped-tagged-subs
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT utils
 )

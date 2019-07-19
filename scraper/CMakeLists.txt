@@ -85,6 +85,6 @@ endforeach(tgt)
 
 install(
     TARGETS ${MY_TARGETS}
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT scraper
 )

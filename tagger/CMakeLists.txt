@@ -38,7 +38,7 @@ add_custom_command(
 )
 install(
     PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/rscraper-tagger-server"
-    DESTINATION bin
+    DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT tagger
 )
 
@@ -50,7 +50,7 @@ target_compile_definitions(rscraper-tagger PRIVATE ${MY_DEFINITIONS})
 set_target_properties(rscraper-tagger PROPERTIES PUBLIC_HEADER "${INC_DIR}/rscraper/tagger.hpp")
 
 
-install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/rscraper-tagger-server.py" DESTINATION bin)
+install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/rscraper-tagger-server.py" DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 
 install(
@@ -58,7 +58,7 @@ install(
     EXPORT RScraperTargets
     PUBLIC_HEADER DESTINATION
         "${INSTALL_INCLUDE_DIR}/rscraper"
-    LIBRARY DESTINATION lib
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
         COMPONENT tagger
 )
 

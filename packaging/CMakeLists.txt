@@ -68,7 +68,7 @@ else()
         )
     # License file
     install(FILES ${PROJECT_SOURCE_DIR}/LICENSE
-        DESTINATION share/doc/${PROJECT_NAME}/
+        DESTINATION "${CMAKE_INSTALL_DOCDIR}"
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
         RENAME copyright)
     # set package icon

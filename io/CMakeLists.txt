@@ -14,6 +14,6 @@ set_property(TARGET rscraper-import PROPERTY CXX_STANDARD 17)
 
 install(
     TARGETS rscraper-export rscraper-import
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT io
 )

@@ -96,7 +96,7 @@ endif()
 
 install(
     TARGETS rscraper-hub
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT gui
 )
 

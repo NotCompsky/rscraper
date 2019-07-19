@@ -37,6 +37,7 @@ else()
     link_directories("${COMPSKY_LIB_DIRS}")
 endif()
 
+include(GNUInstallDirs) # To define CMAKE_INSTALL_*DIR
 
 if(BUILD_PACKAGES)
     set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
