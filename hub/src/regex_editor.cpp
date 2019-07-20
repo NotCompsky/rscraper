@@ -150,8 +150,8 @@ void RegexEditor::find_text(){
 	this->text_editor->setTextCursor(cursor);
 }
 
-void RegexEditor::display_help(){
-	QMessageBox::information(this,  "Help",  help_text);
+void RegexEditor::display_help() const{
+	QMessageBox::information(0,  "Help",  help_text);
 }
 
 void RegexEditor::load_file(){
@@ -169,7 +169,7 @@ int get_line_n(const QString& s,  int end){
 	return n;
 }
 
-bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  int j,  int last_optimised_group_indx,  int var_depth){ // Use seperate buffer to avoid overwriting text_editor contents
+bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  int j,  int last_optimised_group_indx,  int var_depth) const { // Use seperate buffer to avoid overwriting text_editor contents
 	// WARNING: Does not currently support special encodings, i.e. non-ASCII characters are likely to be mangled.
 	// TODO: Add utf8 support.
 	QString q = this->text_editor->toPlainText();
@@ -202,11 +202,12 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 			else {
 				constexpr static const int ctx = 10;
 				MsgBox* msgbox = new MsgBox(
-					this,  
+					0,  
 					"Unrecognised escape sequence: \\" + QString(ch) + " at line " + QString::number(get_line_n(q, i)),
 					QStringRef(&q,  (i >= ctx) ? i - ctx : 0,  (i + ctx < q.size()) ? i + ctx : q.size() - 1).toString()
 				);
 				msgbox->exec();
+				delete msgbox;
 				goto goto_RE_tff_cleanup;
 			}
 			
@@ -234,11 +235,12 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 					msg += var_names[--k];
 				}
 				MsgBox* msgbox = new MsgBox(
-					this,  
+					0,  
 					"Undeclared variable: " + substitute_var_name + "\nAt line " + QString::number(get_line_n(q, i)),
 					msg
 				);
 				msgbox->exec();
+				delete msgbox;
 				goto goto_RE_tff_cleanup;
 			}
 			buf += var;
@@ -324,7 +326,7 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 	return false;
 }
 
-void RegexEditor::test_regex(){
+void RegexEditor::test_regex() const{
 	QString buf; // Dummy character to create space for 1 char at beginning
 	buf.reserve(this->text_editor->toPlainText().size());
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
@@ -354,8 +356,9 @@ void RegexEditor::test_regex(){
 			delete filter_comment_body::regexpr;
 		filter_comment_body::regexpr = new boost::basic_regex<char, boost::cpp_regex_traits<char>>(s,  boost::regex::perl);
 	} catch (boost::regex_error& e){
-		MsgBox* msgbox = new MsgBox(this, e.what(), s, 720);
+		MsgBox* msgbox = new MsgBox(0, e.what(), s, 720);
 		msgbox->exec();
+		delete msgbox;
 		//delete filter_comment_body::regexpr; // No need to delete, as object is not created when error is thrown.
 		filter_comment_body::regexpr = nullptr;
 		return;
@@ -406,11 +409,12 @@ void RegexEditor::test_regex(){
 	if (!try_exrex)
 		report += "\n\nTo see example strings that match each group regex, pip install exrex";
 	
-	MsgBox* msgbox = new MsgBox(this, "Success", report, 720);
+	MsgBox* msgbox = new MsgBox(0, "Success", report, 720);
 	msgbox->exec();
+	delete msgbox;
 }
 
-void RegexEditor::save_to_file(){
+void RegexEditor::save_to_file() const {
 	QString buf; // Dummy character to create space for 1 char at beginning
 	buf.reserve(this->text_editor->toPlainText().size());
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
