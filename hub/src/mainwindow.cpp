@@ -30,6 +30,7 @@
 
 namespace compsky {
 	namespace asciify {
+		int BUF_SZ = 4096; // int rather than size_t as Qt string length returns int
 		char* BUF = (char*)malloc(4096);
 		char* ITR = BUF;
 	}

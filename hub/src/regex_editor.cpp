@@ -33,6 +33,11 @@
 extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
+namespace compsky {
+	namespace asciify {
+		extern int BUF_SZ;
+	}
+}
 
 namespace filter_comment_body {
 	extern boost::basic_regex<char, boost::cpp_regex_traits<char>>* regexpr;
@@ -408,9 +413,19 @@ void RegexEditor::test_regex() const{
 
 void RegexEditor::save_to_file() const {
 	QString buf; // Dummy character to create space for 1 char at beginning
-	buf.reserve(this->text_editor->toPlainText().size());
+	const int buf_sz = this->text_editor->toPlainText().size();
+	buf.reserve(buf_sz);
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
 		return;
+	
+	if (buf_sz > compsky::asciify::BUF_SZ){
+		// Ensure there is sufficient space to run the compsky::mysql::exec commands below
+		compsky::asciify::BUF_SZ = 2*buf_sz;
+		void* dummy = malloc(compsky::asciify::BUF_SZ);
+		if (dummy == nullptr)
+			exit(4096);
+		compsky::asciify::BUF = (char*)dummy;
+	}
 	
 	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', this->text_editor->toPlainText(), "\" WHERE name='", this->src, "'");
 	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', buf, "\" WHERE name='", this->dst, "'");
