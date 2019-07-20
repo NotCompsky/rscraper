@@ -172,7 +172,7 @@ int get_line_n(const QString& s,  int end){
 bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  int j,  int last_optimised_group_indx,  int var_depth) const { // Use seperate buffer to avoid overwriting text_editor contents
 	// WARNING: Does not currently support special encodings, i.e. non-ASCII characters are likely to be mangled.
 	// TODO: Add utf8 support.
-	QString q = this->text_editor->toPlainText();
+	const QString q = this->text_editor->toPlainText();
 	
 	int group_start = 0;
 	int group_start_offset;
