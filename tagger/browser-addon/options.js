@@ -17,7 +17,7 @@ function save_options() {
 // Restores select box and checkbox state using the preferences stored in chrome.storage
 function restore_options() {
   chrome.storage.sync.get({
-    url: "http://104.197.15.19:8080/"
+    url: "http://104.197.15.19:8080/rtagger/"
   }, function(items) {
     document.getElementById("url").value = items.url;
   });

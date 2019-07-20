@@ -38,7 +38,7 @@ function main(d){
 }
 
 chrome.storage.sync.get({
-    url: "http://104.197.15.19:8080/"
+    url: "http://104.197.15.19:8080/rtagger/"
 }, function(items) {
     fetch(items.url + userIds.join(","))
         .then(function(r){
