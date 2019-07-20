@@ -15,17 +15,17 @@
 #include <stdlib.h> // for malloc, exit
 
 
-extern MYSQL_RES* RES;
-extern MYSQL_ROW ROW;
+extern MYSQL_RES* RES1;
+extern MYSQL_ROW ROW1;
 
 
 namespace filter {
 	void init(const char* tblname,  uint64_t** list){
 		size_t n_subreddits;
 		
-		compsky::mysql::query(&RES, "SELECT count(*) FROM ", tblname);
+		compsky::mysql::query(&RES1, "SELECT count(*) FROM ", tblname);
 		
-		while(compsky::mysql::assign_next_row(RES, &ROW, &n_subreddits));
+		while(compsky::mysql::assign_next_row(RES1, &ROW1, &n_subreddits));
 		
 		/* Pre-allocate memory for array to ensure continuity, as the lookup speed is important */
 		uint64_t* dummy = (uint64_t*)malloc((n_subreddits + 1) * sizeof(uint64_t));
@@ -34,10 +34,10 @@ namespace filter {
 		
 		*list = dummy;
 		
-		compsky::mysql::query(&RES, "SELECT id FROM ", tblname);
+		compsky::mysql::query(&RES1, "SELECT id FROM ", tblname);
 		
 		uint64_t subreddit_id;
-		while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit_id)){
+		while(compsky::mysql::assign_next_row(RES1, &ROW1, &subreddit_id)){
 			*(dummy++) = subreddit_id;
 		}
 		*dummy = 0;

@@ -28,8 +28,8 @@
 #endif
 
 
-MYSQL_RES* RES;
-MYSQL_ROW ROW;
+MYSQL_RES* RES1;
+MYSQL_ROW ROW1;
 
 namespace compsky {
 	namespace asciify {
