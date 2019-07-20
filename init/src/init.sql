@@ -156,8 +156,15 @@ CREATE TABLE IF NOT EXISTS regex_vars (
     PRIMARY KEY (name)
 );
 
+CREATE TABLE IF NOT EXISTS longstrings (
+    name VARBINARY(128) NOT NULL,
+    data LONGTEXT CHARACTER SET ucs2,
+    PRIMARY KEY (name)
+);
+
 
 INSERT IGNORE INTO reason_matched (id, name)             VALUES (0, "None");
 INSERT IGNORE INTO reason_matched (id, name, r, g, b, a) VALUES (1, "Unknown", 0.5, 0.5, 0.5, 1);
+INSERT IGNORE INTO longstrings (name, data) VALUES ("cmnt_body_regex", "");
 
 )====="

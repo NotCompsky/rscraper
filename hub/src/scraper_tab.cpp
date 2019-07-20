@@ -169,11 +169,11 @@ ScraperTab::ScraperTab(QWidget* parent) : QWidget(parent) {
 void ScraperTab::open_cmnt_body_re_editor(){
 	QString qfp = getenv("RSCRAPER_REGEX_FILE");
 	if (qfp == nullptr){
-		QMessageBox::information(this, "Invalid Action", "Environmental variable RSCRAPER_REGEX_FILE must be set to the file to save this regex to");
+		QMessageBox::information(this, "Invalid Action", "Environmental variable RSCRAPER_REGEX_FILE must be set to the file to save the human-readable regex to");
 		return;
 	}
 	
-	RegexEditor* editor = new RegexEditor(qfp + ".human",  qfp,  this);
+	RegexEditor* editor = new RegexEditor(qfp,  this);
 	editor->exec();
 }
 #endif

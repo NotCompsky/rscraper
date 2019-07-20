@@ -15,6 +15,7 @@
 #include "regex_editor_vars_menu.hpp"
 #include "3rdparty/codeeditor.hpp"
 
+#include <compsky/mysql/query.hpp>
 #include <compsky/regex/named_groups.hpp>
 
 #include <boost/regex.hpp>
@@ -29,8 +30,16 @@
 #include <QVBoxLayout>
 
 
+extern MYSQL_RES* RES1;
+extern MYSQL_ROW ROW1;
+
+
 namespace filter_comment_body {
 	extern boost::basic_regex<char, boost::cpp_regex_traits<char>>* regexpr;
+}
+
+namespace _f {
+	constexpr static const compsky::asciify::flag::Escape esc;
 }
 
 static const QString help_text = 
@@ -56,7 +65,7 @@ static const QString help_text =
 ;
 
 
-RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidget* parent) : QDialog(parent), f_human_fp(human_fp), f_raw_fp(raw_fp) {
+RegexEditor::RegexEditor(const QString& human_fp,  QWidget* parent) : QDialog(parent), f_human_fp(human_fp) {
 	QVBoxLayout* l = new QVBoxLayout;
 	
 	this->text_editor = new CodeEditor(this);
@@ -411,13 +420,7 @@ void RegexEditor::save_to_file(){
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
 		return;
 	
-	QFile f_raw(this->f_raw_fp);
-	if (!f_raw.open(QFile::WriteOnly | QFile::Text)){
-		QMessageBox::critical(this, "FS Error",  "Cannot write to: " + this->f_raw_fp + "\n" + f_raw.errorString());
-		return;
-	}
-	f_raw.write(buf.toLocal8Bit());
-	f_raw.close();
+	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', buf, "\" WHERE name='cmnt_body_regex'");
 	
 	QFile f_human(this->f_human_fp);
 	if (!f_human.open(QFile::WriteOnly | QFile::Text)){
