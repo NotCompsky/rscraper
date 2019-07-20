@@ -82,10 +82,6 @@ add_executable(
 	"${SRC_DIR}/cat_pie.cpp"
 	"${SRC_DIR}/tag_pie.cpp"
 )
-if(NOT FS_NOT_EXPERIMENTAL)
-	target_compile_definitions(rscraper-hub PRIVATE FS_EXPERIMENTAL=1)
-	target_link_libraries(rscraper-hub stdc++fs)
-endif()
 set_property(TARGET rscraper-hub PROPERTY CXX_STANDARD 17)
 target_include_directories(rscraper-hub PRIVATE ${COMPSKY_INCLUDE_DIRS})
 target_link_libraries(rscraper-hub ${WHICH_MYSQL_CLIENT} Qt5::Widgets Qt5::Charts compsky_asciify compsky_mysql)

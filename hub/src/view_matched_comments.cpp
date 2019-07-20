@@ -292,10 +292,6 @@ void ViewMatchedComments::view_matches(){
 	if (filter_comment_body::regexpr == nullptr)
 		filter_comment_body::init_regexp_from_file(reason_name2id, groupindx2reason, record_contents);
 	
-	if (filter_comment_body::regexpr == nullptr){
-		report += "Cannot find regexpr file. Ensure that the environmental variable RSCRAPER_REGEX_FILE is set to the file path of the regex file.";
-	}
-	
 	boost::match_results<const char*> what;
 	
 	const char* str = this->cmnt_body;

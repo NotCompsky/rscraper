@@ -167,13 +167,7 @@ ScraperTab::ScraperTab(QWidget* parent) : QWidget(parent) {
 
 #ifdef USE_BOOST_REGEX
 void ScraperTab::open_cmnt_body_re_editor(){
-	QString qfp = getenv("RSCRAPER_REGEX_FILE");
-	if (qfp == nullptr){
-		QMessageBox::information(this, "Invalid Action", "Environmental variable RSCRAPER_REGEX_FILE must be set to the file to save the human-readable regex to");
-		return;
-	}
-	
-	RegexEditor* editor = new RegexEditor(qfp,  this);
+	RegexEditor* editor = new RegexEditor("cmnt_body_regex.human", "cmnt_body_regex", this);
 	editor->exec();
 }
 #endif

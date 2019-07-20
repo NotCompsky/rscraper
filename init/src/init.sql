@@ -165,6 +165,6 @@ CREATE TABLE IF NOT EXISTS longstrings (
 
 INSERT IGNORE INTO reason_matched (id, name)             VALUES (0, "None");
 INSERT IGNORE INTO reason_matched (id, name, r, g, b, a) VALUES (1, "Unknown", 0.5, 0.5, 0.5, 1);
-INSERT IGNORE INTO longstrings (name, data) VALUES ("cmnt_body_regex", "");
+INSERT IGNORE INTO longstrings (name, data) VALUES ("cmnt_body_regex", ""), ("cmnt_body_regex.human", "");
 
 )====="

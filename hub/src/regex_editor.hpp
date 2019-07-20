@@ -19,7 +19,7 @@ class RegexEditorVarsMenu;
 class RegexEditor : public QDialog {
 	Q_OBJECT
   public:
-	RegexEditor(const QString& human_fp,  QWidget* parent = 0);
+	RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* parent = 0);
   private Q_SLOTS:
 	void test_regex();
 	void save_to_file();
@@ -31,7 +31,8 @@ class RegexEditor : public QDialog {
 	void load_file();
 	QCheckBox* want_optimisations;
 	RegexEditorVarsMenu* vars_menu;
-	QString f_human_fp;
+	const char* src;
+	const char* dst;
 	CodeEditor* text_editor;
 };
 

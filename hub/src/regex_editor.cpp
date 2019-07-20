@@ -65,7 +65,7 @@ static const QString help_text =
 ;
 
 
-RegexEditor::RegexEditor(const QString& human_fp,  QWidget* parent) : QDialog(parent), f_human_fp(human_fp) {
+RegexEditor::RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* parent) : QDialog(parent), src(srcvar), dst(dstvar) {
 	QVBoxLayout* l = new QVBoxLayout;
 	
 	this->text_editor = new CodeEditor(this);
@@ -155,14 +155,10 @@ void RegexEditor::display_help(){
 }
 
 void RegexEditor::load_file(){
-	QFile f_human(this->f_human_fp);
-	if (!f_human.open(QFile::ReadOnly | QFile::Text)){
-		QMessageBox::critical(this, "FS Error",  "Cannot read: " + this->f_human_fp);
-		this->text_editor->setReadOnly(true);
-		return;
-	}
-	this->text_editor->setPlainText(f_human.readAll());
-	f_human.close();
+	compsky::mysql::query(&RES1,  "SELECT data FROM longstrings WHERE name='", this->src, "'");
+	char* data;
+	while(compsky::mysql::assign_next_row(RES1, &ROW1, &data))
+		this->text_editor->setPlainText(data);
 }
 
 int get_line_n(const QString& s,  int end){
@@ -420,17 +416,8 @@ void RegexEditor::save_to_file(){
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
 		return;
 	
-	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', buf, "\" WHERE name='cmnt_body_regex'");
-	
-	QFile f_human(this->f_human_fp);
-	if (!f_human.open(QFile::WriteOnly | QFile::Text)){
-		QMessageBox::critical(this, "FS Error",  "Cannot write to: " + this->f_human_fp + "\n" + f_human.errorString());
-		return;
-	}
-	f_human.write(this->text_editor->toPlainText().toLocal8Bit());
-	f_human.close();
-	
-	this->close(); // Avoids issues with closing and reopening QFiles
+	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', this->text_editor->toPlainText(), "\" WHERE name='", this->src, "'");
+	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', buf, "\" WHERE name='", this->dst, "'");
 }
 
 bool RegexEditor::does_user_want_optimisations() const {

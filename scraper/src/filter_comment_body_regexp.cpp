@@ -80,11 +80,6 @@ void init(){
 	
 	filter_comment_body::init_regexp_from_file(reason_name2id, groupindx2reason, record_contents);
 	
-	if (regexpr == nullptr){
-		fprintf(stderr,  "You must specify the RSCRAPER_REGEX_FILE environmental variable, and it must point towards a file containing regex.\n");
-		exit(1);
-	}
-	
 	constexpr static const compsky::asciify::flag::ChangeBuffer chbuf;
 	constexpr static const compsky::asciify::flag::Escape esc;
 	
