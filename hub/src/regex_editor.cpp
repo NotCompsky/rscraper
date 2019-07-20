@@ -341,15 +341,7 @@ void RegexEditor::test_regex() const{
 	std::vector<char*> group_ends;
 	std::vector<bool> record_contents;
 	
-	char* regexpr_str_end = compsky::regex::convert_named_groups(s,  s,  reason_name2id,  groupindx2reason, record_contents, group_starts, group_ends);
-	// Add one to the first buffer (src) not second buffer (dst) to ensure it is never overwritten when writing dst
-	
-	if (*(regexpr_str_end - 1) == '\n')
-		// Very confused what is happening here, but it seems that some files have \n appended to them by fread, while others do not.
-		// A small test file containing only `(?P<test>a)` written in `vim` is given a trailing \n by fread
-		// while a larger file containing newlines elsewhere but not at the end is not given a trailing \n by fread
-		*(regexpr_str_end - 1) = 0;
-	else *regexpr_str_end = 0;
+	*compsky::regex::convert_named_groups(s,  s,  reason_name2id,  groupindx2reason, record_contents, group_starts, group_ends) = 0;
 	
 	try {
 		if (filter_comment_body::regexpr != nullptr)

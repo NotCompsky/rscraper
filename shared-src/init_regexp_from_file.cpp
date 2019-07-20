@@ -18,7 +18,7 @@ void init_regexp_from_file(std::vector<char*>& reason_name2id,  std::vector<int>
 	char* regexpr_str;
 	while(compsky::mysql::assign_next_row(RES1, &ROW1, &regexpr_str)){
 		// Only one iteration
-		char* regexpr_str_end = compsky::regex::convert_named_groups(regexpr_str + 1,  regexpr_str,  reason_name2id,  groupindx2reason,  record_contents);
+		*compsky::regex::convert_named_groups(regexpr_str + 1,  regexpr_str,  reason_name2id,  groupindx2reason,  record_contents) = 0;
 		// Add one to the first buffer (src) not second buffer (dst) to ensure it is never overwritten when writing dst
 
 		regexpr = new boost::basic_regex<char, boost::cpp_regex_traits<char>>(regexpr_str,  boost::regex::perl | boost::regex::optimize);
