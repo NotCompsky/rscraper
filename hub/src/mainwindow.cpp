@@ -62,13 +62,24 @@ MainWindow::MainWindow(QWidget* parent){
 	
 	this->tab_widget = new QTabWidget(this);
 	connect(this->tab_widget, &QTabWidget::tabBarDoubleClicked, this, &MainWindow::rename_category);
-	
+
+
 	this->tab_widget->addTab(new MainTab(this->tab_widget),             "__MAIN__");
 	this->tab_widget->addTab(new ScraperTab(),                          "__SCRAPER__");
 	this->tab_widget->addTab(new ViewMatchedComments(this->tab_widget), "__CMNTS__");
-	this->tab_widget->addTab(new ReasonTab(this->tab_widget),           "__REASONS__");
+
+	{
+	QScrollArea* scroll_area = new QScrollArea(this);
+	scroll_area->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+	scroll_area->setWidgetResizable(true);
+	scroll_area->setWidget(new ReasonTab(this->tab_widget));
+	this->tab_widget->addTab(scroll_area, "__REASONS__");
+	}
+
 	this->tab_widget->addTab(new IOTab(this->tab_widget),               "__IO__");
+
 	#define N_NONCATEGORY_TABS 5
+
 	
 	tag_name2id.clear();
 	compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM tag");
