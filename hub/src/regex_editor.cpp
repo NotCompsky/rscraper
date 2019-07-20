@@ -15,6 +15,7 @@
 #include "regex_editor_vars_menu.hpp"
 #include "3rdparty/codeeditor.hpp"
 
+#include <compsky/mysql/query.hpp>
 #include <compsky/regex/named_groups.hpp>
 
 #include <boost/regex.hpp>
@@ -29,8 +30,16 @@
 #include <QVBoxLayout>
 
 
+extern MYSQL_RES* RES1;
+extern MYSQL_ROW ROW1;
+
+
 namespace filter_comment_body {
 	extern boost::basic_regex<char, boost::cpp_regex_traits<char>>* regexpr;
+}
+
+namespace _f {
+	constexpr static const compsky::asciify::flag::Escape esc;
 }
 
 static const QString help_text = 
@@ -56,7 +65,7 @@ static const QString help_text =
 ;
 
 
-RegexEditor::RegexEditor(const QString& human_fp,  const QString& raw_fp,  QWidget* parent) : QDialog(parent), f_human_fp(human_fp), f_raw_fp(raw_fp) {
+RegexEditor::RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* parent) : QDialog(parent), src(srcvar), dst(dstvar) {
 	QVBoxLayout* l = new QVBoxLayout;
 	
 	this->text_editor = new CodeEditor(this);
@@ -141,19 +150,15 @@ void RegexEditor::find_text(){
 	this->text_editor->setTextCursor(cursor);
 }
 
-void RegexEditor::display_help(){
-	QMessageBox::information(this,  "Help",  help_text);
+void RegexEditor::display_help() const{
+	QMessageBox::information(0,  "Help",  help_text);
 }
 
 void RegexEditor::load_file(){
-	QFile f_human(this->f_human_fp);
-	if (!f_human.open(QFile::ReadOnly | QFile::Text)){
-		QMessageBox::critical(this, "FS Error",  "Cannot read: " + this->f_human_fp);
-		this->text_editor->setReadOnly(true);
-		return;
-	}
-	this->text_editor->setPlainText(f_human.readAll());
-	f_human.close();
+	compsky::mysql::query(&RES1,  "SELECT data FROM longstrings WHERE name='", this->src, "'");
+	char* data;
+	while(compsky::mysql::assign_next_row(RES1, &ROW1, &data))
+		this->text_editor->setPlainText(data);
 }
 
 int get_line_n(const QString& s,  int end){
@@ -164,7 +169,7 @@ int get_line_n(const QString& s,  int end){
 	return n;
 }
 
-bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  int j,  int last_optimised_group_indx,  int var_depth){ // Use seperate buffer to avoid overwriting text_editor contents
+bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  int j,  int last_optimised_group_indx,  int var_depth) const { // Use seperate buffer to avoid overwriting text_editor contents
 	// WARNING: Does not currently support special encodings, i.e. non-ASCII characters are likely to be mangled.
 	// TODO: Add utf8 support.
 	QString q = this->text_editor->toPlainText();
@@ -197,11 +202,12 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 			else {
 				constexpr static const int ctx = 10;
 				MsgBox* msgbox = new MsgBox(
-					this,  
+					0,  
 					"Unrecognised escape sequence: \\" + QString(ch) + " at line " + QString::number(get_line_n(q, i)),
 					QStringRef(&q,  (i >= ctx) ? i - ctx : 0,  (i + ctx < q.size()) ? i + ctx : q.size() - 1).toString()
 				);
 				msgbox->exec();
+				delete msgbox;
 				goto goto_RE_tff_cleanup;
 			}
 			
@@ -229,11 +235,12 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 					msg += var_names[--k];
 				}
 				MsgBox* msgbox = new MsgBox(
-					this,  
+					0,  
 					"Undeclared variable: " + substitute_var_name + "\nAt line " + QString::number(get_line_n(q, i)),
 					msg
 				);
 				msgbox->exec();
+				delete msgbox;
 				goto goto_RE_tff_cleanup;
 			}
 			buf += var;
@@ -319,7 +326,7 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 	return false;
 }
 
-void RegexEditor::test_regex(){
+void RegexEditor::test_regex() const{
 	QString buf; // Dummy character to create space for 1 char at beginning
 	buf.reserve(this->text_editor->toPlainText().size());
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
@@ -349,8 +356,9 @@ void RegexEditor::test_regex(){
 			delete filter_comment_body::regexpr;
 		filter_comment_body::regexpr = new boost::basic_regex<char, boost::cpp_regex_traits<char>>(s,  boost::regex::perl);
 	} catch (boost::regex_error& e){
-		MsgBox* msgbox = new MsgBox(this, e.what(), s, 720);
+		MsgBox* msgbox = new MsgBox(0, e.what(), s, 720);
 		msgbox->exec();
+		delete msgbox;
 		//delete filter_comment_body::regexpr; // No need to delete, as object is not created when error is thrown.
 		filter_comment_body::regexpr = nullptr;
 		return;
@@ -401,33 +409,19 @@ void RegexEditor::test_regex(){
 	if (!try_exrex)
 		report += "\n\nTo see example strings that match each group regex, pip install exrex";
 	
-	MsgBox* msgbox = new MsgBox(this, "Success", report, 720);
+	MsgBox* msgbox = new MsgBox(0, "Success", report, 720);
 	msgbox->exec();
+	delete msgbox;
 }
 
-void RegexEditor::save_to_file(){
+void RegexEditor::save_to_file() const {
 	QString buf; // Dummy character to create space for 1 char at beginning
 	buf.reserve(this->text_editor->toPlainText().size());
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
 		return;
 	
-	QFile f_raw(this->f_raw_fp);
-	if (!f_raw.open(QFile::WriteOnly | QFile::Text)){
-		QMessageBox::critical(this, "FS Error",  "Cannot write to: " + this->f_raw_fp + "\n" + f_raw.errorString());
-		return;
-	}
-	f_raw.write(buf.toLocal8Bit());
-	f_raw.close();
-	
-	QFile f_human(this->f_human_fp);
-	if (!f_human.open(QFile::WriteOnly | QFile::Text)){
-		QMessageBox::critical(this, "FS Error",  "Cannot write to: " + this->f_human_fp + "\n" + f_human.errorString());
-		return;
-	}
-	f_human.write(this->text_editor->toPlainText().toLocal8Bit());
-	f_human.close();
-	
-	this->close(); // Avoids issues with closing and reopening QFiles
+	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', this->text_editor->toPlainText(), "\" WHERE name='", this->src, "'");
+	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', buf, "\" WHERE name='", this->dst, "'");
 }
 
 bool RegexEditor::does_user_want_optimisations() const {

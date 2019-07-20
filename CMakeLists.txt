@@ -78,10 +78,6 @@ if(BUILD_PACKAGES)
 	set(CPACK_DEBIAN_GUI_PACKAGE_DEPENDS "compsky-mysql (>= 0.2.0), compsky-mysql (<< 0.3.0), libqt5widgets5, libqt5charts5")
 endif()
 
-include(CheckCXXSourceCompiles)
-check_cxx_source_compiles("#include <filesystem>" FS_NOT_EXPERIMENTAL)
-
-
 # BEGIN src: https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/How-to-create-a-ProjectConfig.cmake-file
 
 if(WIN32 AND NOT CYGWIN)

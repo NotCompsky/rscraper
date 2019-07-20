@@ -31,48 +31,6 @@ int main(){
 	char* buf = (char*)malloc(4096 * 2);
 	FILE* cfg;
 	
-	/* Create RSCRAPER_REGEX_FILE file */
-	std::cout << "File path to save regex (will NOT create folders/directories for you): ";
-	
-	char* const regex_fp = buf;
-	{
-	char c;
-	for(auto i = 0;  (c = fgetc(stdin));  ++i){
-		if (c != '\n')
-			*(buf++) = c;
-		else break;
-	}
-	}
-	*buf = 0;
-	
-	cfg = fopen(regex_fp, "wb");
-	fwrite(
-		#include "regex_file_eg.txt"
-		,  1
-		,  strlen_constexpr(
-			#include "regex_file_eg.txt"
-		)
-		,  cfg
-	);
-	fclose(cfg);
-	
-	
-	memcpy(buf, ".human", strlen_constexpr(".human"));
-	buf[strlen_constexpr(".human")] = 0;
-	// NOTE: Do not increment buf, as the environmental variable should point towards the true regex file, not the human-readable one.
-	cfg = fopen(regex_fp, "wb");
-	fwrite(
-		#include "regex_file_eg.txt.human"
-		,  1
-		,  strlen_constexpr(
-			#include "regex_file_eg.txt.human"
-		)
-		,  cfg
-	);
-	fclose(cfg);
-	
-	
-	
 	/* Create RSCRAPER_REDDIT_CFG */
 	static const char* env_var = "RSCRAPER_REDDIT_CFG";
 	
@@ -162,11 +120,9 @@ int main(){
 #ifdef _WIN32
 	std::cout << "You need to add the following environmental variable using My Computer > Properties > Advanced > Environmental Variables:" << std::endl;
 	std::cout << "Name\tValue" << std::endl;
-	std::cout << "RSCRAPER_REGEX_FILE" << "\t" << regex_fp << std::endl;
 	std::cout << env_var << "\t" << cfg_fp << std::endl;
 #else
 	std::cout << "You need to either add the following line to your shell profile (such as ~/.bashrc or /etc/profiles.d):" << std::endl;
-	std::cout << "\texport " << "RSCRAPER_REGEX_FILE" << "=" << regex_fp << std::endl;
 	std::cout << "\texport " << env_var << "=" << cfg_fp << std::endl;
 	
 	std::cout << "or add them to /etc/environment (same as above but without the 'export ' part)" << std::endl;
