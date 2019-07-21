@@ -100,6 +100,7 @@ RegexEditor::RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* pare
 
 	this->vars_menu = new RegexEditorVarsMenu(this);
 
+	{
 	QHBoxLayout* hbox = new QHBoxLayout;
 
 	{
@@ -136,6 +137,7 @@ RegexEditor::RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* pare
 	}
 
 	l->addLayout(hbox);
+	}
 	
 	this->setLayout(l);
 }
