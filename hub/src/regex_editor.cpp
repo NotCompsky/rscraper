@@ -102,28 +102,38 @@ RegexEditor::RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* pare
 
 	QHBoxLayout* hbox = new QHBoxLayout;
 
-	QPushButton* help_btn = new QPushButton("Help", this);
-	connect(help_btn, &QPushButton::clicked, this, &RegexEditor::display_help);
-	hbox->addWidget(help_btn);
+	{
+	QPushButton* btn = new QPushButton("Help", this);
+	connect(btn, &QPushButton::clicked, this, &RegexEditor::display_help);
+	hbox->addWidget(btn);
+	}
 
-	QPushButton* find_btn = new QPushButton("Find", this);
-	connect(find_btn, &QPushButton::clicked, this, &RegexEditor::find_text);
-	hbox->addWidget(find_btn);
+	{
+	QPushButton* btn = new QPushButton("Find", this);
+	connect(btn, &QPushButton::clicked, this, &RegexEditor::find_text);
+	hbox->addWidget(btn);
+	}
 
-	QPushButton* view_vars_btn = new QPushButton("Vars", this);
-	connect(view_vars_btn, &QPushButton::clicked, this->vars_menu, &RegexEditorVarsMenu::show);
-	hbox->addWidget(view_vars_btn);
+	{
+	QPushButton* btn = new QPushButton("Vars", this);
+	connect(btn, &QPushButton::clicked, this->vars_menu, &RegexEditorVarsMenu::show);
+	hbox->addWidget(btn);
+	}
 
 	this->want_optimisations = new QCheckBox("Optimise", this);
 	l->addWidget(this->want_optimisations);
 
-	QPushButton* test_btn = new QPushButton("Test", this);
-	connect(test_btn, &QPushButton::clicked, this, &RegexEditor::test_regex);
-	hbox->addWidget(test_btn);
+	{
+	QPushButton* btn = new QPushButton("Test", this);
+	connect(btn, &QPushButton::clicked, this, &RegexEditor::test_regex);
+	hbox->addWidget(btn);
+	}
 
-	QPushButton* save_btn = new QPushButton("Save", this);
-	connect(save_btn, &QPushButton::clicked, this, &RegexEditor::save_to_file);
-	hbox->addWidget(save_btn);
+	{
+	QPushButton* btn = new QPushButton("Save", this);
+	connect(btn, &QPushButton::clicked, this, &RegexEditor::save_to_file);
+	hbox->addWidget(btn);
+	}
 
 	l->addLayout(hbox);
 	
