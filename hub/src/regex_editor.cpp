@@ -397,6 +397,10 @@ void RegexEditor::test_regex() const{
 		// WARNING: The following calculates the number of bytes, NOT the number of characters. QStrings are UTF-16, so some characters are multiple bytes. This is also why QStringRef is not used shortly after.
 		const int group_source_strlen = (uintptr_t)(group_ends[i]) - (uintptr_t)(group_starts[i]) - 1;
 
+		if (group_ends[i] == nullptr){
+			QMessageBox::critical(0,  "Bug",  QString("group_ends[%1] == nullptr.\nThis is a bug with the parser that should be reported, but is still indicative of incorrect regex syntax.").arg(i));
+			return;
+		}
 		const char c = group_ends[i][0];
 		group_ends[i][0] = 0;
 		QString group_source = group_starts[i];
@@ -432,8 +436,8 @@ void RegexEditor::test_regex() const{
 }
 
 void RegexEditor::save_to_file() const {
-	QString buf; // Dummy character to create space for 1 char at beginning
-	const int buf_sz = this->text_editor->toPlainText().size();
+	QString buf;
+	const int buf_sz = this->text_editor->toPlainText().size() + 1; // Extra char for trailing \0
 	buf.reserve(buf_sz);
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
 		return;
