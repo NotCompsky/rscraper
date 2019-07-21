@@ -398,7 +398,7 @@ void RegexEditor::test_regex() const{
 		const int group_source_strlen = (uintptr_t)(group_ends[i]) - (uintptr_t)(group_starts[i]) - 1;
 
 		if (group_ends[i] == nullptr){
-			QMessageBox::critical(0,  "Bug",  QString("group_ends[%1] == nullptr.\nThis is a bug with the parser that should be reported, but is still indicative of incorrect regex syntax.").arg(i));
+			QMessageBox::critical(0,  "Bug",  QString("group_ends[%1] == nullptr.\ni.e. the parser cannot locate group %1's end.\nGroup %1 begins at the %2th position in the final (processed) regex.\nGroup %1 may begin around line %3.").arg(i, groupindx2reason[i], get_line_n(this->text_editor->toPlainText(), groupindx2reason[i])));
 			return;
 		}
 		const char c = group_ends[i][0];
