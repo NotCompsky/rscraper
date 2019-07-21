@@ -278,7 +278,14 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 		}
 		if (c == QChar('}')){
 			size_t k = var_values.size();
-			while(var_values[--k] != nullptr);
+			while(true){
+				if (k == 0){
+					QMessageBox::warning(0,  "Unacceptable Syntax",  QString("Line %1: Encountered unescaped '}' without preceding '{?P<VARNAME>' or '${VARNAME'").arg(get_line_n(q, i)));
+					goto goto_RE_tff_cleanup;
+				}
+				if (var_values[--k] == nullptr)
+					break;
+			}
 			var_values[k] = QStringRef(&buf,  var_starts[k],  j - var_starts[k]);
 			++i;
 			continue;
