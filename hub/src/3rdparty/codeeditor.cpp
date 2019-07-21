@@ -178,6 +178,10 @@ int CodeEditor::pos_of_partner() const {
 	int pos = pos_init;
 	const QString q = this->toPlainText();
 	
+	if (pos == q.size())
+		// We selected the space at the end of the file - after any characters
+		return -1;
+	
 	const QChar a = q.at(pos);
 	QChar b;
 	int increment = 1; // forwards
@@ -201,7 +205,7 @@ int CodeEditor::pos_of_partner() const {
 				return -1;
 			}
 		} else {
-			if (pos >= q.size() - 1) // Not just == because user may have selected the final position (after the last character)
+			if (pos == q.size() - 1)
 				return -1;
 		}
 		
