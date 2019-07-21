@@ -70,6 +70,18 @@ static const QString help_text =
 ;
 
 
+void ensure_buf_sized(const size_t buf_sz){
+	if (buf_sz < compsky::asciify::BUF_SZ)
+		return;
+	// Ensure there is sufficient space to run the compsky::mysql::exec commands below
+	compsky::asciify::BUF_SZ = 2*buf_sz;
+	void* dummy = malloc(compsky::asciify::BUF_SZ);
+	if (dummy == nullptr)
+		exit(4096);
+	compsky::asciify::BUF = (char*)dummy;
+}
+
+
 RegexEditor::RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* parent) : QDialog(parent), src(srcvar), dst(dstvar) {
 	QVBoxLayout* l = new QVBoxLayout;
 	
@@ -250,6 +262,7 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 			}
 			buf += var;
 			j += var.size();
+			ensure_buf_sized(j);
 			continue;
 		}
 		if (c == QChar('{')){
@@ -418,14 +431,7 @@ void RegexEditor::save_to_file() const {
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
 		return;
 	
-	if (buf_sz > compsky::asciify::BUF_SZ){
-		// Ensure there is sufficient space to run the compsky::mysql::exec commands below
-		compsky::asciify::BUF_SZ = 2*buf_sz;
-		void* dummy = malloc(compsky::asciify::BUF_SZ);
-		if (dummy == nullptr)
-			exit(4096);
-		compsky::asciify::BUF = (char*)dummy;
-	}
+	ensure_buf_sized(buf_sz);
 	
 	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', this->text_editor->toPlainText(), "\" WHERE name='", this->src, "'");
 	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', buf, "\" WHERE name='", this->dst, "'");
