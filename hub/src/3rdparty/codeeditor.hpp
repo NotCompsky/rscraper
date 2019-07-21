@@ -52,12 +52,16 @@ public:
 protected:
 	void resizeEvent(QResizeEvent *event) override;
 
+public Q_SLOTS:
+	void jump_to_partner();
+
 private slots:
 	void updateLineNumberAreaWidth(int newBlockCount);
 	void highlightCurrentLine();
 	void updateLineNumberArea(const QRect &, int);
 
 private:
+	int pos_of_partner() const;
 	void highlight_brackets();
 	QWidget *lineNumberArea;
 	int other_bracket;

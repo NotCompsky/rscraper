@@ -173,11 +173,7 @@ QTextCharFormat fmt_char_retprev(const QTextCharFormat& fmt,  QTextCursor cursor
 	return fmt_orig;
 }
 
-void CodeEditor::highlight_brackets(){
-	QTextCursor cursor = this->textCursor();
-	if (this->other_bracket != -1){
-		fmt_char(this->other_bracket_fmt, cursor, other_bracket);
-	}
+int CodeEditor::pos_of_partner() const {
 	const int pos_init = this->textCursor().position();
 	int pos = pos_init;
 	const QString q = this->toPlainText();
@@ -195,18 +191,18 @@ void CodeEditor::highlight_brackets(){
 	else if (a == QChar('}')){
 		b = QChar('{');
 		increment = -1;
-	} else return;
+	} else return -1;
 	
 	int depth = 0;
 	while(true){
 		/* Quit if no corresponding bracket was found */
 		if (increment == -1){
 			if (pos == 0){
-				return;
+				return -1;
 			}
 		} else {
 			if (pos >= q.size() - 1) // Not just == because user may have selected the final position (after the last character)
-				return;
+				return -1;
 		}
 		
 		pos += increment;
@@ -222,7 +218,27 @@ void CodeEditor::highlight_brackets(){
 				++depth;
 	}
 	
-	this->other_bracket = pos;
+	return pos;
+}
+
+void CodeEditor::jump_to_partner(){
+	QTextCursor cursor = this->textCursor();
+	const int pos = this->pos_of_partner();
+	if (pos == -1)
+		return;
+	cursor.setPosition(pos);
+	this->setTextCursor(cursor);
+}
+
+void CodeEditor::highlight_brackets(){
+	QTextCursor cursor = this->textCursor();
+	if (this->other_bracket != -1){
+		fmt_char(this->other_bracket_fmt, cursor, other_bracket);
+	}
+	
+	this->other_bracket = this->pos_of_partner();
+	if (this->other_bracket == -1)
+		return;
 	
 	this->other_bracket_fmt = fmt_char_retprev(fmt_bracket, cursor, this->other_bracket);
 	

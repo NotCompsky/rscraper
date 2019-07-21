@@ -139,6 +139,16 @@ RegexEditor::RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* pare
 	l->addLayout(hbox);
 	}
 	
+	{
+		QHBoxLayout* hbox = new QHBoxLayout;
+		{
+			QPushButton* btn = new QPushButton("Partner", this);
+			connect(btn, &QPushButton::clicked, this->text_editor, &CodeEditor::jump_to_partner);
+			hbox->addWidget(btn);
+		}
+		l->addLayout(hbox);
+	}
+	
 	this->setLayout(l);
 }
 
