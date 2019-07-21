@@ -14,7 +14,7 @@
 #define n_highlighting_rules 12
 static const QRegularExpression highlighting_regex(
 	"((?:^|[ \t]+)#.*)|"			// Comment
-	"(?<!\\\\)((?:\\\\[\\\\nrtv])*)(?:"			// Allow an even number of escape characters before (#1)
+	"(?<!\\\\)((?:\\\\[\\\\nrtv{}])*)(?:"			// Allow an even number of escape characters before (#1)
 			"([({])(?:"			// (Capture group or var declaration) opening bracket
 				"([?]P<([^>]*)>)|"	// (Capture group or var declaration) name (inner and outer)
 				"(\\?:)"		// Non-capturing group declaration
