@@ -34,17 +34,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "linenumberarea.hpp"
 
+#include <QTextCharFormat>
 #include <QPainter>
 #include <QTextBlock>
 
 
-CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
+static QTextCharFormat fmt_bracket;
+
+
+CodeEditor::CodeEditor(QWidget *parent)
+	: QPlainTextEdit(parent)
+	, other_bracket(-1)
 {
+	fmt_bracket.setBackground(Qt::black);
+	fmt_bracket.setForeground(Qt::yellow);
+	fmt_bracket.setFontWeight(QFont::Bold);
+	
 	lineNumberArea = new LineNumberArea(this);
 
 	connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::updateLineNumberAreaWidth);
 	connect(this, &CodeEditor::updateRequest, this, &CodeEditor::updateLineNumberArea);
 	connect(this, &CodeEditor::cursorPositionChanged, this, &CodeEditor::highlightCurrentLine);
+	connect(this, &CodeEditor::cursorPositionChanged, this, &CodeEditor::highlight_brackets);
 
 	updateLineNumberAreaWidth(0);
 	highlightCurrentLine();
@@ -139,4 +150,87 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 		bottom = top + (int) blockBoundingRect(block).height();
 		++blockNumber;
 	}
+}
+
+bool is_even_number_of_escapes(const QString& q,  int pos){
+	unsigned int n = 0;
+	while(q.at(--pos) == QChar('\\'))
+		++n;
+	return (n % 2  ==  0);
+}
+
+void fmt_char(const QTextCharFormat& fmt,  QTextCursor cursor,  const int pos){
+	cursor.setPosition(pos);
+	cursor.movePosition(QTextCursor::Right,  QTextCursor::KeepAnchor,  1);
+	cursor.setCharFormat(fmt);
+}
+
+QTextCharFormat fmt_char_retprev(const QTextCharFormat& fmt,  QTextCursor cursor,  const int pos){
+	cursor.setPosition(pos);
+	cursor.movePosition(QTextCursor::Right,  QTextCursor::KeepAnchor,  1);
+	const QTextCharFormat fmt_orig = cursor.charFormat();
+	cursor.setCharFormat(fmt);
+	return fmt_orig;
+}
+
+void CodeEditor::highlight_brackets(){
+	QTextCursor cursor = this->textCursor();
+	if (this->other_bracket != -1){
+		fmt_char(this->other_bracket_fmt, cursor, other_bracket);
+	}
+	const int pos_init = this->textCursor().position();
+	int pos = pos_init;
+	const QString q = this->toPlainText();
+	
+	const QChar a = q.at(pos);
+	QChar b;
+	int increment = 1; // forwards
+	if (a == QChar('('))
+		b = QChar(')');
+	else if (a == QChar(')')){
+		b = QChar('(');
+		increment = -1;
+	} else if (a == QChar('{'))
+		b = QChar('}');
+	else if (a == QChar('}')){
+		b = QChar('{');
+		increment = -1;
+	} else return;
+	
+	int depth = 0;
+	while(true){
+		/* Quit if no corresponding bracket was found */
+		if (increment == -1){
+			if (pos == 0){
+				return;
+			}
+		} else {
+			if (pos == q.size() - 1)
+				return;
+		}
+		
+		pos += increment;
+		const QChar c = q.at(pos);
+		if (c == b){
+			if (depth == 0)
+				break;
+			else
+				if (is_even_number_of_escapes(q, pos))
+					--depth;
+		} else if (c == a)
+			if (is_even_number_of_escapes(q, pos))
+				++depth;
+	}
+	
+	this->other_bracket = pos;
+	
+	this->other_bracket_fmt = fmt_char_retprev(fmt_bracket, cursor, this->other_bracket);
+	
+	/*
+	cursor.setPosition(pos);
+	const auto f  = (increment == 1)  ?  QTextCursor::Left  :  QTextCursor::Right;
+	const int len = (increment == 1)  ?  pos - pos_init     :  pos_init - pos;
+	cursor.movePosition(f,  QTextCursor::KeepAnchor,  len + 1);
+	this->text_editor->setTextCursor(cursor);
+	*/
 }

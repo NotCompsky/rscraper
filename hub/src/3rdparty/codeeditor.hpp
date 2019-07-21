@@ -58,7 +58,10 @@ private slots:
 	void updateLineNumberArea(const QRect &, int);
 
 private:
+	void highlight_brackets();
 	QWidget *lineNumberArea;
+	int other_bracket;
+	QTextCharFormat other_bracket_fmt;
 };
 
 
