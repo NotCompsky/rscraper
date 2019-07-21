@@ -205,7 +205,7 @@ void CodeEditor::highlight_brackets(){
 				return;
 			}
 		} else {
-			if (pos == q.size() - 1)
+			if (pos >= q.size() - 1) // Not just == because user may have selected the final position (after the last character)
 				return;
 		}
 		
