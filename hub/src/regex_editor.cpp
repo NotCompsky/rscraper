@@ -382,7 +382,7 @@ void RegexEditor::test_regex() const{
 	QByteArray ba = buf.toLocal8Bit();
 	char* const s = ba.data();
 	
-	std::vector<char*> reason_name2id = {"None", "Unspecified"};
+	std::vector<compsky::regex::CharPaar> reason_name2id  =  {{"None", 4},  {"Unspecified", 11}};
 	std::vector<int> groupindx2reason;
 	std::vector<char*> group_starts;
 	std::vector<char*> group_ends;
@@ -413,7 +413,7 @@ void RegexEditor::test_regex() const{
 		report += "\t";
 		report += (record_contents[i]) ? "[Record contents]" : "[Count occurances]";
 		report += "\t";
-		report += reason_name2id[groupindx2reason[i]];
+		report += reason_name2id[groupindx2reason[i]].str;
 		report += "\n\t";
 
 		// WARNING: The following calculates the number of bytes, NOT the number of characters. QStrings are UTF-16, so some characters are multiple bytes. This is also why QStringRef is not used shortly after.
