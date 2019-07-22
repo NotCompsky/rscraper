@@ -31,6 +31,7 @@ class ViewMatchedComments : public QWidget {
 	const char* get_sort_column();
 	QLineEdit* tagname_input;
 	QLineEdit* reasonname_input;
+	QLineEdit* limit_input;
 	QPlainTextEdit* textarea;
 	QLabel* subname;
 	QLabel* username;

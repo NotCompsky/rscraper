@@ -23,6 +23,7 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QRegExpValidator>
 #include <QStringList>
 #include <QVBoxLayout>
 
@@ -111,6 +112,14 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res
 	l->addLayout(box);
 	}
 	
+	{
+		QHBoxLayout* box = new QHBoxLayout;
+		box->addWidget(new QLabel("Limit:", this));
+		this->limit_input = new QLineEdit(this);
+		this->limit_input->setValidator(new QRegExpValidator(QRegExp("\\d*"), this));
+		box->addWidget(this->limit_input);
+		l->addLayout(box);
+	}
 	
 	
 	{
@@ -210,6 +219,7 @@ void ViewMatchedComments::init(){
 	
 	const QString tag    = this->tagname_input->text();
 	const QString reason = this->reasonname_input->text();
+	const QString limit_str = this->limit_input->text();
 	
 	compsky::asciify::reset_index();
 	
@@ -226,6 +236,9 @@ void ViewMatchedComments::init(){
 	
 	compsky::asciify::asciify(" ORDER BY ", this->get_sort_column());
 	compsky::asciify::asciify((this->is_ascending) ? " asc" : " desc");
+	
+	if (!limit_str.isEmpty()) 
+		compsky::asciify::asciify(" LIMIT ",  limit_str.toInt());
 	
 	compsky::mysql::query_buffer(&this->res1, compsky::asciify::BUF, compsky::asciify::get_index());
 	
