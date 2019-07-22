@@ -296,10 +296,14 @@ void ViewMatchedComments::view_matches(){
 	 * NOTE: The current regexp is run on the string, notably not necessarily the one that originally matched the comment.
 	 */
 	
+	std::vector<char*> reason_name2id;
+	std::vector<int> groupindx2reason;
+	std::vector<bool> record_contents;
+	
 	QString report = ""; 
 	
 	if (filter_comment_body::regexpr == nullptr)
-		filter_comment_body::init_regexp_from_file();
+		filter_comment_body::init_regexp_from_file(reason_name2id, groupindx2reason, record_contents);
 	
 	boost::match_results<const char*> what;
 	

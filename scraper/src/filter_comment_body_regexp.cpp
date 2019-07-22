@@ -34,7 +34,7 @@ extern MYSQL_ROW ROW1;
 namespace filter_comment_body {
 
 
-std::vector<CharPaar> reason_name2id;
+std::vector<char*> reason_name2id;
 std::vector<int> groupindx2reason;
 std::vector<bool> record_contents;
 
@@ -57,17 +57,16 @@ void populate_reason2name(){
 		for (auto i = 0;  i < reason_id + 1;  ++i){
 			SUBREDDIT_WHITELISTS.emplace_back();
 			SUBREDDIT_BLACKLISTS.emplace_back();
-			reason_name2id.emplace_back(nullptr, 0);
+			reason_name2id.push_back(nullptr);
 		}
 	}
 	do {
 		char* dummy = (char*)malloc(name_sz + 1); // Allow for terminating null byte
-		if (reason_name2id[reason_id].len == 0){
+		if (reason_name2id[reason_id] == nullptr){
 			if (dummy == nullptr)
 				exit(myerr::OUT_OF_MEMORY);
 			memcpy(dummy,  name,  name_sz + 1);
-			reason_name2id[reason_id].str = dummy;
-			reason_name2id[reason_id].len = name_sz;
+			reason_name2id[reason_id] = dummy;
 		}
 		if (subreddit_wl != 0)
 			SUBREDDIT_WHITELISTS[reason_id].push_back(subreddit_wl);
@@ -86,10 +85,8 @@ void init(){
 	
 	compsky::asciify::asciify(chbuf, compsky::asciify::BUF, 0, "INSERT IGNORE INTO reason_matched (id,name) VALUES");
 	
-	constexpr static const compsky::asciify::flag::StrLen f_strlen;
-	
 	for (auto i = 0;  i < reason_name2id.size();  ++i)
-		compsky::asciify::asciify("(", i, ",\"", esc, '"', f_strlen, reason_name2id[i].str, reason_name2id[i].len, "\"),");
+		compsky::asciify::asciify("(", i, ",\"", esc, '"', reason_name2id[i], "\"),");
 	compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Ignore trailing comma
 }
 
