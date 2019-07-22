@@ -388,7 +388,7 @@ void RegexEditor::test_regex() const{
 	std::vector<char*> group_ends;
 	std::vector<bool> record_contents;
 	
-	*compsky::regex::convert_named_groups(s,  s,  reason_name2id,  groupindx2reason, record_contents, group_starts, group_ends) = 0;
+	compsky::regex::convert_named_groups(s,  s,  reason_name2id,  groupindx2reason, record_contents, group_starts, group_ends);
 	
 	try {
 		if (filter_comment_body::regexpr != nullptr)
