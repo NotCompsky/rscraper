@@ -83,7 +83,7 @@ void init(){
 	constexpr static const compsky::asciify::flag::ChangeBuffer chbuf;
 	constexpr static const compsky::asciify::flag::Escape esc;
 	
-	compsky::asciify::asciify(chbuf, compsky::asciify::BUF, 0, "INSERT IGNORE INTO reason_matched (id,name) VALUES");
+	compsky::asciify::asciify(chbuf, compsky::asciify::BUF, "INSERT IGNORE INTO reason_matched (id,name) VALUES");
 	
 	for (auto i = 0;  i < reason_name2id.size();  ++i)
 		compsky::asciify::asciify("(", i, ",\"", esc, '"', reason_name2id[i], "\"),");
