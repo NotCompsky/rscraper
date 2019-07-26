@@ -166,6 +166,17 @@ int main(int argc,  const char** argv){
 		fclose(f);
 	}
 	
+	/* longstrings */
+	if (argc == 0  ||  contains(argv, argc, "longstrings")){
+		compsky::mysql::query_buffer(&RES,  "SELECT name, data FROM longstrings");
+		while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2)){
+			f = fopen(name, "wb");
+			fwrite(name2, strlen(name2), 1, f);
+			compsky::asciify::write(f,  '\t', name2, '\n');
+			fclose(f);
+		}
+		fclose(f);
+	}
 	
 	compsky::mysql::exit_mysql();
 }
