@@ -171,10 +171,8 @@ int main(int argc,  const char** argv){
 		while(compsky::mysql::assign_next_row(RES, &ROW, &s1, &s2)){
 			f = fopen(s1, "wb");
 			fwrite(s2, strlen(s2), 1, f);
-			compsky::asciify::write(f,  '\t', s2, '\n');
 			fclose(f);
 		}
-		fclose(f);
 	}
 	
 	compsky::mysql::exit_mysql();
