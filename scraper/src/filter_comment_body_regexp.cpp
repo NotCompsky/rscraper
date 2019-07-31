@@ -85,8 +85,12 @@ void init(){
 	
 	compsky::asciify::asciify(chbuf, compsky::asciify::BUF, "INSERT IGNORE INTO reason_matched (id,name) VALUES");
 	
-	for (size_t i = 0;  i < reason_name2id.size();  ++i)
+	for (size_t i = 0;  i < reason_name2id.size();  ++i){
+		if (reason_name2id[i] == nullptr)
+			// The entry was deleted from the reason_matched table, leaving a discontinuity in the id field
+			continue;
 		compsky::asciify::asciify("(", i, ",\"", esc, '"', reason_name2id[i], "\"),");
+	}
 	compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Ignore trailing comma
 }
 
