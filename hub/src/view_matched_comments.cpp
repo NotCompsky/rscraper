@@ -141,7 +141,7 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	}
 	
 	{
-	QGroupBox* group_box = new QGroupBox("Order By Date:");
+	QGroupBox* group_box = new QGroupBox("Order:");
 	QRadioButton* asc   = new QRadioButton("Ascending");
 	QRadioButton* desc  = new QRadioButton("Descending");
 	connect(asc,  &QRadioButton::toggled, this, &ViewMatchedComments::toggle_order_btns);
