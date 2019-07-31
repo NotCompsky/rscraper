@@ -46,9 +46,9 @@ int main(int argc,  const char** argv){
 	compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
 	
 	FILE* f;
-	uint64_t count, id, subreddit_id, user_id;
-	char* name;
-	char* name2;
+	char* s1;
+	char* s2;
+	char* s3;
 	
 	++argv;
 	--argc;
@@ -87,8 +87,8 @@ int main(int argc,  const char** argv){
 			compsky::mysql::query_buffer(&RES, "SELECT id, name FROM user");
 		else
 			compsky::mysql::query(&RES, "SELECT DISTINCT u.id, u.name FROM user u, user2subreddit_cmnt_count u2scc, subreddit2tag s2t, tag2category t2c, category c WHERE u.id=u2scc.user_id AND u2scc.subreddit_id=s2t.subreddit_id AND s2t.tag_id=t2c.tag_id AND t2c.category_id=c.id AND c.name IN ('",  _f::start, "','", 3, categories_wl, categories_wl_size, _f::end, "')");
-		while(compsky::mysql::assign_next_row(RES, &ROW, &id, &name))
-			compsky::asciify::write(f,  id, '\t', name, '\n');
+		while(compsky::mysql::assign_next_row(RES, &ROW, &s1, &s2))
+			compsky::asciify::write(f,  s1, '\t', s2, '\n');
 		fclose(f);
 	}
 	
@@ -98,8 +98,8 @@ int main(int argc,  const char** argv){
 			compsky::mysql::query_buffer(&RES, "SELECT id, name FROM subreddit");
 		else
 			compsky::mysql::query(&RES, "SELECT DISTINCT s.id, s.name FROM subreddit s, subreddit2tag s2t, tag2category t2c, category c WHERE s.id=s2t.subreddit_id AND s2t.tag_id=t2c.tag_id AND t2c.category_id=c.id AND c.name IN ('",  _f::start, "','", 3, categories_wl, categories_wl_size, _f::end, "')");
-		while(compsky::mysql::assign_next_row(RES, &ROW, &id, &name))
-			compsky::asciify::write(f,  id, '\t', name, '\n');
+		while(compsky::mysql::assign_next_row(RES, &ROW, &s1, &s2))
+			compsky::asciify::write(f,  s1, '\t', s2, '\n');
 		fclose(f);
 	}
 	
@@ -110,8 +110,8 @@ int main(int argc,  const char** argv){
 		else
 			compsky::mysql::query(&RES, "SELECT DISTINCT t.name, CONCAT_WS(',', r, g, b, a) FROM tag t, tag2category t2c, category c WHERE t.id=t2c.tag_id AND t2c.category_id=c.id AND c.name IN ('",  _f::start, "','", 3, categories_wl, categories_wl_size, _f::end, "')");
 		constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f_inc;
-		while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2))
-			compsky::asciify::write(f, name, '\t', name2, '\n');
+		while(compsky::mysql::assign_next_row(RES, &ROW, &s1, &s2))
+			compsky::asciify::write(f, s1, '\t', s2, '\n');
 		fclose(f);
 	}
 	
@@ -121,8 +121,8 @@ int main(int argc,  const char** argv){
 			compsky::mysql::query_buffer(&RES, "SELECT name FROM category");
 		else
 			compsky::mysql::query(&RES, "SELECT DISTINCT name FROM category WHERE name IN ('",  _f::start, "','", 3, categories_wl, categories_wl_size, _f::end, "')");
-		while(compsky::mysql::assign_next_row(RES, &ROW, &name))
-			compsky::asciify::write(f,  name, '\n');
+		while(compsky::mysql::assign_next_row(RES, &ROW, &s1))
+			compsky::asciify::write(f,  s1, '\n');
 		fclose(f);
 	}
 	
@@ -134,8 +134,8 @@ int main(int argc,  const char** argv){
 			compsky::mysql::query_buffer(&RES, "SELECT user_id, subreddit_id, count FROM user2subreddit_cmnt_count");
 		else
 			compsky::mysql::query(&RES, "SELECT DISTINCT user_id, u2scc.subreddit_id, count FROM user2subreddit_cmnt_count u2scc, subreddit2tag s2t, tag2category t2c, category c WHERE u2scc.subreddit_id=s2t.subreddit_id AND s2t.tag_id=t2c.tag_id AND t2c.category_id=c.id AND c.name IN ('",  _f::start, "','", 3, categories_wl, categories_wl_size, _f::end, "')");
-		while(compsky::mysql::assign_next_row(RES, &ROW, &user_id, &subreddit_id, &count))
-			compsky::asciify::write(f,  user_id, '\t', subreddit_id, '\t', count, '\n');
+		while(compsky::mysql::assign_next_row(RES, &ROW, &s1, &s2, &s3))
+			compsky::asciify::write(f,  s1, '\t', s2, '\t', s3, '\n');
 		fclose(f);
 	}
 	
@@ -147,8 +147,8 @@ int main(int argc,  const char** argv){
 			compsky::mysql::query_buffer(&RES, "SELECT B.name, C.name FROM tag2category A, tag B, category C WHERE B.id=A.tag_id AND C.id=A.category_id");
 		else
 			compsky::mysql::query(&RES, "SELECT DISTINCT B.name, C.name FROM tag2category A, tag B, category C WHERE B.id=A.tag_id AND C.id=A.category_id AND C.name IN ('",  _f::start, "','", 3, categories_wl, categories_wl_size, _f::end, "')");
-		while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2))
-			compsky::asciify::write(f,  name, '\t', name2, '\n');
+		while(compsky::mysql::assign_next_row(RES, &ROW, &s1, &s2))
+			compsky::asciify::write(f,  s1, '\t', s2, '\n');
 		fclose(f);
 	}
 	
@@ -159,19 +159,19 @@ int main(int argc,  const char** argv){
 		else
 			compsky::mysql::query(&RES, "SELECT DISTINCT s.name, t.name FROM subreddit2tag s2t, subreddit s, tag t, tag2category t2c, category c WHERE s.id=s2t.subreddit_id AND t.id=s2t.tag_id AND t2c.tag_id=t.id AND t2c.category_id=c.id AND c.name IN ('",  _f::start, "','", 3, categories_wl, categories_wl_size, _f::end, "')");
 		// Use names rather than IDs to simplify importing between different databases
-		while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2))
+		while(compsky::mysql::assign_next_row(RES, &ROW, &s1, &s2))
 			// \t and \n are the two non-null characters that are impossible to include in a tag name when creating the tag names through the Qt GUI.
-			compsky::asciify::write(f,  name, '\t', name2, '\n');
+			compsky::asciify::write(f,  s1, '\t', s2, '\n');
 		fclose(f);
 	}
 	
 	/* longstrings */
 	if (argc == 0  ||  contains(argv, argc, "longstrings")){
 		compsky::mysql::query_buffer(&RES,  "SELECT name, data FROM longstrings");
-		while(compsky::mysql::assign_next_row(RES, &ROW, &name, &name2)){
-			f = fopen(name, "wb");
-			fwrite(name2, strlen(name2), 1, f);
-			compsky::asciify::write(f,  '\t', name2, '\n');
+		while(compsky::mysql::assign_next_row(RES, &ROW, &s1, &s2)){
+			f = fopen(s1, "wb");
+			fwrite(s2, strlen(s2), 1, f);
+			compsky::asciify::write(f,  '\t', s2, '\n');
 			fclose(f);
 		}
 		fclose(f);
