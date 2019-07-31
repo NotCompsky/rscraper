@@ -35,7 +35,7 @@ extern MYSQL_ROW ROW1;
 
 namespace compsky {
 	namespace asciify {
-		extern int BUF_SZ;
+		extern int BUF_SZ; // int rather than size_t as Qt string length returns int
 	}
 }
 
@@ -96,7 +96,7 @@ RegexEditor::RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* pare
 
 	this->load_file();
 	l->addWidget(this->text_editor);
-	RegexEditorHighlighter* highlighter = new RegexEditorHighlighter(this->text_editor->document());
+	new RegexEditorHighlighter(this->text_editor->document());
 
 	this->vars_menu = new RegexEditorVarsMenu(this);
 
@@ -195,9 +195,9 @@ void RegexEditor::display_help() const{
 
 void RegexEditor::load_file(){
 	compsky::mysql::query(&RES1,  "SELECT data FROM longstrings WHERE name='", this->src, "'");
-	char* data;
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &data))
-		this->text_editor->setPlainText(data);
+	char* data_;
+	while(compsky::mysql::assign_next_row(RES1, &ROW1, &data_))
+		this->text_editor->setPlainText(data_);
 }
 
 int get_line_n(const QString& s,  int end){
@@ -323,7 +323,10 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 			do {
 				// Remove all preceding unescaped whitespace
 				--j;
-			} while (j >= 0  && buf.at(j) == QChar(' ')  ||  j >= 1  &&  buf.at(j) == QChar('\t')  &&  buf.at(j-1) != QChar('\\'));
+			} while (
+				(j >= 0  && buf.at(j) == QChar(' '))  ||
+				(j >= 1  &&  buf.at(j) == QChar('\t')  &&  buf.at(j-1) != QChar('\\'))
+			);
 			++j;
 			while((i < q.size())  &&  (q.at(i) != QChar('\n')))
 				++i;
@@ -407,7 +410,7 @@ void RegexEditor::test_regex() const{
 
 	bool try_exrex = true;
 	report += "\nCapture Groups:";
-	for (auto i = 1;  i < groupindx2reason.size();  ++i){
+	for (size_t i = 1;  i < groupindx2reason.size();  ++i){
 		report += "\n";
 		report += QString::number(i);
 		report += "\t";

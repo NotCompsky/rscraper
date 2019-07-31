@@ -7,11 +7,29 @@
 
 
 #include <compsky/mysql/create_config.hpp>
+#include <compsky/asciify/init.hpp>
+
+#include <string.h> // for strlen
+
+
+namespace compsky {
+	namespace asciify {
+		char* BUF;
+		char* ITR;
+	}
+}
 
 
 int main(){
-	compsky::mysql::create_config(
+	constexpr static const char* sql =
 		#include "init.sql"
+	;
+
+	if(compsky::asciify::alloc(strlen(sql) + 1024))
+		return 1;
+
+	compsky::mysql::create_config(
+		sql
 		, "SELECT, INSERT, UPDATE, DELETE"
 		, "RSCRAPER_MYSQL_CFG"
 	);

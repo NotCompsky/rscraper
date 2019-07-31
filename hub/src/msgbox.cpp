@@ -4,7 +4,10 @@
 
 #include "msgbox.hpp"
 
-MsgBox::MsgBox(QWidget* parent,  const QString& text,  const QString& details,  int w) : QMessageBox(parent), w(w) {
+MsgBox::MsgBox(QWidget* parent,  const QString& text,  const QString& details,  int w_)
+: QMessageBox(parent)
+, w(w_)
+{
 	this->setTextFormat(Qt::PlainText);
 	this->setText(text);
 	this->setWindowModality(Qt::NonModal);

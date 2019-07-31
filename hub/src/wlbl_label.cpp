@@ -23,9 +23,11 @@ namespace _f {
 }
 
 
-WlBlLabel::WlBlLabel(const char* name,  const char* typ,  const char* typ_id_varname,  const char* tblname)
-:
-	tblname(tblname), typ(typ), typ_id_varname(typ_id_varname), QLabel(name)
+WlBlLabel::WlBlLabel(const char* name,  const char* typ_,  const char* typ_id_varname_,  const char* tblname_)
+: QLabel(name)
+, tblname(tblname_)
+, typ(typ_)
+, typ_id_varname(typ_id_varname_)
 {}
 
 

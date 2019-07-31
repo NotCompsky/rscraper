@@ -33,7 +33,7 @@ unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len
 	if (!boost::regex_search(str,  str + str_len,  what,  *regexpr))
 		return 0;
 	
-	for (auto i = 1;  i < what.size();  ++i){
+	for (size_t i = 1;  i < what.size();  ++i){
 		// Ignore first index - it is the entire match, not a regex group.
 		if (!what[i].matched)
 			continue;

@@ -175,6 +175,7 @@ void login(){
 			handler(myerr::UNAUTHORISED);
 		case strlen_constexpr("{\"error\": \"unsupported_grant_type\"}"):
 			handler(myerr::UNSUPPORTED_GRANT_TYPE);
+		default: break;
 	}
 	
 	char* s = mycu::MEMORY.memory + strlen_constexpr("{\"access_token\": \"");

@@ -26,7 +26,7 @@ namespace _f {
 }
 
 
-MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), tab_widget(tab_widget) {
+MainTab::MainTab(QTabWidget* tab_widget_,  QWidget* parent) : QWidget(parent), tab_widget(tab_widget_) {
 	QGridLayout* l = new QGridLayout;
 	
 	int row = 0;
@@ -54,7 +54,6 @@ MainTab::MainTab(QTabWidget* tab_widget,  QWidget* parent) : QWidget(parent), ta
 }
 
 void MainTab::add_category(){
-	bool ok;
 	NameDialog* catdialog = new NameDialog("New Category", "Avoid using '&'");
 	const int rc = catdialog->exec();
 	const QString cat_qstr = catdialog->name_edit->text();

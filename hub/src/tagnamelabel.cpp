@@ -26,15 +26,18 @@ namespace _f {
 }
 
 
-TagNameLabel::TagNameLabel(const uint64_t tag_id,  char* name,  QWidget* parent) : tag_id(tag_id), QLabel(name, parent) {
-}
+TagNameLabel::TagNameLabel(const uint64_t tag_id_,  char* name,  QWidget* parent)
+: QLabel(name, parent)
+, tag_id(tag_id_)
+{}
 
-TagNameLabel::TagNameLabel(const uint64_t tag_id,  QString& qname,  QWidget* parent) : tag_id(tag_id), QLabel(qname, parent) {
-}
+TagNameLabel::TagNameLabel(const uint64_t tag_id_,  QString& qname,  QWidget* parent)
+: QLabel(qname, parent)
+, tag_id(tag_id_)
+{}
 
 
 void TagNameLabel::rename_tag(){
-	bool ok;
 	NameDialog* tagdialog = new NameDialog("Rename Tag", this->text());
 	QCompleter* tagcompleter = new QCompleter(tagslist);
 	tagdialog->name_edit->setCompleter(tagcompleter);

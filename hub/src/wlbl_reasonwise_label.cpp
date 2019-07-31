@@ -21,9 +21,9 @@ namespace _f {
 }
 
 
-WlBlReasonwiseLabel::WlBlReasonwiseLabel(const char* name,  const char* typ,  const char* typ_id_varname,  const char* tblname)
+WlBlReasonwiseLabel::WlBlReasonwiseLabel(const char* name,  const char* typ_,  const char* typ_id_varname_,  const char* tblname_)
 :
-	WlBlLabel(name, typ, typ_id_varname, tblname)
+	WlBlLabel(name, typ_, typ_id_varname_, tblname_)
 {}
 
 

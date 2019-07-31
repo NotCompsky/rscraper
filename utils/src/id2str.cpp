@@ -61,9 +61,9 @@ uint64_t myatoi(const char* str){
 #if defined(ID2STR_EXE) || defined(STR2ID_EXE)
 #include <stdio.h>
 int main(const int argc,  const char** argv){
-	char str[19 + 1];
 	for (auto j = 1;  j < argc;  ++j){
 #ifdef ID2STR_EXE
+		char str[19 + 1];
 		str[id2str(myatoi(argv[j]), str)] = 0;
 		printf("%s\n", str);
 #else

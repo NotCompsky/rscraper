@@ -56,4 +56,5 @@ const char* SQLNameDialog::get_pattern_str(){
 	for (auto i = 0;  i < 3;  ++i)
 		if (this->pattern_btns[i]->isChecked())
 			return details::pattern_strs[i];
+	// Exactly one radio button is checked at any time. This code path should be impossible.
 }

@@ -148,34 +148,34 @@ void RegexEditorVarsMenu::add_var_row(const QString name,  const QString type_na
 
 void RegexEditorVarsMenu::var_edit_btn_clicked(){
 	QWidget* btn = static_cast<QPushButton*>(sender());
-	const int row = btn->objectName().toInt();
-	const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row, 0)->widget())->text();
+	const int row_ = btn->objectName().toInt();
+	const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row_, 0)->widget())->text();
 
 	compsky::mysql::query(&RES1,  "SELECT data FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
 	char* data_raw;
-	QString data;
+	QString data_;
 	while(compsky::mysql::assign_next_row(RES1, &ROW1, &data_raw)){
 		static const QString qstr_uninitialised("!!!<Uninitialised>!!!");
-		data = (data_raw==nullptr) ? qstr_uninitialised : QString(data_raw);
+		data_ = (data_raw==nullptr) ? qstr_uninitialised : QString(data_raw);
 	}
 
 	bool ok;
-	data = QInputDialog::getMultiLineText(this,  "Edit Variable",  "Data",  data,  &ok);
+	data_ = QInputDialog::getMultiLineText(this,  "Edit Variable",  "Data",  data_,  &ok);
 	if (!ok)
 		return;
 
-	compsky::mysql::exec("UPDATE regex_vars SET data=\"", _f::esc, '"', data, "\" WHERE name=\"", _f::esc, '"', name, "\"");
+	compsky::mysql::exec("UPDATE regex_vars SET data=\"", _f::esc, '"', data_, "\" WHERE name=\"", _f::esc, '"', name, "\"");
 
-	const unsigned int type = this->l->itemAtPosition(row, 1)->widget()->objectName().toInt();
+	const unsigned int type = this->l->itemAtPosition(row_, 1)->widget()->objectName().toInt();
 
 	{
 		QString result;
 		switch(type){
 			case 1: {
-				optimise_regex(data, result);
+				optimise_regex(data_, result);
 				break;
 			} default:
-				result = (data == nullptr) ? "<UNINITIALISED>" : data;
+				result = (data_ == nullptr) ? "<UNINITIALISED>" : data_;
 				break;
 		}
 		QMessageBox::information(this,  "Result",  result);
@@ -185,9 +185,9 @@ void RegexEditorVarsMenu::var_edit_btn_clicked(){
 
 void RegexEditorVarsMenu::var_view_btn_clicked(){
 	QWidget* btn = static_cast<QPushButton*>(sender());
-	const int row = btn->objectName().toInt();
-	const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row, 0)->widget())->text();
-	const unsigned int type = this->l->itemAtPosition(row, 1)->widget()->objectName().toInt();
+	const int row_ = btn->objectName().toInt();
+	const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row_, 0)->widget())->text();
+	const unsigned int type = this->l->itemAtPosition(row_, 1)->widget()->objectName().toInt();
 
 	compsky::mysql::query(&RES1,  "SELECT result FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
 	char* result;
@@ -198,11 +198,11 @@ void RegexEditorVarsMenu::var_view_btn_clicked(){
 
 void RegexEditorVarsMenu::var_del_btn_clicked(){
 	QWidget* btn = static_cast<QPushButton*>(sender());
-	const int row = btn->objectName().toInt();
-	const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row, 0)->widget())->text();
+	const int row_ = btn->objectName().toInt();
+	const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row_, 0)->widget())->text();
 	compsky::mysql::exec("DELETE FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
 	for (auto i = 0;  i < n_per_row;  ++i){
-		QLayoutItem* a = this->l->itemAtPosition(row, i);
+		QLayoutItem* a = this->l->itemAtPosition(row_, i);
 		delete a->widget();
 		l->removeItem(a);
 	}

@@ -45,7 +45,6 @@ public:
 	void addBreakdownSeries(QPieSeries *series, QColor color);
 	
 private:
-	void recalculateAngles();
 	void updateLegendMarkers();
 };
 

@@ -20,9 +20,15 @@ extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
 
 
-SelectColourButton::SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  QWidget* parent,  const char* tblname) : SelectColourButton(id, QColor(r,g,b,a), parent, tblname) {}
+SelectColourButton::SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  QWidget* parent,  const char* tblname_)
+: SelectColourButton(id, QColor(r,g,b,a), parent, tblname_)
+{}
 
-SelectColourButton::SelectColourButton(const uint64_t id,  const QColor& cl,  QWidget* parent,  const char* tblname) : tag_id(id), colour(cl), tblname(tblname) {
+SelectColourButton::SelectColourButton(const uint64_t id,  const QColor& cl,  QWidget* parent,  const char* tblname_)
+: tblname(tblname_)
+, tag_id(id)
+, colour(cl)
+{
 	this->setAutoFillBackground(true);
 	this->setFlat(true);
 	

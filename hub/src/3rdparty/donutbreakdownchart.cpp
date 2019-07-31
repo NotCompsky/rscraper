@@ -67,16 +67,8 @@ void DonutBreakdownChart::addBreakdownSeries(QPieSeries *breakdownSeries, QColor
 	// add the series to the chart
 	QChart::addSeries(breakdownSeries);
 
-	// recalculate breakdown donut segments
-	recalculateAngles();
-
 	// update customize legend markers
 	updateLegendMarkers();
-}
-
-void DonutBreakdownChart::recalculateAngles()
-{
-	qreal angle = 0;
 }
 
 void DonutBreakdownChart::updateLegendMarkers()

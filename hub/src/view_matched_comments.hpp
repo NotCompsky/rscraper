@@ -41,7 +41,6 @@ class ViewMatchedComments : public QWidget {
 	QRadioButton* sorting_column_btns[6];
 	char post_id_str[10];
 	char cmnt_id_str[10];
-	char dt_buf[200];
 	uint64_t cmnt_id;
 	char* cmnt_body;
 	size_t cmnt_body_sz;

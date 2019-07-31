@@ -8,8 +8,9 @@
 
 #include "rscraper/tagger.hpp"
 
-#include <compsky/mysql/query.hpp>
+#include <compsky/asciify/init.hpp>
 #include <compsky/asciify/flags.hpp>
+#include <compsky/mysql/query.hpp>
 
 #include <cstring> // for memcpy, strlen
 #include <stdlib.h> // for abort
@@ -29,6 +30,7 @@ extern "C" char* DST = NULL; // alias for BUF
 namespace compsky {
 	namespace asciify {
 		char* BUF;
+		char* ITR;
 		constexpr const size_t BUF_SZ = 4096 * 1024;
 	}
 }
@@ -88,8 +90,7 @@ constexpr uint64_t str2id(const char* start,  const char* end){
 extern "C"
 void init(){
 	compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
-	compsky::asciify::BUF = (char*)malloc(compsky::asciify::BUF_SZ);
-	if (compsky::asciify::BUF == nullptr)
+	if (compsky::asciify::alloc(compsky::asciify::BUF_SZ))
 		abort();
 }
 

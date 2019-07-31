@@ -16,6 +16,7 @@
 #include "filter_subreddit.hpp" // for filter_subreddit::*
 #include "filter_user.hpp" // for filter_user::*
 
+#include <compsky/asciify/init.hpp>
 #include <compsky/asciify/base.hpp>
 #include <compsky/mysql/query.hpp>
 
@@ -34,6 +35,7 @@ MYSQL_ROW ROW1;
 namespace compsky {
 	namespace asciify {
 		char* BUF;
+		char* ITR;
 	}
 }
 
@@ -210,10 +212,9 @@ void process_all_comments_live(){
 }
 
 int main(){
-	void* dummy = malloc(81000); // Max size of Reddit comments is 40000 characters, iirc.
-	if (dummy == nullptr)
+	if (compsky::asciify::alloc(81000))
+		 // Max size of Reddit comments is 40000 characters, iirc.
 		exit(myerr::OUT_OF_MEMORY);
-	compsky::asciify::BUF = static_cast<char*>(dummy);
 	
 	compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
 	filter_comment_body::init();

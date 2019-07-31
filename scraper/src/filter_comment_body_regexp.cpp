@@ -54,7 +54,7 @@ void populate_reason2name(){
 		reason_name2id.reserve(reason_id);
 		SUBREDDIT_WHITELISTS.reserve(reason_id);
 		SUBREDDIT_BLACKLISTS.reserve(reason_id);
-		for (auto i = 0;  i < reason_id + 1;  ++i){
+		for (int i = 0;  i < reason_id + 1;  ++i){
 			SUBREDDIT_WHITELISTS.emplace_back();
 			SUBREDDIT_BLACKLISTS.emplace_back();
 			reason_name2id.push_back(nullptr);
@@ -85,7 +85,7 @@ void init(){
 	
 	compsky::asciify::asciify(chbuf, compsky::asciify::BUF, "INSERT IGNORE INTO reason_matched (id,name) VALUES");
 	
-	for (auto i = 0;  i < reason_name2id.size();  ++i)
+	for (size_t i = 0;  i < reason_name2id.size();  ++i)
 		compsky::asciify::asciify("(", i, ",\"", esc, '"', reason_name2id[i], "\"),");
 	compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Ignore trailing comma
 }

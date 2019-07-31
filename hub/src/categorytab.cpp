@@ -45,7 +45,12 @@ extern QStringList tagslist;
 extern QStringList category_names;
 
 
-ClTagsTab::ClTagsTab(const uint64_t cat_id,  QTabWidget* tab_widget,  QWidget* parent) : cat_id(cat_id), QWidget(parent), row(0), tab_widget(tab_widget){
+ClTagsTab::ClTagsTab(const uint64_t cat_id_,  QTabWidget* tab_widget_,  QWidget* parent)
+: QWidget(parent)
+, cat_id(cat_id_)
+, tab_widget(tab_widget_)
+, row(0)
+{
 	this->l = new QGridLayout;
 	
 	{
@@ -108,7 +113,6 @@ uint64_t ClTagsTab::create_tag(const QString& qs){
 }
 
 void ClTagsTab::add_tag(){
-	bool ok;
 	NameDialog* tagdialog = new NameDialog("Tag", "");
 	QCompleter* tagcompleter = new QCompleter(tagslist);
 	tagdialog->name_edit->setCompleter(tagcompleter);

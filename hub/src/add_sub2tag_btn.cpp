@@ -23,10 +23,9 @@ extern QCompleter* subreddit_name_completer;
 
 
 AddSub2TagBtn::AddSub2TagBtn(const uint64_t id,  const bool _delete_from,  QWidget* parent)
-:
-	QPushButton(QString(_delete_from?"-":"+") + "Subreddits",  parent),
-	tag_id(id),
-	delete_from(_delete_from)
+: QPushButton(QString(_delete_from?"-":"+") + "Subreddits",  parent)
+, delete_from(_delete_from)
+, tag_id(id)	
 {}
 
 void AddSub2TagBtn::add_subreddit(){

@@ -46,7 +46,7 @@ int main(int argc,  const char** argv){
 	compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
 	
 	FILE* f;
-	uint64_t count, id, subreddit_id, tag_id, user_id, category_id;
+	uint64_t count, id, subreddit_id, user_id;
 	char* name;
 	char* name2;
 	
@@ -104,7 +104,6 @@ int main(int argc,  const char** argv){
 	}
 	
 	if (argc == 0  ||  contains(argv, argc, "tag")){
-		double r, g, b, a;
 		f = fopen("tag.csv", "wb");
 		if (categories_wl_size == 0)
 			compsky::mysql::query_buffer(&RES, "SELECT name, CONCAT_WS(',', r, g, b, a) FROM tag");

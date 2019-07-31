@@ -23,7 +23,10 @@ extern MYSQL_ROW ROW1;
 extern QStringList category_names;
 
 
-BtnWithID::BtnWithID(const QString& title,  const uint64_t id,  QWidget* parent) : id(id), QPushButton(title, parent) {}
+BtnWithID::BtnWithID(const QString& title,  const uint64_t id_,  QWidget* parent)
+: QPushButton(title, parent)
+, id(id_)
+{}
 
 void BtnWithID::mousePressEvent(QMouseEvent* e){
 	switch(e->button()){

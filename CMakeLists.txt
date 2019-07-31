@@ -14,6 +14,10 @@ else()
 	set(CMAKE_BUILD_TYPE "Release")
 	set(MY_DEFINITIONS "QT_NO_DEBUG" "QT_NO_DEBUG_OUTPUT")
 endif()
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	# libcompsky uses a lot of 'flag' parameters
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+endif()
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS "TRUE") # For Windows Visual Studio # Doesn't seem to do anything though!

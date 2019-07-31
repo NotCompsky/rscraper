@@ -88,7 +88,12 @@ constexpr const char* reason_a2 =
 	"AND u.id=c.author_id";
 
 
-ViewMatchedComments::ViewMatchedComments(QWidget* parent) : QWidget(parent), res1(0), is_ascending(false), cmnt_body(nullptr) {
+ViewMatchedComments::ViewMatchedComments(QWidget* parent)
+: QWidget(parent)
+, cmnt_body(nullptr)
+, res1(0)
+, is_ascending(false)
+{
 	QVBoxLayout* l = new QVBoxLayout;
 	
 	
@@ -254,17 +259,17 @@ void ViewMatchedComments::next(){
 		this->textarea->setPlainText("");
 		return;
 	}
-	char* subname;
+	char* subname_;
 	constexpr static const compsky::asciify::flag::StrLen f;
 	uint64_t post_id;
 	uint64_t t;
-	char* username;
+	char* username_;
 	char* reason;
-	if (compsky::mysql::assign_next_row(this->res1, &this->row1, &subname, &post_id, &this->cmnt_id, &t, f, &this->cmnt_body_sz, &this->cmnt_body, &username, &reason)){
+	if (compsky::mysql::assign_next_row(this->res1, &this->row1, &subname_, &post_id, &this->cmnt_id, &t, f, &this->cmnt_body_sz, &this->cmnt_body, &username_, &reason)){
 		post_id_str[id2str(post_id,         post_id_str)] = 0;
 		cmnt_id_str[id2str(this->cmnt_id,   cmnt_id_str)] = 0;
 		
-		this->permalink->setText(QString("https://www.reddit.com/r/" + QString(subname) + QString("/comments/") + QString(post_id_str) + QString("/_/") + QString(cmnt_id_str)));
+		this->permalink->setText(QString("https://www.reddit.com/r/" + QString(subname_) + QString("/comments/") + QString(post_id_str) + QString("/_/") + QString(cmnt_id_str)));
 		
 		const time_t tt = t;
 		const struct tm* dt = localtime(&tt);
@@ -273,8 +278,8 @@ void ViewMatchedComments::next(){
 		compsky::asciify::asciify(dt);
 		compsky::asciify::append(0);
 		
-		this->subname->setText(subname);
-		this->username->setText(username);
+		this->subname->setText(subname_);
+		this->username->setText(username_);
 		this->reasonname->setText(reason);
 		this->datetime->setText(dt_buf);
 		
@@ -312,7 +317,7 @@ void ViewMatchedComments::view_matches(){
 	if (!boost::regex_search(str,  str + this->cmnt_body_sz,  what,  *filter_comment_body::regexpr))
 		report += "No matches";
 	
-	for (auto i = 1;  i < what.size();  ++i){
+	for (size_t i = 1;  i < what.size();  ++i){
 		// Ignore first index - it is the entire match, not a regex group.
 		if (what[i].matched)
 			report += QString("\nMatched group ") + QString::number(i) + QString("\n\t") + QString::fromLocal8Bit(what[i].first,  (uintptr_t)what[i].second - (uintptr_t)what[i].first);
