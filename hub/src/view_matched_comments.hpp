@@ -47,7 +47,7 @@ class ViewMatchedComments : public QWidget {
 	size_t cmnt_body_sz;
 	MYSQL_RES* res1;
 	MYSQL_ROW row1;
-	QLineEdit* query_text;
+	QPlainTextEdit* query_text;
 	bool is_ascending;
 };
 

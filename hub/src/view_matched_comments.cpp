@@ -46,46 +46,47 @@ namespace details {
 
 
 constexpr const char* tag_a1 = 
-	"SELECT S.name AS subreddit_name, S.id AS submission_id, c.id, c.created_at, c.content, u.name, m.name "
-	"FROM reason_matched m, user u, comment c "
-	"JOIN ("
-		"SELECT R.name, s.id "
-		"FROM submission s "
-		"JOIN ( "
-			"SELECT r.id, r.name "
-			"FROM subreddit r ";
+	"SELECT S.name AS subreddit_name, S.id AS submission_id, c.id, c.created_at, c.content, u.name, m.name\n"
+	"FROM reason_matched m, user u, comment c\n"
+	"JOIN (\n"
+	"	SELECT R.name, s.id\n"
+	"	FROM submission s\n"
+	"	JOIN (\n"
+	"		SELECT r.id, r.name\n"
+	"		FROM subreddit r\n";
 constexpr const char* tag_b1 = 
-			"JOIN ( "
-				"SELECT s2t.subreddit_id "
-				"FROM subreddit2tag s2t "
-				"JOIN ("
-					"SELECT t.id "
-					"FROM tag t "
-					"WHERE t.name=\"";
+	"		JOIN (\n"
+	"			SELECT s2t.subreddit_id\n"
+	"			FROM subreddit2tag s2t\n"
+	"			JOIN (\n"
+	"				SELECT t.id\n"
+	"				FROM tag t\n"
+	"				WHERE t.name=\"";
 
 constexpr const char* tag_b2 = 
-				"\") T on T.id = s2t.tag_id "
-			") S2T on S2T.subreddit_id = r.id ";
+	"			\") T on T.id = s2t.tag_id\n"
+	"		) S2T on S2T.subreddit_id = r.id\n";
 constexpr const char* tag_a2 = 
-		") R on R.id = s.subreddit_id "
-	") S on S.id = c.submission_id "
-	"WHERE u.id=c.author_id "
-	"AND m.id=c.reason_matched";
+	"	) R on R.id = s.subreddit_id\n"
+	") S on S.id = c.submission_id\n"
+	"WHERE u.id=c.author_id\n"
+	"  AND m.id=c.reason_matched\n";
 
 constexpr const char* reason_a1 = 
-	"SELECT r.name AS subreddit_name, s.id AS submission_id, c.id, c.created_at, c.content, u.name, m.name "
-	"FROM subreddit r, submission s, comment c, user u, reason_matched m "
+	"SELECT r.name AS subreddit_name, s.id AS submission_id, c.id, c.created_at, c.content, u.name, m.name\n"
+	"FROM subreddit r, submission s, comment c, user u, reason_matched m\n"
 	"WHERE ";
 constexpr const char* reason_b1 = 
 	"m.name=\"";
 
 constexpr const char* reason_b2 = 
-	"\" AND ";
+	"\"\n"
+	"  AND ";
 constexpr const char* reason_a2 = 
-	"c.reason_matched=m.id "
-	"AND s.id=c.submission_id "
-	"AND r.id=s.subreddit_id "
-	"AND u.id=c.author_id";
+	"c.reason_matched=m.id\n"
+	"  AND s.id=c.submission_id\n"
+	"  AND r.id=s.subreddit_id\n"
+	"  AND u.id=c.author_id\n";
 
 
 ViewMatchedComments::ViewMatchedComments(QWidget* parent)
@@ -154,7 +155,7 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	l->addWidget(group_box);
 	}
 	
-	this->query_text = new QLineEdit;
+	this->query_text = new QPlainTextEdit;
 	l->addWidget(this->query_text);
 	
 	{
@@ -248,15 +249,15 @@ void ViewMatchedComments::generate_query(){
 	compsky::asciify::asciify((this->is_ascending) ? " asc" : " desc");
 	
 	if (!limit_str.isEmpty()) 
-		compsky::asciify::asciify(" LIMIT ",  limit_str.toInt());
+		compsky::asciify::asciify("\nLIMIT ",  limit_str.toInt());
 	
 	compsky::asciify::asciify('\0');
 	
-	this->query_text->setText(compsky::asciify::BUF);
+	this->query_text->setPlainText(compsky::asciify::BUF);
 }
 
 void ViewMatchedComments::execute_query(){
-	compsky::mysql::query(&this->res1, this->query_text->text());
+	compsky::mysql::query(&this->res1, this->query_text->toPlainText());
 	this->next();
 }
 
