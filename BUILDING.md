@@ -22,8 +22,6 @@ In addition to those required for installing.
 
 If you don't already have `libcurl`, navigate to your `MXE` root directory and run `make curl`.
 
-Download `rapidjson` and copy its `include` directory into `rscraper/3rdparty`.
-
 Then make and install [libcompsky](https://github.com/compsky/libcompsky) with `x86_64-w64-mingw32.static-cmake`.
 
 #### Windows (native)
