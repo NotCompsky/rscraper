@@ -154,13 +154,18 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	l->addWidget(group_box);
 	}
 	
-	
+	this->query_text = new QLineEdit;
+	l->addWidget(this->query_text);
 	
 	{
 	QHBoxLayout* box = new QHBoxLayout;
-	QPushButton* next_btn = new QPushButton("Query", this);
+	QPushButton* next_btn = new QPushButton("Generate", this);
 	box->addWidget(next_btn);
-	connect(next_btn, &QPushButton::clicked, this, &ViewMatchedComments::init);
+	connect(next_btn, &QPushButton::clicked, this, &ViewMatchedComments::generate_query);
+	
+	QPushButton* exec_btn = new QPushButton("Execute", this);
+	box->addWidget(exec_btn);
+	connect(exec_btn, &QPushButton::clicked, this, &ViewMatchedComments::execute_query);
 	
 	QPushButton* init_btn = new QPushButton("Next", this);
 	box->addWidget(init_btn);
@@ -218,7 +223,7 @@ const char* ViewMatchedComments::get_sort_column(){
 			return details::sorting_columns[i];
 }
 
-void ViewMatchedComments::init(){
+void ViewMatchedComments::generate_query(){
 	if (this->res1 != nullptr)
 		mysql_free_result(this->res1);
 	
@@ -245,8 +250,13 @@ void ViewMatchedComments::init(){
 	if (!limit_str.isEmpty()) 
 		compsky::asciify::asciify(" LIMIT ",  limit_str.toInt());
 	
-	compsky::mysql::query_buffer(&this->res1, compsky::asciify::BUF, compsky::asciify::get_index());
+	compsky::asciify::asciify('\0');
 	
+	this->query_text->setText(compsky::asciify::BUF);
+}
+
+void ViewMatchedComments::execute_query(){
+	compsky::mysql::query(&this->res1, this->query_text->text());
 	this->next();
 }
 

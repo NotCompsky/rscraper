@@ -25,7 +25,8 @@ class ViewMatchedComments : public QWidget {
   private:
 	void next();
 	void del_cmnt();
-	void init();
+	void generate_query();
+	void execute_query();
 	void toggle_order_btns();
 	void view_matches();
 	const char* get_sort_column();
@@ -46,6 +47,7 @@ class ViewMatchedComments : public QWidget {
 	size_t cmnt_body_sz;
 	MYSQL_RES* res1;
 	MYSQL_ROW row1;
+	QLineEdit* query_text;
 	bool is_ascending;
 };
 
