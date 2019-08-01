@@ -84,7 +84,7 @@ add_executable(
 )
 set_property(TARGET rscraper-hub PROPERTY CXX_STANDARD 17)
 target_include_directories(rscraper-hub PRIVATE ${COMPSKY_INCLUDE_DIRS})
-target_link_libraries(rscraper-hub ${WHICH_MYSQL_CLIENT} Qt5::Widgets Qt5::Charts compsky_asciify compsky_mysql)
+target_link_libraries(rscraper-hub Qt5::Widgets Qt5::Charts compsky_asciify compsky_mysql)
 if(Boost_FOUND)
 	target_link_libraries(rscraper-hub ${Boost_REGEX_LIBRARY})
 	target_compile_definitions(rscraper-hub PRIVATE USE_BOOST_REGEX)
