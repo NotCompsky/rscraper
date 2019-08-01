@@ -162,6 +162,14 @@ CREATE TABLE IF NOT EXISTS longstrings (
     PRIMARY KEY (name)
 );
 
+CREATE TABLE IF NOT EXISTS regex_test__cmnt_body (
+	id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	subreddit BIGINT UNSIGNED NOT NULL,
+	reason INT UNSIGNED NOT NULL,
+	body VARBINARY(1024) NOT NULL,
+	PRIMARY KEY (id)
+);
+
 
 INSERT IGNORE INTO reason_matched (id, name)             VALUES (0, "None");
 INSERT IGNORE INTO reason_matched (id, name, r, g, b, a) VALUES (1, "Unknown", 0.5, 0.5, 0.5, 1);

@@ -92,6 +92,32 @@ void init(){
 		compsky::asciify::asciify("(", i, ",\"", esc, '"', reason_name2id[i], "\"),");
 	}
 	compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Ignore trailing comma
+	
+	compsky::mysql::query_buffer(&RES1,  "SELECT id, subreddit, reason, body FROM regex_test__cmnt_body");
+	unsigned int id;
+	uint64_t subreddit;
+	unsigned int expected_reason;
+	char* body;
+	unsigned int n_failures = 0;
+	while(compsky::mysql::assign_next_row(RES1, &ROW1, &id, &subreddit, &expected_reason, &body)){
+		struct cmnt_meta metadata = {
+			"author_name IGNORED",
+			"subreddit_name IGNORED",
+			0, // author field, ignored
+			subreddit,
+		};
+		
+		bool ignored_as_yet;
+		unsigned int actual_reason;
+		actual_reason = match(metadata, body, strlen(body), ignored_as_yet);
+		if(actual_reason != expected_reason){
+			fprintf(stderr, "cmnt_body regex test #%u failed\n\tExpected:\n\t\tGroup #%u (%s)\n\tActual:\n\t\tGroup #%u (%s)\n\t%s\n", id, expected_reason, reason_name2id[expected_reason], actual_reason, reason_name2id[actual_reason], body);
+			++n_failures;
+		}
+	}
+	if (n_failures != 0){
+		exit(myerr::TEST_FAILED__REGEX_CMNT_BODY);
+	}
 }
 
 
