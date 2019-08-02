@@ -119,7 +119,7 @@ void init(){
 	if (n_failures != 0){
 		for (size_t i = 1;  i < groupindx2reason.size();  ++i){
 			// Ignore first index - it is the entire match, not a regex group.
-			printf("groupindx2reason[%d]\t%s\n", groupindx2reason[i], (groupindx2reason[i] < reason_name2id.size()) ? reason_name2id[groupindx2reason[i]] : "(index beyond reason_name2id)");
+			printf("groupindx2reason[%d]\t%d\n\tCorresponding to group\t%s\n", i, groupindx2reason[i], (groupindx2reason[i] < reason_name2id.size()) ? reason_name2id[groupindx2reason[i]] : "(index beyond reason_name2id)");
 		}
 		// Somewhat duplicated code from init_regexp_from_file.cpp // Possible TODO: Deduplicate
 		compsky::mysql::query_buffer(&RES1,  "SELECT data FROM longstrings WHERE name='cmnt_body_regex'");
