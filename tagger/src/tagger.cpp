@@ -343,7 +343,7 @@ extern "C"
 void user_summary(const char* const reasonfilter,  const char* const name){
 	compsky::mysql::query(
 		&RES,
-		"SELECT m.name, CONCAT(\"https://www.reddit.com/r/\", r.name, \"/comments/\"), c.id "
+		"SELECT m.name, r.name, s.id, c.id "
 		"FROM comment c, subreddit r, submission s, user u, reason_matched m "
 		"WHERE u.name=\"", name, "\" "
 		  "AND c.author_id=u.id "
@@ -353,9 +353,11 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 		  reasonfilter
 	);
 	char* reason;
-	char* url_start;
-	uint64_t c_id;
-	char id_str[19 + 1];
+	char* subreddit_name;
+	uint64_t submission_id;
+	uint64_t comment_id;
+	char submission_id_str[19 + 1];
+	char comment_id_str[19 + 1];
 	compsky::asciify::reset_index();
 	compsky::asciify::asciify(
 	"<!DOCTYPE html>"
@@ -371,16 +373,21 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 					"</th>"
 				"</tr>"
 	);
-	while(compsky::mysql::assign_next_row(RES, &ROW, &reason, &url_start, &c_id)){
-		id2str(c_id, id_str);
+	while(compsky::mysql::assign_next_row(RES, &ROW, &reason, &subreddit_name, &submission_id, &comment_id)){
+		id2str(submission_id, submission_id_str);
+		id2str(comment_id,    comment_id_str);
 		compsky::asciify::asciify(
 				"<tr>"
 					"<td>",
 						reason,
 					"</td>"
-					"<td>",
-						url_start,
-						id_str,
+					"<td>"
+						"https://www.reddit.com/r/",
+						subreddit_name,
+						"/comments/",
+						submission_id_str,
+						"/_/",
+						comment_id_str,
 					"</td>"
 				"</tr>"
 		);
