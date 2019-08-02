@@ -393,7 +393,7 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 						"placeholder"
 					"</td>"
 					"<td>"
-						"<a href=\"
+						"<a href=\""
 							"https://www.reddit.com/r/",
 							subreddit_name,
 							"/comments/",
