@@ -33,5 +33,8 @@ const char* generate_id_list_string(const char* tblname,  const char** names);
 extern "C"
 void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
 
+extern "C"
+void user_summary(const char* const name);
+
 
 #endif

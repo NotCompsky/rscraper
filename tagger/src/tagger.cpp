@@ -53,20 +53,19 @@ constexpr size_t strlen_constexpr(const char* s){
 
 
 
-size_t id2str(uint64_t id_orig,  char* buf){
+void id2str(uint64_t id_orig,  char* buf){
 	size_t n_digits = 0;
 	uint64_t id = id_orig;
 	while (id != 0){
 		++n_digits;
 		id /= 36;
 	}
-	const size_t to_return = n_digits;
+	buf[n_digits] = 0;
 	while (id_orig != 0){ // Note that a subreddit id should never be 0
 		char digit = id_orig % 36;
 		buf[--n_digits] = digit + ((digit<10) ? '0' : 'a' - 10);
 		id_orig /= 36;
 	}
-	return to_return;
 }
 
 constexpr uint64_t str2id(const char* start,  const char* end){
@@ -297,7 +296,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	uint64_t n_cmnts;
 	double r, g, b, a;
 	char* s;
-	char id_str[20];
+	char id_str[19 + 1];
 	size_t id_str_len;
 	size_t s_len;
 	constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f;
@@ -311,8 +310,8 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		
 		if (id != last_id){
 			--compsky::asciify::ITR;  // Overwrite trailing comma left by RGBs
-			id_str_len = id2str(id, id_str);
-			compsky::asciify::asciify("],\"id-t2_",  ff, id_str, id_str_len,  "\":[");
+			id2str(id, id_str);
+			compsky::asciify::asciify("],\"id-t2_",  id_str,  "\":[");
 			last_id = id;
 		}
 		
@@ -337,4 +336,57 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	DST[0] = '{';
 	*(++compsky::asciify::ITR) = '}';
 	*(++compsky::asciify::ITR) = 0;
+}
+
+
+extern "C"
+void user_summary(const char* const name){
+	compsky::mysql::query(
+		&RES,
+		"SELECT m.name, CONCAT(\"https://www.reddit.com/r/\", r.name, \"/comments/\"), c.id "
+		"FROM comment c, subreddit r, submission s, user u, reason_matched m "
+		"WHERE u.name=\"", name, "\" "
+		  "AND s.author_id=u.id "
+		  "AND s.subreddit_id=r.id "
+		  "AND m.id=c.reason_matched"
+	);
+	char* reason;
+	char* url_start;
+	uint64_t c_id;
+	char id_str[19 + 1];
+	compsky::asciify::reset_index();
+	compsky::asciify::asciify(
+	"<!DOCTYPE html>"
+		"<body>"
+			"<h1>"
+				"Summary of /u/", name,
+			"</h1>"
+			"<table>"
+				"<tr>"
+					"<th>"
+						"Reason"
+						"Link"
+					"</th>"
+				"</tr>"
+	);
+	while(compsky::mysql::assign_next_row(RES, &ROW, &reason, &url_start, &c_id)){
+		id2str(c_id, id_str);
+		compsky::asciify::asciify(
+				"<tr>"
+					"<td>",
+						reason,
+					"</td>"
+					"<td>",
+						url_start,
+						id_str,
+					"</td>"
+				"</tr>"
+		);
+	}
+	compsky::asciify::asciify(
+			"</table>"
+		"</body>"
+	"</html>"
+	);
+	DST = compsky::asciify::BUF;
 }

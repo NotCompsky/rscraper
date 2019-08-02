@@ -8,6 +8,7 @@ extern char* DST;
 extern void init();
 extern void exit_mysql();
 extern void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
+extern void user_summary(const char* const name);
 */
 import "C" // Pseudopackage
 import "flag"
@@ -25,6 +26,11 @@ var reasonfilter string
 func process(w http.ResponseWriter, r* http.Request){
     w.Header().Set("Content-Type", "application/json")
     C.csv2cls(C.CString(r.URL.Path), C.CString(tagfilter), C.CString(reasonfilter))
+    io.WriteString(w, C.GoString(C.DST))
+}
+
+func process_user(w http.ResponseWriter, r* http.Request){
+    C.user_summary(C.CString(r.URL.Path))
     io.WriteString(w, C.GoString(C.DST))
 }
 
@@ -46,7 +52,8 @@ func main(){
     
     C.init()
     mux := http.NewServeMux()
-    mux.HandleFunc("/", process)
+    mux.HandleFunc("/rtagger/", process)
+	mux.HandleFunc("/u/", process_user)
     http.ListenAndServe(":" + portN,  mux)
 }
 
