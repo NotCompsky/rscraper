@@ -347,7 +347,8 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 		"FROM comment c, subreddit r, submission s, user u, reason_matched m "
 		"WHERE u.name=\"", name, "\" "
 		  "AND c.author_id=u.id "
-		  "AND s.subreddit_id=r.id "
+		  "AND s.id=c.submission_id "
+		  "AND r.id=s.subreddit_id "
 		  "AND m.id=c.reason_matched ",
 		  reasonfilter
 	);
