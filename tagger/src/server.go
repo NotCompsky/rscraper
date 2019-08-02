@@ -8,7 +8,7 @@ extern char* DST;
 extern void init();
 extern void exit_mysql();
 extern void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
-extern void user_summary(const char* const name);
+extern void user_summary(const char* reasonfilter,  const char* const name);
 */
 import "C" // Pseudopackage
 import "flag"
@@ -30,7 +30,7 @@ func process(w http.ResponseWriter, r* http.Request){
 }
 
 func process_user(w http.ResponseWriter, r* http.Request){
-    C.user_summary(C.CString(r.URL.Path[3:]))
+    C.user_summary(C.CString(reasonfilter), C.CString(r.URL.Path[3:]))
     io.WriteString(w, C.GoString(C.DST))
 }
 

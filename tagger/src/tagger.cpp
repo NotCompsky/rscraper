@@ -340,7 +340,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 
 
 extern "C"
-void user_summary(const char* const name){
+void user_summary(const char* const reasonfilter,  const char* const name){
 	compsky::mysql::query(
 		&RES,
 		"SELECT m.name, CONCAT(\"https://www.reddit.com/r/\", r.name, \"/comments/\"), c.id "
@@ -348,7 +348,8 @@ void user_summary(const char* const name){
 		"WHERE u.name=\"", name, "\" "
 		  "AND s.author_id=u.id "
 		  "AND s.subreddit_id=r.id "
-		  "AND m.id=c.reason_matched"
+		  "AND m.id=c.reason_matched ",
+		  reasonfilter
 	);
 	char* reason;
 	char* url_start;

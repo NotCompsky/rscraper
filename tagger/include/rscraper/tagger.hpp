@@ -34,7 +34,7 @@ extern "C"
 void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
 
 extern "C"
-void user_summary(const char* const name);
+void user_summary(const char* reasonfilter,  const char* const name);
 
 
 #endif
