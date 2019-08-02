@@ -350,7 +350,9 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 		  "AND s.id=c.submission_id "
 		  "AND r.id=s.subreddit_id "
 		  "AND m.id=c.reason_matched ",
-		  reasonfilter
+		  reasonfilter,
+		  " ORDER BY c.created_at DESC "
+		  "LIMIT 1000"
 	);
 	char* reason;
 	char* subreddit_name;
@@ -364,7 +366,7 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 	"<!DOCTYPE html>"
 		"<body>"
 			"<h1>"
-				"Summary of /u/", name,
+				"Last 1000 tagged posts of /u/", name,
 			"</h1>"
 			"<table>"
 				"<tr>"
