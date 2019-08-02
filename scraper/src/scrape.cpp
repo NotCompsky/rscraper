@@ -147,9 +147,8 @@ void process_live_cmnt(const rapidjson::Value& cmnt,  const uint64_t cmnt_id){
 	if (contains(filter_subreddit::BLACKLIST_BODY, subreddit_id))
 		return;
 	
-	bool to_record_contents;
-	if ((reason_matched = filter_comment_body::match(metadata, body, strlen(body), to_record_contents)))
-		return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw, to_record_contents);
+	if ((reason_matched = filter_comment_body::match(metadata, body, strlen(body))))
+		return process_this_comment(cmnt, author_id, author_name, cmnt_id, subreddit_id, reason_matched, is_submission_nsfw, filter_comment_body::record_contents[reason_matched]);
 	
 	return;
 }
