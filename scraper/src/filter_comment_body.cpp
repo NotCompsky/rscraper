@@ -37,7 +37,7 @@ unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len
 		// Ignore first index - it is the entire match, not a regex group.
 		if (!what[i].matched)
 			continue;
-		auto reason_id = groupindx2reason[i];
+		const unsigned int reason_id = groupindx2reason[i];
 		if (SUBREDDIT_WHITELISTS[reason_id].size() != 0  &&  !contains(SUBREDDIT_WHITELISTS[reason_id], metadata.subreddit_id))
 			continue;
 		if (SUBREDDIT_BLACKLISTS[reason_id].size() != 0  &&  contains(SUBREDDIT_BLACKLISTS[reason_id], metadata.subreddit_id))
