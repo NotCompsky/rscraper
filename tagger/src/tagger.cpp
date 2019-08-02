@@ -343,7 +343,7 @@ extern "C"
 void user_summary(const char* const reasonfilter,  const char* const name){
 	compsky::mysql::query(
 		&RES,
-		"SELECT m.name, r.name, s.id, c.id "
+		"SELECT m.name, r.name, s.id, c.id, c.created_at "
 		"FROM comment c, subreddit r, submission s, user u, reason_matched m "
 		"WHERE u.name=\"", name, "\" "
 		  "AND c.author_id=u.id "
@@ -358,6 +358,7 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 	uint64_t comment_id;
 	char submission_id_str[19 + 1];
 	char comment_id_str[19 + 1];
+	char* created_at;
 	compsky::asciify::reset_index();
 	compsky::asciify::asciify(
 	"<!DOCTYPE html>"
@@ -369,11 +370,16 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 				"<tr>"
 					"<th>"
 						"Reason"
+					"</th>"
+					"<th>"
+						"Timestamp"
+					"</th>"
+					"<th>"
 						"Link"
 					"</th>"
 				"</tr>"
 	);
-	while(compsky::mysql::assign_next_row(RES, &ROW, &reason, &subreddit_name, &submission_id, &comment_id)){
+	while(compsky::mysql::assign_next_row(RES, &ROW, &reason, &subreddit_name, &submission_id, &comment_id, &created_at)){
 		id2str(submission_id, submission_id_str);
 		id2str(comment_id,    comment_id_str);
 		compsky::asciify::asciify(
@@ -381,13 +387,20 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 					"<td>",
 						reason,
 					"</td>"
+					"<td value=\"", created_at, "\">"
+						"placeholder"
+					"</td>"
 					"<td>"
-						"https://www.reddit.com/r/",
-						subreddit_name,
-						"/comments/",
-						submission_id_str,
-						"/_/",
-						comment_id_str,
+						"<a href=\"
+							"https://www.reddit.com/r/",
+							subreddit_name,
+							"/comments/",
+							submission_id_str,
+							"/_/",
+							comment_id_str,
+						"\">",
+							subreddit_name,
+						"</a>"
 					"</td>"
 				"</tr>"
 		);
