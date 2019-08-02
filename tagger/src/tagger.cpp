@@ -415,3 +415,63 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 	);
 	DST = compsky::asciify::BUF;
 }
+
+
+extern "C"
+void subreddits_given_reason(const char* const reason_name){
+	compsky::mysql::query(
+		&RES,
+		"SELECT r.name, COUNT(c.id)/s2cc.count AS count "
+		"FROM subreddit r, submission s, comment c, reason_matched m, subreddit2cmnt_count s2cc "
+		"WHERE m.name=\"", reason_name, "\""
+		  "AND r.id=s.subreddit_id "
+		  "AND s.id=c.submission_id "
+		  "AND c.reason_matched=m.id ",
+		  "AND s2cc.id=r.id "
+		  "AND s2cc.count>1000 "
+		"GROUP BY r.name "
+		"ORDER BY count DESC "
+		"LIMIT 100"
+	);
+	char* subreddit;
+	char* proportion;
+	compsky::asciify::reset_index();
+	compsky::asciify::asciify(
+	"<!DOCTYPE html>"
+		"<body>"
+			"<h1>"
+				"Top 100 subreddits tagged with \"", reason_name, "\""
+			"</h1>"
+			"<h2>"
+				"Proportional to their total number of comments"
+			"</h2>"
+			"<table>"
+				"<tr>"
+					"<th>"
+						"Subreddit"
+					"</th>"
+					"<th>"
+						"Proportion"
+					"</th>"
+				"</tr>"
+	);
+	while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit, &proportion)){
+		compsky::asciify::asciify(
+				"<tr>"
+					"<td>",
+						reason,
+					"</td>"
+					"<td>",
+						proportion,
+					"</td>"
+				"</tr>"
+		);
+	}
+	compsky::asciify::asciify(
+			"</table>"
+		"</body>"
+	"</html>",
+	'\0'
+	);
+	DST = compsky::asciify::BUF;
+}

@@ -9,6 +9,7 @@ extern void init();
 extern void exit_mysql();
 extern void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
 extern void user_summary(const char* reasonfilter,  const char* const name);
+extern void subreddits_given_reason(const char* const reason_name);
 */
 import "C" // Pseudopackage
 import "flag"
@@ -34,6 +35,11 @@ func process_user(w http.ResponseWriter, r* http.Request){
     io.WriteString(w, C.GoString(C.DST))
 }
 
+func subreddits_given_reason(w http.ResponseWriter, r* http.Request){
+    C.subreddits_given_reason(C.CString(r.URL.Path[8:]))
+    io.WriteString(w, C.GoString(C.DST))
+}
+
 func main(){
     var portN string
     flag.StringVar(&portN, "p", "8080", "Port number")
@@ -53,6 +59,7 @@ func main(){
     C.init()
     mux := http.NewServeMux()
     mux.HandleFunc("/rtagger/", process)
+	mux.HandleFunc("/reason/", subreddits_given_reason)
 	mux.HandleFunc("/u/", process_user)
     http.ListenAndServe(":" + portN,  mux)
 }
