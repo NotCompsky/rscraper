@@ -386,7 +386,7 @@ void user_summary(const char* const name){
 	compsky::asciify::asciify(
 			"</table>"
 		"</body>"
-	"</html>"
+	"</html>\0"
 	);
 	DST = compsky::asciify::BUF;
 }

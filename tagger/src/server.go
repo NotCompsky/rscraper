@@ -30,7 +30,7 @@ func process(w http.ResponseWriter, r* http.Request){
 }
 
 func process_user(w http.ResponseWriter, r* http.Request){
-    C.user_summary(C.CString(r.URL.Path))
+    C.user_summary(C.CString(r.URL.Path[3:]))
     io.WriteString(w, C.GoString(C.DST))
 }
 
