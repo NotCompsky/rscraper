@@ -387,7 +387,8 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 	compsky::asciify::asciify(
 			"</table>"
 		"</body>"
-	"</html>\0"
+	"</html>",
+	'\0'
 	);
 	DST = compsky::asciify::BUF;
 }
