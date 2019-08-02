@@ -109,8 +109,7 @@ void init(){
 		};
 		
 		bool ignored_as_yet;
-		unsigned int actual_reason;
-		actual_reason = match(metadata, body, strlen(body), ignored_as_yet);
+		const unsigned int actual_reason = match(metadata, body, strlen(body), ignored_as_yet);
 		if(actual_reason != expected_reason){
 			fprintf(stderr, "cmnt_body regex test #%u failed\n\tExpected:\n\t\tGroup #%u (%s)\n\tActual:\n\t\tGroup #%u (%s)\n\t%s\n", id, expected_reason, reason_name2id[expected_reason], actual_reason, reason_name2id[actual_reason], body);
 			++n_failures;
