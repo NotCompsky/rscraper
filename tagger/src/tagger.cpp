@@ -346,7 +346,7 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 		"SELECT m.name, CONCAT(\"https://www.reddit.com/r/\", r.name, \"/comments/\"), c.id "
 		"FROM comment c, subreddit r, submission s, user u, reason_matched m "
 		"WHERE u.name=\"", name, "\" "
-		  "AND s.author_id=u.id "
+		  "AND c.author_id=u.id "
 		  "AND s.subreddit_id=r.id "
 		  "AND m.id=c.reason_matched ",
 		  reasonfilter
