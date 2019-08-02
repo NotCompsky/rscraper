@@ -459,7 +459,7 @@ void subreddits_given_reason(const char* const reason_name){
 		compsky::asciify::asciify(
 				"<tr>"
 					"<td>",
-						reason,
+						subreddit,
 					"</td>"
 					"<td>",
 						proportion,
