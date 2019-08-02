@@ -21,6 +21,7 @@ It cannot end in a literal newline. If such is desired, use [\n]
 #include "error_codes.hpp" // for myerr:*
 #include "filter_comment_body.hpp"
 
+#include <compsky/regex/named_groups.hpp>
 #include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
 
@@ -116,6 +117,13 @@ void init(){
 		}
 	}
 	if (n_failures != 0){
+		// Somewhat duplicated code from init_regexp_from_file.cpp // Possible TODO: Deduplicate
+		compsky::mysql::query_buffer(&RES1,  "SELECT data FROM longstrings WHERE name='cmnt_body_regex'");
+		char* regexpr_str;
+		while(compsky::mysql::assign_next_row(RES1, &ROW1, &regexpr_str)){
+			compsky::regex::convert_named_groups(regexpr_str,  regexpr_str,  reason_name2id,  groupindx2reason,  record_contents);
+			printf("Using regexp:\n\t%s\n", regexpr_str);
+		}
 		exit(myerr::TEST_FAILED__REGEX_CMNT_BODY);
 	}
 }
