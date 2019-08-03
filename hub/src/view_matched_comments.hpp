@@ -10,6 +10,7 @@
 
 #include <compsky/mysql/mysql.hpp>
 
+#include <QCheckBox>
 #include <QRadioButton>
 #include <QLabel>
 #include <QPlainTextEdit>
@@ -48,6 +49,8 @@ class ViewMatchedComments : public QWidget {
 	MYSQL_RES* res1;
 	MYSQL_ROW row1;
 	QPlainTextEdit* query_text;
+	QCheckBox* get_empty_comments;
+	QCheckBox* is_content_from_remote;
 	bool is_ascending;
 };
 

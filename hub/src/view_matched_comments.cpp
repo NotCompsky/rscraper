@@ -155,6 +155,14 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	l->addWidget(group_box);
 	}
 	
+	{
+		this->get_empty_comments = new QCheckBox("View empty comments");
+		l->addWidget(this->get_empty_comments);
+		this->is_content_from_remote = new QCheckBox("Is comment from remote?");
+		this->is_content_from_remote->setEnabled(false);
+		l->addWidget(this->is_content_from_remote);
+	}
+	
 	this->query_text = new QPlainTextEdit;
 	l->addWidget(this->query_text);
 	
@@ -294,7 +302,20 @@ void ViewMatchedComments::next(){
 		this->reasonname->setText(reason);
 		this->datetime->setText(dt_buf);
 		
-		this->textarea->setPlainText(cmnt_body);
+		this->is_content_from_remote->setChecked((cmnt_body[0] == 0)  &&  (this->get_empty_comments->isChecked()));
+		
+		if (cmnt_body[0] != 0){
+			this->textarea->setPlainText(this->cmnt_body);
+		} else if (this->get_empty_comments->isChecked()){
+			compsky::asciify::reset_index();
+			compsky::asciify::asciify("https://dev.pushshift.io/rc/_search/?source_content_type=application/json&source={%22query%22:{%22match%22:{%22_id%22:", this->cmnt_id, "}}}&pretty", '\0');
+			this->textarea->setPlainText(compsky::asciify::BUF);
+		}
+		
+		QPalette palette = this->textarea->palette();
+		palette.setColor(this->textarea->backgroundRole(), Qt::black);
+		palette.setColor(this->textarea->foregroundRole(), Qt::yellow);
+		this->textarea->setPalette(palette);
 	} else this->res1 = nullptr;
 }
 
