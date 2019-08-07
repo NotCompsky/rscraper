@@ -466,7 +466,7 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 	"<!DOCTYPE html>"
 		"<body>"
 			"<h1>"
-				"Last 1000 tagged posts of /u/", name,
+				"Last 1000 tagged comments of /u/", name,
 			"</h1>"
 			"<table>"
 				"<tr>"
@@ -489,6 +489,80 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 					"<td>",
 						reason,
 					"</td>"
+					"<td value=\"", created_at, "\">"
+						"placeholder"
+					"</td>"
+					"<td>"
+						"<a href=\""
+							"https://www.reddit.com/r/",
+							subreddit_name,
+							"/comments/",
+							submission_id_str,
+							"/_/",
+							comment_id_str,
+						"\">",
+							subreddit_name,
+						"</a>"
+					"</td>"
+				"</tr>"
+		);
+	}
+	compsky::asciify::asciify(
+			"</table>"
+		"</body>"
+	"</html>",
+	'\0'
+	);
+	DST = compsky::asciify::BUF;
+}
+
+extern "C"
+void comments_given_reason(const char* const reasonfilter,  const char* const reason_name){
+	if (unlikely(is_length_greater_than(reason_name, 129))){
+		DST = http_err::request_too_long;
+		return;
+	}
+	
+	compsky::mysql::query(
+		&RES,
+		"SELECT r.name, s.id, c.id, c.created_at "
+		"FROM comment c, subreddit r, submission s, reason_matched m "
+		"WHERE m.name=\"", _f::esc, '"', reason_name, "\" "
+		  "AND s.id=c.submission_id "
+		  "AND r.id=s.subreddit_id "
+		  "AND m.id=c.reason_matched ",
+		  reasonfilter,
+		  " ORDER BY c.created_at DESC "
+		  "LIMIT 100"
+	);
+	char* subreddit_name;
+	uint64_t submission_id;
+	uint64_t comment_id;
+	char submission_id_str[19 + 1];
+	char comment_id_str[19 + 1];
+	char* created_at;
+	compsky::asciify::reset_index();
+	compsky::asciify::asciify(
+	"<!DOCTYPE html>"
+		"<body>"
+			"<h1>"
+				"Last 100 comments tagged with ", reason_name,
+			"</h1>"
+			"<table>"
+				"<tr>"
+					"<th>"
+						"Timestamp"
+					"</th>"
+					"<th>"
+						"Link"
+					"</th>"
+				"</tr>"
+	);
+	while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit_name, &submission_id, &comment_id, &created_at)){
+		id2str(submission_id, submission_id_str);
+		id2str(comment_id,    comment_id_str);
+		compsky::asciify::asciify(
+				"<tr>"
 					"<td value=\"", created_at, "\">"
 						"placeholder"
 					"</td>"

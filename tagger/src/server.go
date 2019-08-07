@@ -10,6 +10,7 @@ extern void exit_mysql();
 extern void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
 extern void user_summary(const char* reasonfilter,  const char* const name);
 extern void subreddits_given_reason(const char* const reason_name);
+extern void   comments_given_reason(const char* const reason_name);
 */
 import "C" // Pseudopackage
 import "flag"
@@ -36,7 +37,12 @@ func process_user(w http.ResponseWriter, r* http.Request){
 }
 
 func subreddits_given_reason(w http.ResponseWriter, r* http.Request){
-    C.subreddits_given_reason(C.CString(r.URL.Path[8:]))
+    C.subreddits_given_reason(C.CString(reasonfilter), C.CString(r.URL.Path[19:]))
+    io.WriteString(w, C.GoString(C.DST))
+}
+
+func comments_given_reason(w http.ResponseWriter, r* http.Request){
+    C.comments_given_reason(C.CString(reasonfilter), C.CString(r.URL.Path[17:]))
     io.WriteString(w, C.GoString(C.DST))
 }
 
@@ -59,7 +65,8 @@ func main(){
     C.init()
     mux := http.NewServeMux()
     mux.HandleFunc("/rtagger/", process)
-	mux.HandleFunc("/reason/", subreddits_given_reason)
+	mux.HandleFunc("/reason/subreddits/", subreddits_given_reason)
+	mux.HandleFunc("/reason/comments/",   comments_given_reason)
 	mux.HandleFunc("/u/", process_user)
     http.ListenAndServe(":" + portN,  mux)
 }
