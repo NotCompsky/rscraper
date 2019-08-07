@@ -540,6 +540,7 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 					"<a href=\"", _f::esc, '"', name, "\">",
 						name,
 					"</a>"
+					"<br/>"
 			);
 		}
 		compsky::asciify::asciify(
