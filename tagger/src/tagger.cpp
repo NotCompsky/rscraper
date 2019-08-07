@@ -518,6 +518,37 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 
 extern "C"
 void comments_given_reason(const char* const reasonfilter,  const char* const reason_name){
+	if (reason_name[0] == 0){
+		compsky::mysql::query(
+			&RES,
+			"SELECT m.name "
+			"FROM reason_matched m "
+			"WHERE",
+			reasonfilter + 3 // Skip preceding "AND"
+		);
+		char* name;
+		compsky::asciify::reset_index();
+		compsky::asciify::asciify(
+			"<!DOCTYPE html>"
+				"<body>"
+					"<h1>"
+						"Comments for a given reason"
+					"</h1>"
+		);
+		while(compsky::mysql::assign_next_row(RES, &ROW, &name)){
+			compsky::asciify::asciify(
+					"<a href=\"", _f::esc, '"', name, "\">",
+						name,
+					"</a>"
+			);
+		}
+		compsky::asciify::asciify(
+				"</body>"
+			"</html>",
+			'\0'
+		);
+		return;
+	}
 	if (unlikely(is_length_greater_than(reason_name, 129))){
 		DST = http_err::request_too_long;
 		return;
@@ -592,6 +623,38 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 
 extern "C"
 void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name){
+	if (reason_name[0] == 0){
+		compsky::mysql::query(
+			&RES,
+			"SELECT m.name "
+			"FROM reason_matched m "
+			"WHERE",
+			reasonfilter + 3 // Skip preceding "AND"
+		);
+		char* name;
+		compsky::asciify::reset_index();
+		compsky::asciify::asciify(
+			"<!DOCTYPE html>"
+				"<body>"
+					"<h1>"
+						"Subreddits most frequently using a given reason"
+					"</h1>"
+		);
+		while(compsky::mysql::assign_next_row(RES, &ROW, &name)){
+			compsky::asciify::asciify(
+					"<a href=\"", _f::esc, '"', name, "\">",
+						name,
+					"</a>"
+			);
+		}
+		compsky::asciify::asciify(
+				"</body>"
+			"</html>",
+			'\0'
+		);
+		return;
+	}
+	
 	if (unlikely(is_length_greater_than(reason_name, 129))){
 		DST = http_err::request_too_long;
 		return;

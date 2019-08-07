@@ -47,6 +47,40 @@ func comments_given_reason(w http.ResponseWriter, r* http.Request){
     io.WriteString(w, C.GoString(C.DST))
 }
 
+func indexof_reason(w http.ResponseWriter, r* http.Request){
+    io.WriteString(w,
+		"<!DOCTYPE html>" +
+			"<body>" +
+				"<h1>" +
+					"Statistics or links for a given reason" +
+				"</h1>" +
+				"<a href=\"subreddits\">" +
+					"Subreddits" +
+				"</a>" +
+				"<a href=\"comments\">" +
+					"Comments" +
+				"</a>" +
+			"</body>" +
+		"</html>")
+}
+
+func indexof_root(w http.ResponseWriter, r* http.Request){
+    io.WriteString(w,
+		"<!DOCTYPE html>" +
+			"<body>" +
+				"<h1>" +
+					"Index" +
+				"</h1>" +
+				"<a href=\"reason\">" +
+					"Reason Statistics" +
+				"</a>" +
+				"<a href=\"u\">" +
+					"User Statistics" +
+				"</a>" +
+			"</body>" +
+		"</html>")
+}
+
 func main(){
     var portN string
     flag.StringVar(&portN, "p", "8080", "Port number")
@@ -65,10 +99,17 @@ func main(){
     
     C.init()
     mux := http.NewServeMux()
+	
+	mux.HandleFunc("/", indexof_root)
+	mux.HandleFunc("/reason/", indexof_reason)
+	
     mux.HandleFunc("/flairs/", process)
+	
 	mux.HandleFunc("/reason/subreddits/", subreddits_given_reason)
 	mux.HandleFunc("/reason/comments/",   comments_given_reason)
+	
 	mux.HandleFunc("/u/", process_user)
+	
     http.ListenAndServe(":" + portN,  mux)
 }
 
