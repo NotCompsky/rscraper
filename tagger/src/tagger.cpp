@@ -597,8 +597,6 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 		return;
 	}
 	
-	compsky::asciify::reset_index();
-	
 	compsky::mysql::query(
 		&RES,
 		"SELECT r.name, COUNT(c.id)/s2cc.count AS count "
@@ -616,6 +614,7 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 	);
 	char* subreddit;
 	char* proportion;
+	compsky::asciify::reset_index();
 	compsky::asciify::asciify(
 	"<!DOCTYPE html>"
 		"<body>"
