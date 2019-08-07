@@ -57,6 +57,7 @@ func indexof_reason(w http.ResponseWriter, r* http.Request){
 				"<a href=\"subreddits\">" +
 					"Subreddits" +
 				"</a>" +
+				"<br/>" +
 				"<a href=\"comments\">" +
 					"Comments" +
 				"</a>" +
@@ -74,6 +75,7 @@ func indexof_root(w http.ResponseWriter, r* http.Request){
 				"<a href=\"reason\">" +
 					"Reason Statistics" +
 				"</a>" +
+				"<br/>" +
 				"<a href=\"u\">" +
 					"User Statistics" +
 				"</a>" +

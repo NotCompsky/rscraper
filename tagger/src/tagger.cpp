@@ -628,8 +628,8 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 			&RES,
 			"SELECT m.name "
 			"FROM reason_matched m "
-			"WHERE",
-			reasonfilter + 3 // Skip preceding "AND"
+			"WHERE TRUE ",
+			reasonfilter
 		);
 		char* name;
 		compsky::asciify::reset_index();
@@ -645,6 +645,7 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 					"<a href=\"", _f::esc, '"', name, "\">",
 						name,
 					"</a>"
+					"<br/>"
 			);
 		}
 		compsky::asciify::asciify(
