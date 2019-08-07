@@ -518,7 +518,7 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 
 extern "C"
 void comments_given_reason(const char* const reasonfilter,  const char* const reason_name){
-	if (unlikely(!is_length_greater_than(reason_name, 129))){
+	if (unlikely(is_length_greater_than(reason_name, 129))){
 		DST = http_err::request_too_long;
 		return;
 	}
@@ -592,7 +592,7 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 
 extern "C"
 void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name){
-	if (unlikely(!is_length_greater_than(reason_name, 129))){
+	if (unlikely(is_length_greater_than(reason_name, 129))){
 		DST = http_err::request_too_long;
 		return;
 	}
