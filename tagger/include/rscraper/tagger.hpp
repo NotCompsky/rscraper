@@ -36,5 +36,11 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 extern "C"
 void user_summary(const char* reasonfilter,  const char* const name);
 
+extern "C"
+void comments_given_reason(const char* const reasonfilter,  const char* const reason_name);
+
+extern "C"
+void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name);
+
 
 #endif
