@@ -302,14 +302,14 @@ void ViewMatchedComments::next(){
 		this->reasonname->setText(reason);
 		this->datetime->setText(dt_buf);
 		
-		this->is_content_from_remote->setChecked((cmnt_body[0] == 0)  &&  (this->get_empty_comments->isChecked()));
-		
-		if (cmnt_body[0] != 0){
-			this->textarea->setPlainText(this->cmnt_body);
-		} else if (this->get_empty_comments->isChecked()){
+		if (cmnt_body[0] == 0  &&  this->get_empty_comments->isChecked()){
+			this->is_content_from_remote->setChecked(true);
 			compsky::asciify::reset_index();
 			compsky::asciify::asciify("https://dev.pushshift.io/rc/_search/?source_content_type=application/json&source={%22query%22:{%22match%22:{%22_id%22:", this->cmnt_id, "}}}&pretty", '\0');
 			this->textarea->setPlainText(compsky::asciify::BUF);
+		} else {
+			this->is_content_from_remote->setChecked(false);
+			this->textarea->setPlainText(this->cmnt_body);
 		}
 		
 		QPalette palette = this->textarea->palette();
