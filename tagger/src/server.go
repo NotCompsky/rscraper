@@ -27,7 +27,7 @@ var reasonfilter string
 
 func process(w http.ResponseWriter, r* http.Request){
     w.Header().Set("Content-Type", "application/json")
-    C.csv2cls(C.CString(r.URL.Path), C.CString(tagfilter), C.CString(reasonfilter))
+    C.csv2cls(C.CString(r.URL.Path[8:]), C.CString(tagfilter), C.CString(reasonfilter))
     io.WriteString(w, C.GoString(C.DST))
 }
 
@@ -64,7 +64,7 @@ func main(){
     
     C.init()
     mux := http.NewServeMux()
-    mux.HandleFunc("/rtagger/", process)
+    mux.HandleFunc("/flairs/", process)
 	mux.HandleFunc("/reason/subreddits/", subreddits_given_reason)
 	mux.HandleFunc("/reason/comments/",   comments_given_reason)
 	mux.HandleFunc("/u/", process_user)
