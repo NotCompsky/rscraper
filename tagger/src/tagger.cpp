@@ -38,10 +38,18 @@ namespace compsky {
 namespace _f {
 	constexpr static const compsky::asciify::flag::concat::Start cc_start;
 	constexpr static const compsky::asciify::flag::concat::End   cc_end;
+	constexpr static const compsky::asciify::flag::Escape esc;
 }
 
 
 constexpr static const char* id_t2_ = "id-t2_";
+
+
+namespace http_err {
+	// TODO: Sort of the const-ness of DST. This should be const char* const
+	constexpr static char* const request_too_long = "414";
+	constexpr static char* const bad_request = "400";
+}
 
 
 constexpr size_t strlen_constexpr(const char* s){
@@ -79,6 +87,88 @@ constexpr uint64_t str2id(const char* start,  const char* end){
 			n += *str - 'a' + 10;
 	}
 	return n;
+}
+
+constexpr
+bool is_length_greater_than(const char* str,  const size_t n){
+	for(auto i = 0;  i < n;  ++i){
+		if (*str == 0)
+			return true;
+		++str;
+	}
+	return false;
+}
+
+constexpr
+bool is_valid_username(const char* str){
+	for(auto i = 0;  i < 129;  ++i){
+		switch(*str){
+			case 'a':
+			case 'b':
+			case 'c':
+			case 'd':
+			case 'e':
+			case 'f':
+			case 'g':
+			case 'h':
+			case 'i':
+			case 'j':
+			case 'k':
+			case 'l':
+			case 'm':
+			case 'n':
+			case 'o':
+			case 'p':
+			case 'q':
+			case 'r':
+			case 's':
+			case 't':
+			case 'u':
+			case 'v':
+			case 'w':
+			case 'x':
+			case 'y':
+			case 'z':
+			
+			case 'A':
+			case 'B':
+			case 'C':
+			case 'D':
+			case 'E':
+			case 'F':
+			case 'G':
+			case 'H':
+			case 'I':
+			case 'J':
+			case 'K':
+			case 'L':
+			case 'M':
+			case 'N':
+			case 'O':
+			case 'P':
+			case 'Q':
+			case 'R':
+			case 'S':
+			case 'T':
+			case 'U':
+			case 'V':
+			case 'W':
+			case 'X':
+			case 'Y':
+			case 'Z':
+			
+			case '_':
+			case '-':
+				// Yes I know a-z and A-Z are guaranteed to be contiguous
+				break;
+			
+			case 0:  return true;
+			
+			default: return false;
+		};
+		++str;
+	}
+	return false;
 }
 
 //static_assert(str2id("6l4z3", 0, 5) == 11063919); // /u/AutoModerator
@@ -341,6 +431,16 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 
 extern "C"
 void user_summary(const char* const reasonfilter,  const char* const name){
+	if (unlikely(is_valid_username(name))){
+		/*
+		This is the length of the field in the user table
+		Exceeding this length is likely malicious.
+		One would have to push a name of length 4MiB in order to cause a buffer overflow - hence why it is far more performant to simply check that the length is under 128, rather than calling strlen on what may be incredibly long.
+		*/
+		DST = http_err::bad_request;
+		return;
+	}
+	
 	compsky::mysql::query(
 		&RES,
 		"SELECT m.name, r.name, s.id, c.id, c.created_at "
@@ -416,26 +516,32 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 	DST = compsky::asciify::BUF;
 }
 
-
 extern "C"
-void subreddits_given_reason(const char* const reason_name){
+void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name){
+	if (unlikely(is_length_greater_than(reason_name, 129))){
+		DST = http_err::request_too_long;
+		return;
+	}
+	
+	compsky::asciify::reset_index();
+	
 	compsky::mysql::query(
 		&RES,
 		"SELECT r.name, COUNT(c.id)/s2cc.count AS count "
 		"FROM subreddit r, submission s, comment c, reason_matched m, subreddit2cmnt_count s2cc "
-		"WHERE m.name=\"", reason_name, "\""
+		"WHERE m.name=\"", _f::esc, '"', reason_name, "\""
 		  "AND r.id=s.subreddit_id "
 		  "AND s.id=c.submission_id "
 		  "AND c.reason_matched=m.id ",
 		  "AND s2cc.id=r.id "
-		  "AND s2cc.count>1000 "
+		  "AND s2cc.count>1000 ",
+		  reasonfilter,
 		"GROUP BY r.name "
 		"ORDER BY count DESC "
 		"LIMIT 100"
 	);
 	char* subreddit;
 	char* proportion;
-	compsky::asciify::reset_index();
 	compsky::asciify::asciify(
 	"<!DOCTYPE html>"
 		"<body>"
