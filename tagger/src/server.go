@@ -7,10 +7,11 @@ package main
 extern char* DST;
 extern void init();
 extern void exit_mysql();
+extern const char* generate_id_list_string(const char* tblname,  const char** names);
 extern void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
 extern void user_summary(const char* reasonfilter,  const char* const name);
-extern void subreddits_given_reason(const char* const reason_name);
-extern void   comments_given_reason(const char* const reason_name);
+extern void comments_given_reason(const char* const reasonfilter,  const char* const reason_name);
+extern void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name);
 */
 import "C" // Pseudopackage
 import "flag"
