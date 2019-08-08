@@ -99,17 +99,17 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	
 	
 	{
-	QHBoxLayout* box = new QHBoxLayout;
-	box->addWidget(new QLabel("Tag Name:", this));
-	this->tagname_input = new QLineEdit(this);
-	QCompleter* tagcompleter = new QCompleter(tagslist);
-	this->tagname_input->setCompleter(tagcompleter);
-	box->addWidget(this->tagname_input);
-	
-	box->addWidget(new QLabel("Reason Matched:", this));
-	this->reasonname_input = new QLineEdit(this);
-	this->reasonname_input->setCompleter(reason_name_completer);
-	box->addWidget(this->reasonname_input);
+		QHBoxLayout* box = new QHBoxLayout;
+		box->addWidget(new QLabel("Tag Name:", this));
+		this->tagname_input = new QLineEdit(this);
+		QCompleter* tagcompleter = new QCompleter(tagslist);
+		this->tagname_input->setCompleter(tagcompleter);
+		box->addWidget(this->tagname_input);
+		
+		box->addWidget(new QLabel("Reason Matched:", this));
+		this->reasonname_input = new QLineEdit(this);
+		this->reasonname_input->setCompleter(reason_name_completer);
+		box->addWidget(this->reasonname_input);
 	
 		QHBoxLayout* box = new QHBoxLayout;
 		box->addWidget(new QLabel("Limit:", this));
@@ -122,30 +122,30 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	
 	
 	{
-	QGroupBox* group_box = new QGroupBox("Order By:");
-	QHBoxLayout* box = new QHBoxLayout;
-	for (auto i = 0;  i < 6;  ++i){
-		this->sorting_column_btns[i] = new QRadioButton(details::sorting_column_titles[i]);
-		box->addWidget(this->sorting_column_btns[i]);
-	}
-	this->sorting_column_btns[0]->setChecked(true);
-	box->addStretch(1);
-	group_box->setLayout(box);
-	l->addWidget(group_box);
+		QGroupBox* group_box = new QGroupBox("Order By:");
+		QHBoxLayout* box = new QHBoxLayout;
+		for (auto i = 0;  i < 6;  ++i){
+			this->sorting_column_btns[i] = new QRadioButton(details::sorting_column_titles[i]);
+			box->addWidget(this->sorting_column_btns[i]);
+		}
+		this->sorting_column_btns[0]->setChecked(true);
+		box->addStretch(1);
+		group_box->setLayout(box);
+		l->addWidget(group_box);
 	}
 	
 	{
-	QGroupBox* group_box = new QGroupBox("Order:");
-	QRadioButton* asc   = new QRadioButton("Ascending");
-	QRadioButton* desc  = new QRadioButton("Descending");
-	connect(asc,  &QRadioButton::toggled, this, &ViewMatchedComments::toggle_order_btns);
-	desc->setChecked(true);
-	QHBoxLayout* box = new QHBoxLayout;
-	box->addWidget(asc);
-	box->addWidget(desc);
-	box->addStretch(1);
-	group_box->setLayout(box);
-	l->addWidget(group_box);
+		QGroupBox* group_box = new QGroupBox("Order:");
+		QRadioButton* asc   = new QRadioButton("Ascending");
+		QRadioButton* desc  = new QRadioButton("Descending");
+		connect(asc,  &QRadioButton::toggled, this, &ViewMatchedComments::toggle_order_btns);
+		desc->setChecked(true);
+		QHBoxLayout* box = new QHBoxLayout;
+		box->addWidget(asc);
+		box->addWidget(desc);
+		box->addStretch(1);
+		group_box->setLayout(box);
+		l->addWidget(group_box);
 	}
 	
 	{
@@ -164,20 +164,20 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	l->addWidget(this->query_text);
 	
 	{
-	QHBoxLayout* box = new QHBoxLayout;
-	QPushButton* next_btn = new QPushButton("Generate", this);
-	box->addWidget(next_btn);
-	connect(next_btn, &QPushButton::clicked, this, &ViewMatchedComments::generate_query);
-	
-	QPushButton* exec_btn = new QPushButton("Execute", this);
-	box->addWidget(exec_btn);
-	connect(exec_btn, &QPushButton::clicked, this, &ViewMatchedComments::execute_query);
-	
-	QPushButton* init_btn = new QPushButton("Next", this);
-	box->addWidget(init_btn);
-	connect(init_btn, &QPushButton::clicked, this, &ViewMatchedComments::next);
-	
-	l->addLayout(box);
+		QHBoxLayout* box = new QHBoxLayout;
+		QPushButton* next_btn = new QPushButton("Generate", this);
+		box->addWidget(next_btn);
+		connect(next_btn, &QPushButton::clicked, this, &ViewMatchedComments::generate_query);
+		
+		QPushButton* exec_btn = new QPushButton("Execute", this);
+		box->addWidget(exec_btn);
+		connect(exec_btn, &QPushButton::clicked, this, &ViewMatchedComments::execute_query);
+		
+		QPushButton* init_btn = new QPushButton("Next", this);
+		box->addWidget(init_btn);
+		connect(init_btn, &QPushButton::clicked, this, &ViewMatchedComments::next);
+		
+		l->addLayout(box);
 	}
 	
 	
@@ -199,24 +199,23 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	l->addWidget(this->textarea);
 	
 	{
-	QHBoxLayout* box = new QHBoxLayout;
-	
-	QPushButton* details_cmnt = new QPushButton("Details", this);
-	connect(details_cmnt, &QPushButton::clicked, this, &ViewMatchedComments::view_matches);
-	box->addWidget(details_cmnt);
-	
-	QPushButton* del_cmnt = new QPushButton("Delete", this);
-	connect(del_cmnt, &QPushButton::clicked, this, &ViewMatchedComments::del_cmnt);
-	QPalette palette = this->palette();
-	palette.setColor(QPalette::Button, QColor(Qt::red));
-	del_cmnt->setAutoFillBackground(true);
-	del_cmnt->setPalette(palette);
-	del_cmnt->setFlat(true);
-	del_cmnt->update();
-	box->addWidget(del_cmnt);
-	
-	l->addLayout(box);
-	
+		QHBoxLayout* box = new QHBoxLayout;
+		
+		QPushButton* details_cmnt = new QPushButton("Details", this);
+		connect(details_cmnt, &QPushButton::clicked, this, &ViewMatchedComments::view_matches);
+		box->addWidget(details_cmnt);
+		
+		QPushButton* del_cmnt = new QPushButton("Delete", this);
+		connect(del_cmnt, &QPushButton::clicked, this, &ViewMatchedComments::del_cmnt);
+		QPalette palette = this->palette();
+		palette.setColor(QPalette::Button, QColor(Qt::red));
+		del_cmnt->setAutoFillBackground(true);
+		del_cmnt->setPalette(palette);
+		del_cmnt->setFlat(true);
+		del_cmnt->update();
+		box->addWidget(del_cmnt);
+		
+		l->addLayout(box);
 	}
 	
 	this->setLayout(l);
