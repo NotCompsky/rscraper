@@ -66,7 +66,7 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id_,  QTabWidget* tab_widget_,  QWidget*
 	}
 	
 	QPushButton* add_tag_btn = new QPushButton("+Tag", this);
-	connect(add_tag_btn, SIGNAL(clicked()), this, SLOT(add_tag()));
+	connect(add_tag_btn, &QPushButton::clicked, this, &ClTagsTab::add_tag);
 	this->l->addWidget(add_tag_btn, 0, 0);
 	
 	compsky::mysql::query(&RES2,  "SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM tag WHERE id IN (SELECT tag_id FROM tag2category WHERE category_id=",  cat_id,  ") ORDER BY name");
@@ -82,7 +82,7 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id_,  QTabWidget* tab_widget_,  QWidget*
 	
 	
 	QPushButton* rm_self_btn = new QPushButton("Delete Category");
-	connect(rm_self_btn, SIGNAL(clicked()), this, SLOT(rm_self()));
+	connect(rm_self_btn, &QPushButton::clicked, this, &ClTagsTab::rm_self);
 	this->l->addWidget(rm_self_btn, ++this->row, 0);
 	
 	setLayout(this->l);

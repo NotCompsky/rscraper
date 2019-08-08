@@ -33,7 +33,7 @@ MainTab::MainTab(QTabWidget* tab_widget_,  QWidget* parent) : QWidget(parent), t
 	
 	
 	QPushButton* add_tag_btn = new QPushButton("+Category", this);
-	connect(add_tag_btn, SIGNAL(clicked()), this, SLOT(add_category()));
+	connect(add_tag_btn, &QPushButton::clicked, this, &MainTab::add_category);
 	l->addWidget(add_tag_btn, row++, 0);
 	
 	

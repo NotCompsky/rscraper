@@ -115,8 +115,8 @@ MainWindow::MainWindow(QWidget* parent){
 	
 	
 	QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-	connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(buttonBox, &QDialogButtonBox::accepted, this, &MainWindow::accept);
+	connect(buttonBox, &QDialogButtonBox::rejected, this, &MainWindow::reject);
 	
 	QVBoxLayout* mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(this->tab_widget);
