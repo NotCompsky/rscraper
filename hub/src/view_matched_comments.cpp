@@ -64,7 +64,8 @@ constexpr const char* tag_b1 =
 	"				WHERE t.name=\"";
 
 constexpr const char* tag_b2 = 
-	"			\") T on T.id = s2t.tag_id\n"
+				"\""
+	"			) T ON T.id = s2t.tag_id\n"
 	"		) S2T on S2T.subreddit_id = r.id\n";
 constexpr const char* tag_a2 = 
 	"	) R on R.id = s.subreddit_id\n"
