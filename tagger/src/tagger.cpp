@@ -431,6 +431,23 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 
 extern "C"
 void user_summary(const char* const reasonfilter,  const char* const name){
+	if (name[0] == 0){
+		DST = 
+			"<!DOCTYPE html>"
+			"<body>"
+				"<h1>"
+					"View comments for a given user"
+				"</h1>"
+				"<input id=\"u\" type=\"text\" placeholder=\"Username\"/>"
+				"<button onclick=\"location.href=document.getElementById('u').value\">"
+					"Go"
+				"</button>"
+			"</body>"
+			"</html>"
+		;
+		return;
+	}
+	
 	if (unlikely(!is_valid_username(name))){
 		/*
 		This is the length of the field in the user table
@@ -578,7 +595,7 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 	"<!DOCTYPE html>"
 		"<body>"
 			"<h1>"
-				"Last 100 comments tagged with ", reason_name,
+				"Last 100 comments tagged with \"", reason_name, "\""
 			"</h1>"
 			"<table>"
 				"<tr>"
