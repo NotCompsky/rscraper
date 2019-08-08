@@ -150,8 +150,8 @@ void MainWindow::rename_category(int indx){
 	
 	NameDialog* dialog = new NameDialog("Rename Category", this->tab_widget->tabText(indx));
 	const int rc = dialog->exec();
-	delete dialog;
 	QString qstr = dialog->name_edit->text();
+	delete dialog;
 	if (rc != QDialog::Accepted  ||  qstr.isEmpty())
 		return;
 	this->tab_widget->setTabText(indx, qstr);
