@@ -176,11 +176,59 @@ bool is_valid_username(const char* str){
 
 //static_assert(n_required_bytes("id-t2_foo,id-t2_bar") == strlen_constexpr("{\"foo\":\"#123456\",\"bar\":\"#123456\"}") + 1);
 
+#ifdef CACHE_VALID_IDS
+// NOTE: Such caching will likely use up a few megabytes.
+uint64_t* reasons;
+uint64_t* users;
+uint64_t* subreddits;
+size_t n_reasons;
+size_t n_users;
+size_t n_subreddits;
+#endif
+
 extern "C"
 void init(){
 	compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
 	if (compsky::asciify::alloc(compsky::asciify::BUF_SZ))
 		abort();
+	
+#ifdef CACHE_VALID_IDS
+	compsky::mysql::query_buffer(
+		&RES,
+		"SELECT "
+			"(SELECT COUNT(*) FROM reason_matched),"
+			"(SELECT COUNT(*) FROM user),"
+			"(SELECT COUNT(*) FROM subreddit)"
+	);
+	
+	while(compsky::mysql::assign_next_row(RES, &ROW, &n_reasons, &n_users, &n_subreddits));
+	
+	uint64_t* buf = (uint64_t*)malloc((n_reasons + 1 + n_users + 1 + n_subreddits + 1) * sizeof(uint64_t));
+	// Prefer large single mallocs to multiple smaller mallocs
+	// Both to reduce system calls, and also reduce memory fragmentation
+	
+	if (unlikely(buf == nullptr))
+		abort();
+	
+	reasons    = buf;
+	users      = reasons + n_reasons + 1;
+	subreddits = users + n_users + 1;
+	
+	compsky::mysql::query(
+		&RES,
+		"SELECT "
+			"(SELECT id FROM reason_matched LIMIT ", n_reasons, "),"
+			"0," // Partitioning null byte
+			"(SELECT id FROM user LIMIT ", n_users, "),"
+			"0,"
+			"(SELECT id FROM subreddit LIMIT ", n_subreddits, "),"
+			"0"
+	);
+	// NOTE: MySQL implicitly orders (ascending) by ID, as it is the primary key.
+	uint64_t n;
+	while(compsky::mysql::assign_next_row(RES, &ROW, &n))
+		*(buf++) = n;
+#endif
 }
 
 extern "C"
