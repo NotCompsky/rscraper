@@ -105,25 +105,18 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	QCompleter* tagcompleter = new QCompleter(tagslist);
 	this->tagname_input->setCompleter(tagcompleter);
 	box->addWidget(this->tagname_input);
-	l->addLayout(box);
-	}
 	
-	
-	{
-	QHBoxLayout* box = new QHBoxLayout;
 	box->addWidget(new QLabel("Reason Matched:", this));
 	this->reasonname_input = new QLineEdit(this);
 	this->reasonname_input->setCompleter(reason_name_completer);
 	box->addWidget(this->reasonname_input);
-	l->addLayout(box);
-	}
 	
-	{
 		QHBoxLayout* box = new QHBoxLayout;
 		box->addWidget(new QLabel("Limit:", this));
 		this->limit_input = new QLineEdit(this);
 		this->limit_input->setValidator(new QRegExpValidator(QRegExp("\\d*"), this));
 		box->addWidget(this->limit_input);
+		
 		l->addLayout(box);
 	}
 	
@@ -156,11 +149,15 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	}
 	
 	{
+		QHBoxLayout* box = new QHBoxLayout;
+		
 		this->get_empty_comments = new QCheckBox("View empty comments");
-		l->addWidget(this->get_empty_comments);
+		box->addWidget(this->get_empty_comments);
 		this->is_content_from_remote = new QCheckBox("Is comment from remote?");
 		this->is_content_from_remote->setEnabled(false);
-		l->addWidget(this->is_content_from_remote);
+		box->addWidget(this->is_content_from_remote);
+		
+		l->addLayout(box);
 	}
 	
 	this->query_text = new QPlainTextEdit;
@@ -201,9 +198,12 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	
 	l->addWidget(this->textarea);
 	
+	{
+	QHBoxLayout* box = new QHBoxLayout;
+	
 	QPushButton* details_cmnt = new QPushButton("Details", this);
 	connect(details_cmnt, &QPushButton::clicked, this, &ViewMatchedComments::view_matches);
-	l->addWidget(details_cmnt);
+	box->addWidget(details_cmnt);
 	
 	QPushButton* del_cmnt = new QPushButton("Delete", this);
 	connect(del_cmnt, &QPushButton::clicked, this, &ViewMatchedComments::del_cmnt);
@@ -213,7 +213,11 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	del_cmnt->setPalette(palette);
 	del_cmnt->setFlat(true);
 	del_cmnt->update();
-	l->addWidget(del_cmnt);
+	box->addWidget(del_cmnt);
+	
+	l->addLayout(box);
+	
+	}
 	
 	this->setLayout(l);
 }
