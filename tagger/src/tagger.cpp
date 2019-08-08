@@ -583,6 +583,8 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 
 extern "C"
 void comments_given_reason(const char* const reasonfilter,  const char* const reason_name){
+	DST = compsky::asciify::BUF;
+	
 	if (reason_name[0] == 0){
 		compsky::mysql::query(
 			&RES,
@@ -615,6 +617,7 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 		);
 		return;
 	}
+	
 	if (unlikely(is_length_greater_than(reason_name, 129))){
 		DST = http_err::request_too_long;
 		return;
@@ -684,11 +687,12 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 	"</html>",
 	'\0'
 	);
-	DST = compsky::asciify::BUF;
 }
 
 extern "C"
 void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name){
+	DST = compsky::asciify::BUF;
+	
 	if (reason_name[0] == 0){
 		compsky::mysql::query(
 			&RES,
@@ -782,5 +786,4 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 	"</html>",
 	'\0'
 	);
-	DST = compsky::asciify::BUF;
 }
