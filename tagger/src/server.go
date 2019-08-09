@@ -98,6 +98,15 @@ func js_column_to_permalink(w http.ResponseWriter, r* http.Request){
 	io.WriteString(w, html)
 }
 
+func js_humanise()(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
+	const html = "" +
+		"function timestamp2dt(t){" +
+			"return new Date(t*1000).toISOString().slice(-24, -5)" +
+		"}"
+	io.WriteString(w, html)
+}
+
 
 func get_all_reasons(w http.ResponseWriter, r* http.Request){
     w.Header().Set("Content-Type", "application/json")
@@ -138,9 +147,11 @@ func html_comments_given_user(w http.ResponseWriter, r* http.Request){
 				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
 				"<script src=\"/static/populate_table.js\"></script>" +
 				"<script src=\"/static/column_to_permalink.js\"></script>" +
+				"<script src=\"/static/humanise.js\"></script>" +
 				"<script>" +
 					"function format_table(){" +
 						"column_to_permalink('#tbl tbody',  1,  3);" +
+						"
 					"}" +
 				"</script>" +
 				"<h1>" +
@@ -233,6 +244,7 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 				"<script src=\"/static/populate_table.js\"></script>" +
 				"<script src=\"/static/populate_reasons.js\"></script>" +
 				"<script src=\"/static/column_to_permalink.js\"></script>" +
+				"<script src=\"/static/humanise.js\"></script>" +
 				"<script>" +
 					"function format_table(){" +
 						"column_to_permalink('#tbl tbody',  0,  2);" +
@@ -351,6 +363,7 @@ func main(){
 	mux.HandleFunc("/static/populate_table.js", js_populate_table)
 	mux.HandleFunc("/static/populate_reasons.js", js_populate_reasons)
 	mux.HandleFunc("/static/column_to_permalink.js", js_column_to_permalink)
+	mux.HandleFunc("/static/humanise.js", js_humanise)
 	
 	mux.HandleFunc("/reason/subreddits/", html_subreddits_given_reason)
 	//mux.HandleFunc("/static/subreddits_given_reason.js", js_subreddits_given_reason)
