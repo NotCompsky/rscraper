@@ -396,7 +396,8 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	compsky::asciify::asciify("SELECT * FROM (");
 
 	constexpr static const char* stmt_t_1 = 
-		"SELECT A.user_id, SUM(A.c), SUM(A.c), SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), A.tag_id "
+		"SELECT A.user_id, SUM(A.c), SUM(A.c) AS distinctname"
+			", SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), A.tag_id "
 		"FROM tag2category t2c "
 		"JOIN ( "
 			"SELECT u2scc.user_id, s2t.tag_id, SUM(u2scc.count) AS c, t.r, t.g, t.b, t.a "
