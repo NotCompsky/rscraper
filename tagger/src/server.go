@@ -25,6 +25,7 @@ import "os/signal"
 
 var tagfilter string
 var reasonfilter string
+var all_reasons string
 
 // NOTE: To convert JS/HTML to human readable format,  ^(\t*)"|" \+$|\\(")  ->  \1\2
 
@@ -101,8 +102,7 @@ func js_utils(w http.ResponseWriter, r* http.Request){
 func get_all_reasons(w http.ResponseWriter, r* http.Request){
     w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "max-age=86400") // 24h
-    C.get_all_reasons(C.CString(reasonfilter))
-    io.WriteString(w, C.GoString(C.DST))
+    io.WriteString(w, all_reasons)
 }
 
 
@@ -332,6 +332,11 @@ func main(){
     }()
     
     C.init()
+	
+	C.get_all_reasons(C.CString(reasonfilter))
+	all_reasons = C.GoString(C.DST) // Deep copied
+	
+	
     mux := http.NewServeMux()
 	
 	/* NOTE: 
