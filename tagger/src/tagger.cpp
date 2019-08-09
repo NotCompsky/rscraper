@@ -570,7 +570,7 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 				'"', _f::esc, '"', reason, '"', ',',
 				'"', _f::esc, '"', subreddit_name, '"', ',',
 				created_at, ',',
-				'"', submission_id_str, "/_/", comment_id_str, '"', ',',
+				'"', submission_id_str, "/_/", comment_id_str, '"',
 			']',
 			','
 		);
