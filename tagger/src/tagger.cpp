@@ -533,26 +533,6 @@ extern "C"
 void comments_given_reason(const char* const reasonfilter,  const char* const reason_name){
 	DST = compsky::asciify::BUF;
 	
-	/*
-	if (reason_name[0] == 0){
-		compsky::mysql::query(
-			&RES,
-			"SELECT m.name "
-			"FROM reason_matched m "
-			"WHERE",
-			reasonfilter + 3 // Skip preceding "AND"
-		);
-		char* name;
-		compsky::asciify::reset_index();
-		compsky::asciify::asciify('[');
-		while(compsky::mysql::assign_next_row(RES, &ROW, &name)){
-			compsky::asciify::asciify('"', _f::esc, '"', name, '"', ',');
-		}
-		--compsky::asciify::ITR; // Remove trailing comma
-		compsky::asciify::asciify(']', '\0');
-		return;
-	}
-	*/
 	if (unlikely(is_length_greater_than(reason_name, 129))){
 		DST = http_err::request_too_long;
 		return;
@@ -597,27 +577,6 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 extern "C"
 void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name){
 	DST = compsky::asciify::BUF;
-	
-	/*
-	if (reason_name[0] == 0){
-		compsky::mysql::query(
-			&RES,
-			"SELECT m.name "
-			"FROM reason_matched m "
-			"WHERE TRUE ",
-			reasonfilter
-		);
-		char* name;
-		compsky::asciify::reset_index();
-		compsky::asciify::asciify('[');
-		while(compsky::mysql::assign_next_row(RES, &ROW, &name)){
-			compsky::asciify::asciify('"', _f::esc, '"', name, '"', ',');
-		}
-		--compsky::asciify::ITR;
-		compsky::asciify::asciify(']', '\0');
-		return;
-	}
-	*/
 	
 	if (unlikely(is_length_greater_than(reason_name, 129))){
 		DST = http_err::request_too_long;
