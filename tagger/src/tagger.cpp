@@ -485,6 +485,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		if (id == 0){
 			// i.e. we are in between the real selects in the union
 			compsky::asciify::asciify("]},{[");
+			continue;
 		}
 		
 		const size_t max_new_entry_size = strlen_constexpr("],\"id-t2_abcdefghijklm\":[[\"rgba(255,255,255,1.000)\",\"01234567890123456789 01234567890123456789\"],");
@@ -529,6 +530,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 			DST[1] = '{';
 			DST[2] = '}';
 			DST[3] = ',';
+			DST[4] = '{';
 			--compsky::asciify::ITR; // Overwrite trailing comma
 			compsky::asciify::asciify(']', '}', ']');
 		} else {
