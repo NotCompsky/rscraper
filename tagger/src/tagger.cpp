@@ -524,7 +524,8 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 			','
 		);
 	}
-	--compsky::asciify::ITR;
+	if(compsky::asciify::get_index() > 1)
+		--compsky::asciify::ITR;
 	compsky::asciify::asciify(']', '\0');
 	DST = compsky::asciify::BUF;
 }
@@ -570,7 +571,8 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 			','
 		);
 	}
-	--compsky::asciify::ITR;
+	if(compsky::asciify::get_index() > 1)
+		--compsky::asciify::ITR;
 	compsky::asciify::asciify(']', '\0');
 }
 
@@ -611,6 +613,7 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 			','
 		);
 	}
-	--compsky::asciify::ITR;
+	if(compsky::asciify::get_index() > 1)
+		--compsky::asciify::ITR;
 	compsky::asciify::asciify(']', '\0');
 }

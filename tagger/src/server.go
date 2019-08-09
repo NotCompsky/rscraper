@@ -72,7 +72,7 @@ func indexof_flairs_given_users(w http.ResponseWriter, r* http.Request){
 
 func flairs_given_users(w http.ResponseWriter, r* http.Request){
     w.Header().Set("Content-Type", "application/json")
-    C.csv2cls(C.CString(r.URL.Path[8:]), C.CString(tagfilter), C.CString(reasonfilter))
+    C.csv2cls(C.CString(r.URL.Path[12:]), C.CString(tagfilter), C.CString(reasonfilter))
     io.WriteString(w, C.GoString(C.DST))
 }
 
@@ -116,7 +116,7 @@ func html_comments_given_user(w http.ResponseWriter, r* http.Request){
 }
 
 func comments_given_user(w http.ResponseWriter, r* http.Request){
-    C.user_summary(C.CString(reasonfilter), C.CString(r.URL.Path[3:]))
+    C.user_summary(C.CString(reasonfilter), C.CString(r.URL.Path[7:]))
     io.WriteString(w, C.GoString(C.DST))
 }
 
@@ -154,7 +154,7 @@ func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 }
 
 func subreddits_given_reason(w http.ResponseWriter, r* http.Request){
-    C.subreddits_given_reason(C.CString(reasonfilter), C.CString(r.URL.Path[19:]))
+    C.subreddits_given_reason(C.CString(reasonfilter), C.CString(r.URL.Path[23:]))
     io.WriteString(w, C.GoString(C.DST))
 }
 
@@ -195,7 +195,7 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 }
 
 func comments_given_reason(w http.ResponseWriter, r* http.Request){
-    C.comments_given_reason(C.CString(reasonfilter), C.CString(r.URL.Path[17:]))
+    C.comments_given_reason(C.CString(reasonfilter), C.CString(r.URL.Path[21:]))
     io.WriteString(w, C.GoString(C.DST))
 }
 
