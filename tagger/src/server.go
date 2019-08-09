@@ -31,20 +31,22 @@ var reasonfilter string
 func js_populate_table(w http.ResponseWriter, r* http.Request){
 	const html = "" +
 		"function wipe_table(selector){" +
-			"$(selector + \" tbody tr\").remove();" +
+			"$(selector + \" tr\").remove();" +
 		"}" +
 		"function populate_table(url, selector){" +
 			"$.ajax({" +
 				"dataType: \"json\"," +
 				"url: url," +
 				"success: function(data){" +
+					"var s = \"\";" +
 					"for (var row of data){" +
-						"var row$ = $('<tr/>');" +
+						"s += \"<tr>\";" +
 						"for (var item of row){" +
-							"row$.append($('<td/>').html(item));" +
+							"s += \"<td>\" + item + \"</td>\";" +
 						"}" +
-						"$(selector).append(row$);" +
+						"s += \"</tr>\";" +
 					"}" +
+					"$(selector).html(s);" +
 				"}," +
 				"error: function(){" +
 					"alert(\"Error populating table\");" +
@@ -88,7 +90,7 @@ func html_comments_given_user(w http.ResponseWriter, r* http.Request){
 				"</h1>" +
 				"<div>" +
 					"<input type=\"text\" id=\"u\" placeholder=\"Username\"/>" +
-					"<button onclick=\"wipe_table('#tbl'); populate_table('/api/u/' + $('#u')[0].value),  '#tbl'\">" +
+					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/u/' + $('#u')[0].value,  '#tbl tbody')\">" +
 						"Go" +
 					"</button>" +
 				"</div>" +
@@ -133,7 +135,7 @@ func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 				"</h1>" +
 				"<div>" +
 					"<input type=\"text\" id=\"m\" placeholder=\"Reason\"/>" +
-					"<button onclick=\"wipe_table('#tbl'); populate_table('/api/reason/subreddits/' + $('#m')[0].value),  '#tbl'\">" +
+					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/reason/subreddits/' + $('#m')[0].value,  '#tbl tbody')\">" +
 						"Go" +
 					"</button>" +
 				"</div>" +
@@ -172,7 +174,7 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 				"</h1>" +
 				"<div>" +
 					"<input type=\"text\" id=\"m\" placeholder=\"Reason\"/>" +
-					"<button onclick=\"wipe_table('#tbl'); populate_table('/api/reason/comments/' + $('#m')[0].value),  '#tbl'\">" +
+					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/reason/comments/' + $('#m')[0].value,  '#tbl tbody')\">" +
 						"Go" +
 					"</button>" +
 				"</div>" +
