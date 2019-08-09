@@ -12,6 +12,7 @@ extern void csv2cls(const char* csv,  const char* tagcondition,  const char* rea
 extern void user_summary(const char* reasonfilter,  const char* const name);
 extern void comments_given_reason(const char* const reasonfilter,  const char* const reason_name);
 extern void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name);
+extern void get_all_reasons(const char* const reasonfilter);
 */
 import "C" // Pseudopackage
 import "flag"
