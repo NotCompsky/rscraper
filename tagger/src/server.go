@@ -155,7 +155,7 @@ func html_comments_given_username(w http.ResponseWriter, r* http.Request){
 				"</h1>" +
 				"<div>" +
 					"<input type=\"text\" id=\"u\" placeholder=\"Username\"/>" +
-					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/u/' + $('#u')[0].value,  '#tbl tbody',  format_table)\">" +
+					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/user/' + $('#u')[0].value,  '#tbl tbody',  format_table)\">" +
 						"Go" +
 					"</button>" +
 				"</div>" +
@@ -315,7 +315,7 @@ func indexof_root(w http.ResponseWriter, r* http.Request){
 					"Reason Statistics" +
 				"</a>" +
 				"<br/>" +
-				"<a href=\"u/\">" +
+				"<a href=\"user/\">" +
 					"User Statistics" +
 				"</a>" +
 			"</body>" +
