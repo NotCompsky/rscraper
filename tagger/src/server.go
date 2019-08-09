@@ -109,6 +109,7 @@ func html_comments_given_user(w http.ResponseWriter, r* http.Request){
 							"</th>" +
 						"</tr>" +
 					"</thead>" +
+					"<tbody></tbody>" +
 				"</table>" +
 			"</body>" +
 		"</html>"
@@ -147,6 +148,7 @@ func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 							"</th>" +
 						"</tr>" +
 					"</thead>" +
+					"<tbody></tbody>" +
 				"</table>" +
 			"</body>" +
 		"</html>"
@@ -188,6 +190,7 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 							"</th>" +
 						"</tr>" +
 					"</thead>" +
+					"<tbody></tbody>" +
 				"</table>" +
 			"</body>" +
 		"</html>"
