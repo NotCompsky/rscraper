@@ -29,7 +29,7 @@ var reasonfilter string
 // NOTE: To convert JS/HTML to human readable format,  ^(\t*)"|" \+$|\\(")  ->  \1\2
 
 
-func js_populate_table(w http.ResponseWriter, r* http.Request){
+func js_utils(w http.ResponseWriter, r* http.Request){
 	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
 		"function wipe_table(selector){" +
@@ -57,13 +57,18 @@ func js_populate_table(w http.ResponseWriter, r* http.Request){
 					"alert(\"Error populating table\");" +
 				"}" +
 			"});" +
-		"}"
-    io.WriteString(w, html)
-}
-
-func js_populate_reasons(w http.ResponseWriter, r* http.Request){
-	w.Header().Set("Cache-Control", "max-age=86400") // 24h
-	const html = "" +
+		"}" +
+		"function column_to_permalink(selector, subreddit_indx, link_indx){" +
+			"$(selector).find('tr').each(function (i, el){" +
+				"var $tds = $(this).find('td');" +
+				"var subreddit_name = $tds.eq(subreddit_indx).text();" +
+				"var $link = $tds.eq(link_indx);" +
+				"$link.html(\"<a href='https://www.reddit.com/r/\" + subreddit_name + \"/comments/\" + $link.text() + \"'>Link</a>\")" +
+			"});" +
+		"}" +
+		"function timestamp2dt(t){" +
+			"return new Date(t*1000).toISOString().slice(-24, -5)" +
+		"}" +
 		"function populate_reasons(){" +
 			"$.ajax({" +
 				"dataType: \"json\"," +
@@ -82,29 +87,6 @@ func js_populate_reasons(w http.ResponseWriter, r* http.Request){
 		"}" +
 		"window.onload=populate_reasons;"
     io.WriteString(w, html)
-}
-
-func js_column_to_permalink(w http.ResponseWriter, r* http.Request){
-	w.Header().Set("Cache-Control", "max-age=86400") // 24h
-	const html = "" +
-		"function column_to_permalink(selector, subreddit_indx, link_indx){" +
-			"$(selector).find('tr').each(function (i, el){" +
-				"var $tds = $(this).find('td');" +
-				"var subreddit_name = $tds.eq(subreddit_indx).text();" +
-				"var $link = $tds.eq(link_indx);" +
-				"$link.html(\"<a href='https://www.reddit.com/r/\" + subreddit_name + \"/comments/\" + $link.text() + \"'>Link</a>\")" +
-			"});" +
-		"}"
-	io.WriteString(w, html)
-}
-
-func js_humanise()(w http.ResponseWriter, r* http.Request){
-	w.Header().Set("Cache-Control", "max-age=86400") // 24h
-	const html = "" +
-		"function timestamp2dt(t){" +
-			"return new Date(t*1000).toISOString().slice(-24, -5)" +
-		"}"
-	io.WriteString(w, html)
 }
 
 
@@ -145,9 +127,7 @@ func html_comments_given_user(w http.ResponseWriter, r* http.Request){
 		"<!DOCTYPE html>" +
 			"<body>" +
 				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
-				"<script src=\"/static/populate_table.js\"></script>" +
-				"<script src=\"/static/column_to_permalink.js\"></script>" +
-				"<script src=\"/static/humanise.js\"></script>" +
+				"<script src=\"/static/utils.js\"></script>" +
 				"<script>" +
 					"function format_table(){" +
 						"column_to_permalink('#tbl tbody',  1,  3);" +
@@ -199,8 +179,7 @@ func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 		"<!DOCTYPE html>" +
 			"<body>" +
 				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
-				"<script src=\"/static/populate_table.js\"></script>" +
-				"<script src=\"/static/populate_reasons.js\"></script>" +
+				"<script src=\"/static/utils.js\"></script>" +
 				"<h1>" +
 					"Subreddits given reason" +
 				"</h1>" +
@@ -241,10 +220,7 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 		"<!DOCTYPE html>" +
 			"<body>" +
 				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
-				"<script src=\"/static/populate_table.js\"></script>" +
-				"<script src=\"/static/populate_reasons.js\"></script>" +
-				"<script src=\"/static/column_to_permalink.js\"></script>" +
-				"<script src=\"/static/humanise.js\"></script>" +
+				"<script src=\"/static/utils.js\"></script>" +
 				"<script>" +
 					"function format_table(){" +
 						"column_to_permalink('#tbl tbody',  0,  2);" +
@@ -360,10 +336,7 @@ func main(){
 	mux.HandleFunc("/flairs/", indexof_flairs_given_users)
     mux.HandleFunc("/api/flairs/", flairs_given_users)
 	
-	mux.HandleFunc("/static/populate_table.js", js_populate_table)
-	mux.HandleFunc("/static/populate_reasons.js", js_populate_reasons)
-	mux.HandleFunc("/static/column_to_permalink.js", js_column_to_permalink)
-	mux.HandleFunc("/static/humanise.js", js_humanise)
+	mux.HandleFunc("/static/utils.js", js_utils)
 	
 	mux.HandleFunc("/reason/subreddits/", html_subreddits_given_reason)
 	//mux.HandleFunc("/static/subreddits_given_reason.js", js_subreddits_given_reason)
