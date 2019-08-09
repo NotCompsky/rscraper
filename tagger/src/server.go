@@ -48,7 +48,7 @@ func comments_given_reason(w http.ResponseWriter, r* http.Request){
 }
 
 func indexof_reason(w http.ResponseWriter, r* http.Request){
-    io.WriteString(w,
+	const HTML_indexof_reason = "" +
 		"<!DOCTYPE html>" +
 			"<body>" +
 				"<h1>" +
@@ -62,11 +62,12 @@ func indexof_reason(w http.ResponseWriter, r* http.Request){
 					"Comments" +
 				"</a>" +
 			"</body>" +
-		"</html>")
+		"</html>"
+    io.WriteString(w, HTML_indexof_reason)
 }
 
 func indexof_root(w http.ResponseWriter, r* http.Request){
-    io.WriteString(w,
+	const HTML_indexof_root = "" +
 		"<!DOCTYPE html>" +
 			"<body>" +
 				"<h1>" +
@@ -80,7 +81,8 @@ func indexof_root(w http.ResponseWriter, r* http.Request){
 					"User Statistics" +
 				"</a>" +
 			"</body>" +
-		"</html>")
+		"</html>"
+    io.WriteString(w, HTML_indexof_root)
 }
 
 func main(){
