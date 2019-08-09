@@ -62,7 +62,7 @@ func js_populate_reasons(w http.ResponseWriter, r* http.Request){
 		"function populate_reasons(){" +
 			"$.ajax({" +
 				"dataType: \"json\"," +
-				"url: url," +
+				"url: \"/api/reasons.json\"," +
 				"success: function(data){" +
 					"var s = \"\";" +
 					"for (var name of data){" +
