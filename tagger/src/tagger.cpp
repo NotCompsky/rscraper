@@ -386,8 +386,8 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	
 	for (auto i = 0;  i < 5;  ++i){
 		// Safely skip first prefix bar the last character
-		if (*(csv++) == 0){
-			compsky::asciify::ITR = compsky::asciify::BUF + 1;
+		if (unlikely(*(csv++) == 0)){
+			compsky::asciify::ITR = compsky::asciify::BUF + 5; // Just to trigger 'if get_index() == 5'
 			goto goto_results;
 		}
 	}
