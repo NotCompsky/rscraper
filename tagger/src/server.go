@@ -56,6 +56,35 @@ func js_populate_table(w http.ResponseWriter, r* http.Request){
     io.WriteString(w, html)
 }
 
+func js_populate_reasons(w http.ResponseWriter, r* http.Request){
+	const html = "" +
+		"function populate_reasons(){" +
+			"$.ajax({" +
+				"dataType: \"json\"," +
+				"url: url," +
+				"success: function(data){" +
+					"var s = \"\";" +
+					"for (var name of data){" +
+						"s += \"<option value='\" + name + \"'>\" + name + \"</option>\";" +
+					"}" +
+					"$(\"#m\").html(s);" +
+				"}," +
+				"error: function(){" +
+					"alert(\"Error populating table\");" +
+				"}" +
+			"});" +
+		"}" +
+		"window.onload=populate_reasons;"
+    io.WriteString(w, html)
+}
+
+
+func get_all_reasons(w http.ResponseWriter, r* http.Request){
+    w.Header().Set("Content-Type", "application/json")
+    C.get_all_reasons(C.CString(reasonfilter))
+    io.WriteString(w, C.GoString(C.DST))
+}
+
 
 func indexof_flairs_given_users(w http.ResponseWriter, r* http.Request){
 	const html = "" +
@@ -130,11 +159,12 @@ func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 			"<body>" +
 				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
 				"<script src=\"/static/populate_table.js\"></script>" +
+				"<script src=\"/static/populate_reasons.js\"></script>" +
 				"<h1>" +
 					"Subreddits given reason" +
 				"</h1>" +
 				"<div>" +
-					"<input type=\"text\" id=\"m\" placeholder=\"Reason\"/>" +
+					"<select id=\"m\"></select>" +
 					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/reason/subreddits/' + $('#m')[0].value,  '#tbl tbody')\">" +
 						"Go" +
 					"</button>" +
@@ -277,6 +307,7 @@ func main(){
     mux.HandleFunc("/api/flairs/", flairs_given_users)
 	
 	mux.HandleFunc("/static/populate_table.js", js_populate_table)
+	mux.HandleFunc("/static/populate_reasons.js", js_populate_reasons)
 	
 	mux.HandleFunc("/reason/subreddits/", html_subreddits_given_reason)
 	//mux.HandleFunc("/static/subreddits_given_reason.js", js_subreddits_given_reason)
@@ -288,6 +319,8 @@ func main(){
 	mux.HandleFunc("/u/", html_comments_given_user)
 	//mux.HandleFunc("/static/comments_given_user.js", js_comments_given_user)
 	mux.HandleFunc("/api/u/", comments_given_user)
+	
+	mux.HandleFunc("/api/reasons.json",  get_all_reasons)
 	
     http.ListenAndServe(":" + portN,  mux)
 }

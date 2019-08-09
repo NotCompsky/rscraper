@@ -617,3 +617,26 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 		--compsky::asciify::ITR;
 	compsky::asciify::asciify(']', '\0');
 }
+
+
+extern "C"
+void get_all_reasons(const char* const reasonfilter){
+	DST = compsky::asciify::BUF;
+	
+	compsky::mysql::query(
+		&RES,
+		"SELECT m.name "
+		"FROM reason_matched m "
+		"WHERE TRUE ",
+		  reasonfilter
+	);
+	char* subreddit_name;
+	compsky::asciify::reset_index();
+	compsky::asciify::asciify('[');
+	while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit_name)){
+		compsky::asciify::asciify('"', _f::esc, '"', subreddit_name, '"', ',');
+	}
+	if(compsky::asciify::get_index() > 1)
+		--compsky::asciify::ITR;
+	compsky::asciify::asciify(']', '\0');
+}
