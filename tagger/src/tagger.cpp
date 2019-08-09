@@ -57,6 +57,15 @@ constexpr size_t strlen_constexpr(const char* s){
 	return (*s)  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
 
+bool is_number(const char* s){
+	while(*s != 0){
+		if (*s < '0'  ||  *s > '9')
+			return false;
+		++s;
+	}
+	return true;
+}
+
 
 
 
@@ -573,9 +582,9 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 }
 
 extern "C"
-void comments_given_reason(const char* const reasonfilter,  const char* const reason_name){
-	if (unlikely(is_length_greater_than(reason_name, 129))){
-		DST = http_err::request_too_long;
+void comments_given_reason(const char* const reasonfilter,  const char* const reason_id){
+	if (unlikely(!is_number(reason_id))){
+		DST = http_err::bad_request;
 		return;
 	}
 	
@@ -583,7 +592,7 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 		&RES,
 		"SELECT r.name, s.id, c.id, c.created_at "
 		"FROM comment c, subreddit r, submission s, reason_matched m "
-		"WHERE m.name=\"", _f::esc, '"', reason_name, "\" "
+		"WHERE m.id=", reason_id, " "
 		  "AND s.id=c.submission_id "
 		  "AND r.id=s.subreddit_id "
 		  "AND m.id=c.reason_matched ",
@@ -618,9 +627,9 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 }
 
 extern "C"
-void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name){
-	if (unlikely(is_length_greater_than(reason_name, 129))){
-		DST = http_err::request_too_long;
+void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_id){
+	if (unlikely(!is_number(reason_id))){
+		DST = http_err::bad_request;
 		return;
 	}
 	
@@ -628,7 +637,7 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 		&RES,
 		"SELECT r.name, COUNT(c.id)/s2cc.count AS count "
 		"FROM subreddit r, submission s, comment c, reason_matched m, subreddit2cmnt_count s2cc "
-		"WHERE m.name=\"", _f::esc, '"', reason_name, "\""
+		"WHERE m.id=", reason_id, " "
 		  "AND r.id=s.subreddit_id "
 		  "AND s.id=c.submission_id "
 		  "AND c.reason_matched=m.id ",
@@ -663,16 +672,23 @@ extern "C"
 void get_all_reasons(const char* const reasonfilter){
 	compsky::mysql::query(
 		&RES,
-		"SELECT m.name "
+		"SELECT m.name, m.id "
 		"FROM reason_matched m "
 		"WHERE TRUE ",
 		  reasonfilter
 	);
 	char* name;
+	char* reason_id;
 	compsky::asciify::reset_index();
 	compsky::asciify::asciify('[');
-	while(compsky::mysql::assign_next_row(RES, &ROW, &name)){
-		compsky::asciify::asciify('"', _f::esc, '"', name, '"', ',');
+	while(compsky::mysql::assign_next_row(RES, &ROW, &name, &reason_id)){
+		compsky::asciify::asciify(
+			'[',
+				reason_id, ',',
+				'"', _f::esc, '"', name, '"',
+			']',
+			','
+		);
 	}
 	if(compsky::asciify::get_index() > 1)
 		--compsky::asciify::ITR;
