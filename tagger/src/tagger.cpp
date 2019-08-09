@@ -695,9 +695,9 @@ void get_all_reasons(const char* const reasonfilter){
 	compsky::asciify::asciify('{');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &name, &reason_id)){
 		compsky::asciify::asciify(
-			reason_id, ':',
-				'"', _f::esc, '"', name, '"',
-			','
+			"\"", reason_id, "\":"
+				"\"", _f::esc, '"', name, "\""
+			","
 		);
 	}
 	if(compsky::asciify::get_index() > 1)
@@ -722,9 +722,9 @@ void get_all_tags(const char* const tagfilter){
 	compsky::asciify::asciify('{');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &name, &id)){
 		compsky::asciify::asciify(
-			id, ':',
-				'"', _f::esc, '"', name, '"',
-			','
+			"\"", id, "\":"
+				"\"", _f::esc, '"', name, "\""
+			","
 		);
 	}
 	if(compsky::asciify::get_index() > 1)
