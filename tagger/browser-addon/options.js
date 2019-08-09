@@ -2,8 +2,12 @@
 
 function save_options() {
     var url = document.getElementById("url").value;
+    var reasons_url = document.getElementById("reasons_url").value;
+	var tags_url = document.getElementById("tags_url").value;
     chrome.storage.sync.set({
-        url: url
+        url: url,
+        reasons_url: reasons_url,
+        tags_url: tags_url
     }, function() {
         // Update status to let user know options were saved.
         var status = document.getElementById("status");
@@ -17,9 +21,13 @@ function save_options() {
 // Restores select box and checkbox state using the preferences stored in chrome.storage
 function restore_options() {
   chrome.storage.sync.get({
-    url: "http://104.197.15.19:8080/api/flairs/slurs/"
+    url: "http://104.197.15.19:8080/api/flairs/slurs/",
+    reasons_url: "http://104.197.15.19:8080/api/reasons.json",
+    tags_url: "http://104.197.15.19:8080/api/tags.json"
   }, function(items) {
     document.getElementById("url").value = items.url;
+    document.getElementById("reasons_url").value = items.reasons_url;
+    document.getElementById("tags_url").value = items.tags_url;
   });
 }
 document.addEventListener("DOMContentLoaded", restore_options);

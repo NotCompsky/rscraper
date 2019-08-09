@@ -2,12 +2,19 @@
 <html>
     <head><title>RTagger Options</title></head>
     <body>
-        Default server url: http://104.197.15.19:8080/api/flairs/slurs/
+        Default url: http://104.197.15.19:8080/api/flairs/slurs/
+        Default reasons_url: http://104.197.15.19:8080/api/reasons.json
         This is an example server, that only displays regional subreddits, and has a pre-set colour scheme.
         To host your own, visit https://github.com/NotCompsky/rscraper
         <label>
             Server Url:
-            <input type="text" id="url">
+            <input type="text" id="url"/>
+            <br/>
+            Server Reasons_Url:
+            <input type="text" id="reasons_url"/>
+            <br/>
+            Server Tags_Url:
+            <input type="text" id="tags_url"/>
         </label>
         <button id="save">Save</button>
         <script src="options.js"></script>

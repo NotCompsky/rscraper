@@ -13,6 +13,7 @@ extern void comments_given_username(const char* reasonfilter,  const char* const
 extern void comments_given_reason(const char* const reasonfilter,  const char* const reason_name);
 extern void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name);
 extern void get_all_reasons(const char* const reasonfilter);
+extern void get_all_tags(const char* const tagfilter);
 */
 import "C" // Pseudopackage
 import "flag"
@@ -26,6 +27,7 @@ import "os/signal"
 var tagfilter string
 var reasonfilter string
 var all_reasons string
+var all_tags string
 
 // NOTE: To convert JS/HTML to human readable format,  ^(\t*)"|" \+$|\\(")  ->  \1\2
 
@@ -103,6 +105,12 @@ func get_all_reasons(w http.ResponseWriter, r* http.Request){
     w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "max-age=86400") // 24h
     io.WriteString(w, all_reasons)
+}
+
+func get_all_tags(w http.ResponseWriter, r* http.Request){
+    w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
+    io.WriteString(w, all_tags)
 }
 
 
@@ -336,6 +344,9 @@ func main(){
 	C.get_all_reasons(C.CString(reasonfilter))
 	all_reasons = C.GoString(C.DST) // Deep copied
 	
+	C.get_all_tags(C.CString(tagfilter))
+	all_tags = C.GoString(C.DST) // Deep copied
+	
 	
     mux := http.NewServeMux()
 	
@@ -361,6 +372,7 @@ func main(){
 	mux.HandleFunc("/api/user/", comments_given_username)
 	
 	mux.HandleFunc("/api/reasons.json",  get_all_reasons)
+	mux.HandleFunc("/api/tags.json",  get_all_tags)
 	
     http.ListenAndServe(":" + portN,  mux)
 }
