@@ -182,8 +182,39 @@ uint64_t* reasons;
 uint64_t* users;
 uint64_t* subreddits;
 size_t n_reasons;
+size_t n_reasons_log2;
 size_t n_users;
+size_t n_users_log2;
 size_t n_subreddits;
+size_t n_subreddits_log2;
+
+size_t log2(size_t m){
+	size_t n = 0;
+	while (m >>= 1)
+		++n;
+	return n;
+}
+
+/*
+IDs can be obtained client-side, probably using Pushshift.
+For instance:
+	Subreddit ID:
+		curl -g 'https://dev.pushshift.io/rr/_search/?source_content_type=application/json&source={%22query%22:{%22match%22:{%22_id%22:6}}}' | jq '.hits.hits[0]._source.display_name'
+*/
+
+bool is_cached(uint64_t* ids,  const size_t ids_len,  const size_t ids_len_log2  const uint64_t id){
+	// Inspired by Matt Pulver's 2011 article: http://eigenjoy.com/2011/01/21/worlds-fastest-binary-search/
+	size_t i = 0;
+	for(size_t b = 1 << ids_len_log2;   b != 0;   b >>= 1){
+		// TODO: Check for endianness?
+		size_t j = i | b;
+		if (j >= n_reasons)
+			;
+		else if (ids[j] <= id)
+			i = j;
+	}
+	return (ids[i] == id);
+}
 #endif
 
 extern "C"
@@ -203,7 +234,11 @@ void init(){
 	
 	while(compsky::mysql::assign_next_row(RES, &ROW, &n_reasons, &n_users, &n_subreddits));
 	
-	uint64_t* buf = (uint64_t*)malloc((n_reasons + 1 + n_users + 1 + n_subreddits + 1) * sizeof(uint64_t));
+	n_reasons_log2 = log2(n_reasons);
+	n_users_log2 = log2(n_users);
+	n_subreddits_log2 = log2(n_subreddits);
+	
+	uint64_t* buf = (uint64_t*)malloc((n_reasons + n_users + n_subreddits) * sizeof(uint64_t));
 	// Prefer large single mallocs to multiple smaller mallocs
 	// Both to reduce system calls, and also reduce memory fragmentation
 	
@@ -211,18 +246,15 @@ void init(){
 		abort();
 	
 	reasons    = buf;
-	users      = reasons + n_reasons + 1;
-	subreddits = users + n_users + 1;
+	users      = reasons + n_reasons;
+	subreddits = users + n_users;
 	
 	compsky::mysql::query(
 		&RES,
 		"SELECT "
 			"(SELECT id FROM reason_matched LIMIT ", n_reasons, "),"
-			"0," // Partitioning null byte
 			"(SELECT id FROM user LIMIT ", n_users, "),"
-			"0,"
 			"(SELECT id FROM subreddit LIMIT ", n_subreddits, "),"
-			"0"
 	);
 	// NOTE: MySQL implicitly orders (ascending) by ID, as it is the primary key.
 	uint64_t n;
@@ -479,6 +511,16 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 
 extern "C"
 void user_summary(const char* const reasonfilter,  const char* const name){
+	/*
+	TODO: 	Move from name-based searches to ID-based.
+			This would allow a very quick cache check, avoiding expensive resultless MySQL queries.
+	
+	if (!is_cached(users, n_users, n_users_log2, name)){
+		DSDT = http_err::not_in_database;
+		return;
+	}
+	*/
+	
 	if (unlikely(!is_valid_username(name))){
 		/*
 		This is the length of the field in the user table
