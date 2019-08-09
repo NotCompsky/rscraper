@@ -35,7 +35,7 @@ func js_populate_table(w http.ResponseWriter, r* http.Request){
 		"function wipe_table(selector){" +
 			"$(selector + \" tr\").remove();" +
 		"}" +
-		"function populate_table(url, selector){" +
+		"function populate_table(url, selector, postfnct){" +
 			"$.ajax({" +
 				"dataType: \"json\"," +
 				"url: url," +
@@ -49,6 +49,9 @@ func js_populate_table(w http.ResponseWriter, r* http.Request){
 						"s += \"</tr>\";" +
 					"}" +
 					"$(selector).html(s);" +
+					"if (postfnct !== undefined){" +
+						"postfnct();" +
+					"}" +
 				"}," +
 				"error: function(){" +
 					"alert(\"Error populating table\");" +
@@ -134,12 +137,18 @@ func html_comments_given_user(w http.ResponseWriter, r* http.Request){
 			"<body>" +
 				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
 				"<script src=\"/static/populate_table.js\"></script>" +
+				"<script src=\"/static/column_to_permalink.js\"></script>" +
+				"<script>" +
+					"function format_table(){" +
+						"column_to_permalink('#tbl tbody',  1,  3);" +
+					"}" +
+				"</script>" +
 				"<h1>" +
 					"Comments given user" +
 				"</h1>" +
 				"<div>" +
 					"<input type=\"text\" id=\"u\" placeholder=\"Username\"/>" +
-					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/u/' + $('#u')[0].value,  '#tbl tbody')\">" +
+					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/u/' + $('#u')[0].value,  '#tbl tbody',  format_table)\">" +
 						"Go" +
 					"</button>" +
 				"</div>" +
@@ -224,12 +233,17 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 				"<script src=\"/static/populate_table.js\"></script>" +
 				"<script src=\"/static/populate_reasons.js\"></script>" +
 				"<script src=\"/static/column_to_permalink.js\"></script>" +
+				"<script>" +
+					"function format_table(){" +
+						"column_to_permalink('#tbl tbody',  0,  2);" +
+					"}" +
+				"</script>" +
 				"<h1>" +
 					"Comments given reason" +
 				"</h1>" +
 				"<div>" +
 					"<select id=\"m\"></select>" +
-					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/reason/comments/' + $('#m')[0].value,  '#tbl tbody');  column_to_permalink('#tbl tbody',  0,  2);\">" +
+					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/reason/comments/' + $('#m')[0].value,  '#tbl tbody',  format_table);  \">" +
 						"Go" +
 					"</button>" +
 				"</div>" +
