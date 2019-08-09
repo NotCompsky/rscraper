@@ -1,3 +1,48 @@
+# Table of subreddits to reasons comments were matched
+
+SELECT r.name, m.name, COUNT(c.id) AS count
+FROM subreddit r, submission s, comment c, reason_matched m
+WHERE r.id=s.subreddit_id
+  AND s.id=c.submission_id
+  AND c.reason_matched=m.id
+GROUP BY r.name, m.name
+ORDER BY count DESC
+;
+
+
+# Table of subreddits with the highest proportion of comments that match a given tag
+
+## I suggest a cron job to regenerate the subreddit2cmnt_count table every day (see #lgojdfgoijeo). Too much processing to do every query, and not worth incrementing it every time we increment user2subreddit_cmnt_count
+
+SELECT r.name, m.name, COUNT(c.id)/s2cc.count AS count
+FROM subreddit r, submission s, comment c, reason_matched m, subreddit2cmnt_count s2cc
+WHERE r.id=s.subreddit_id
+  AND s.id=c.submission_id
+  AND c.reason_matched=m.id
+  AND s2cc.id=r.id
+  AND s2cc.count>10
+GROUP BY r.name, m.name
+ORDER BY count DESC
+;
+
+
+
+# Generate subreddit2cmnt_count (#lgojdfgoijeo)
+
+DROP TABLE IF EXISTS subreddit2cmnt_count;
+CREATE TABLE subreddit2cmnt_count (
+	id BIGINT UNSIGNED NOT NULL,
+	count BIGINT UNSIGNED NOT NULL,
+	PRIMARY KEY (id)
+);
+INSERT INTO subreddit2cmnt_count (id,count)
+	SELECT u.subreddit_id, u.count
+	FROM user2subreddit_cmnt_count u
+	ON DUPLICATE KEY UPDATE subreddit2cmnt_count.count=subreddit2cmnt_count.count+VALUES(count)
+;
+
+
+
 # Print table of large (according to comments we've recorded) subreddits to their associated tags and tag categories
 
 SELECT A.user, A.tag, c.name as 'category'
