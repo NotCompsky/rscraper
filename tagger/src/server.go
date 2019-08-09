@@ -30,10 +30,10 @@ var reasonfilter string
 
 func js_populate_table(w http.ResponseWriter, r* http.Request){
 	const html = "" +
-		"function wipe_tbl(selector){" +
+		"function wipe_table(selector){" +
 			"$(selector + \" tbody tr\").remove();" +
 		"}" +
-		"function populate_tbl(url, selector){" +
+		"function populate_table(url, selector){" +
 			"$.ajax({" +
 				"dataType: \"json\"," +
 				"url: url," +
@@ -88,7 +88,7 @@ func html_comments_given_user(w http.ResponseWriter, r* http.Request){
 				"</h1>" +
 				"<div>" +
 					"<input type=\"text\" id=\"u\" placeholder=\"Username\"/>" +
-					"<button onclick=\"wipe_tbl('#tbl'); populate_table('/api/u/' + $('#u')[0].value),  '#tbl'\">" +
+					"<button onclick=\"wipe_table('#tbl'); populate_table('/api/u/' + $('#u')[0].value),  '#tbl'\">" +
 						"Go" +
 					"</button>" +
 				"</div>" +
@@ -132,7 +132,7 @@ func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 				"</h1>" +
 				"<div>" +
 					"<input type=\"text\" id=\"m\" placeholder=\"Reason\"/>" +
-					"<button onclick=\"wipe_tbl('#tbl'); populate_table('/api/reason/subreddits/' + $('#m')[0].value),  '#tbl'\">" +
+					"<button onclick=\"wipe_table('#tbl'); populate_table('/api/reason/subreddits/' + $('#m')[0].value),  '#tbl'\">" +
 						"Go" +
 					"</button>" +
 				"</div>" +
@@ -170,7 +170,7 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 				"</h1>" +
 				"<div>" +
 					"<input type=\"text\" id=\"m\" placeholder=\"Reason\"/>" +
-					"<button onclick=\"wipe_tbl('#tbl'); populate_table('/api/reason/comments/' + $('#m')[0].value),  '#tbl'\">" +
+					"<button onclick=\"wipe_table('#tbl'); populate_table('/api/reason/comments/' + $('#m')[0].value),  '#tbl'\">" +
 						"Go" +
 					"</button>" +
 				"</div>" +
