@@ -81,6 +81,20 @@ func js_populate_reasons(w http.ResponseWriter, r* http.Request){
     io.WriteString(w, html)
 }
 
+func js_column_to_permalink(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
+	const html = "" +
+		"function column_to_permalink(selector, subreddit_indx, link_indx){" +
+			"$(selector).find('tr').each(function (i, el){" +
+				"var $tds = $(this).find('td');" +
+				"var subreddit_name = $tds.eq(subreddit_indx).text();" +
+				"var $link = $tds.eq(link_indx);" +
+				"$link.html(\"<a href='https://www.reddit.com/r/\" + subreddit_name + \"/comments/\" + $link.text() + \"'>Link</a>\")" +
+			"});" +
+		"}"
+	io.WriteString(w, html)
+}
+
 
 func get_all_reasons(w http.ResponseWriter, r* http.Request){
     w.Header().Set("Content-Type", "application/json")
@@ -209,12 +223,13 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
 				"<script src=\"/static/populate_table.js\"></script>" +
 				"<script src=\"/static/populate_reasons.js\"></script>" +
+				"<script src=\"/static/column_to_permalink.js\"></script>" +
 				"<h1>" +
 					"Comments given reason" +
 				"</h1>" +
 				"<div>" +
 					"<select id=\"m\"></select>" +
-					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/reason/comments/' + $('#m')[0].value,  '#tbl tbody')\">" +
+					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/reason/comments/' + $('#m')[0].value,  '#tbl tbody');  column_to_permalink('#tbl tbody',  0,  2);\">" +
 						"Go" +
 					"</button>" +
 				"</div>" +
@@ -321,6 +336,7 @@ func main(){
 	
 	mux.HandleFunc("/static/populate_table.js", js_populate_table)
 	mux.HandleFunc("/static/populate_reasons.js", js_populate_reasons)
+	mux.HandleFunc("/static/column_to_permalink.js", js_column_to_permalink)
 	
 	mux.HandleFunc("/reason/subreddits/", html_subreddits_given_reason)
 	//mux.HandleFunc("/static/subreddits_given_reason.js", js_subreddits_given_reason)
