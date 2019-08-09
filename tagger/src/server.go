@@ -226,6 +226,9 @@ func indexof_root(w http.ResponseWriter, r* http.Request){
 				"<h1>" +
 					"Index" +
 				"</h1>" +
+				"<a href=\"flairs\">" +
+					"User Flairing" +
+				"</a>" +
 				"<a href=\"reason\">" +
 					"Reason Statistics" +
 				"</a>" +
