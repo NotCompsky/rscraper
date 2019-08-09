@@ -84,8 +84,8 @@ func js_utils(w http.ResponseWriter, r* http.Request){
 				"url: \"/api/reasons.json\"," +
 				"success: function(data){" +
 					"var s = \"\";" +
-					"for (var tpl of data){" +
-						"s += \"<option value='\" + tpl[0] + \"'>\" + tpl[1] + \"</option>\";" +
+					"for (const [reason_id, reason_name] of Object.entries(data)){" +
+						"s += \"<option value='\" + reason_id + \"'>\" + reason_name + \"</option>\";" +
 					"}" +
 					"$(\"#m\").html(s);" +
 				"}," +

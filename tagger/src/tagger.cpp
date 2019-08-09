@@ -680,18 +680,16 @@ void get_all_reasons(const char* const reasonfilter){
 	char* name;
 	char* reason_id;
 	compsky::asciify::reset_index();
-	compsky::asciify::asciify('[');
+	compsky::asciify::asciify('{');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &name, &reason_id)){
 		compsky::asciify::asciify(
-			'[',
-				reason_id, ',',
+			reason_id, ':',
 				'"', _f::esc, '"', name, '"',
-			']',
 			','
 		);
 	}
 	if(compsky::asciify::get_index() > 1)
 		--compsky::asciify::ITR;
-	compsky::asciify::asciify(']', '\0');
+	compsky::asciify::asciify('}', '\0');
 	DST = compsky::asciify::BUF;
 }
