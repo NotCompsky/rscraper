@@ -32,6 +32,9 @@ var reasonfilter string
 func js_utils(w http.ResponseWriter, r* http.Request){
 	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
+		"function timestamp2dt(t){" +
+			"return new Date(t*1000).toISOString().slice(-24, -5)" +
+		"}" +
 		"function wipe_table(selector){" +
 			"$(selector + \" tr\").remove();" +
 		"}" +
@@ -66,8 +69,13 @@ func js_utils(w http.ResponseWriter, r* http.Request){
 				"$link.html(\"<a href='https://www.reddit.com/r/\" + subreddit_name + \"/comments/\" + $link.text() + \"'>Link</a>\")" +
 			"});" +
 		"}" +
-		"function timestamp2dt(t){" +
-			"return new Date(t*1000).toISOString().slice(-24, -5)" +
+		"function column_from_timestamp(selector, timestamp_indx){" +
+			"$(selector).find('tr').each(function (i, el){" +
+				"var $tds = $(this).find('td');" +
+				"var $link = $tds.eq(timestamp_indx);" +
+				"$link.value = $link.text();" +
+				"$link.text(timestamp2dt($link.value));" +
+			"});" +
 		"}" +
 		"function populate_reasons(){" +
 			"$.ajax({" +
@@ -131,7 +139,7 @@ func html_comments_given_user(w http.ResponseWriter, r* http.Request){
 				"<script>" +
 					"function format_table(){" +
 						"column_to_permalink('#tbl tbody',  1,  3);" +
-						"
+						"column_from_timestamp('#tbl tbody',  2);" +
 					"}" +
 				"</script>" +
 				"<h1>" +
@@ -224,6 +232,7 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 				"<script>" +
 					"function format_table(){" +
 						"column_to_permalink('#tbl tbody',  0,  2);" +
+						"column_from_timestamp('#tbl tbody',  1);" +
 					"}" +
 				"</script>" +
 				"<h1>" +
