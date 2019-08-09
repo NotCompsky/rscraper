@@ -129,7 +129,7 @@ func flairs_given_users(w http.ResponseWriter, r* http.Request){
 }
 
 
-func html_comments_given_user(w http.ResponseWriter, r* http.Request){
+func html_comments_given_username(w http.ResponseWriter, r* http.Request){
 	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
 		"<!DOCTYPE html>" +
@@ -175,8 +175,8 @@ func html_comments_given_user(w http.ResponseWriter, r* http.Request){
     io.WriteString(w, html)
 }
 
-func comments_given_user(w http.ResponseWriter, r* http.Request){
-    C.comments_given_username(C.CString(reasonfilter), C.CString(r.URL.Path[7:]))
+func comments_given_username(w http.ResponseWriter, r* http.Request){
+    C.comments_given_username(C.CString(reasonfilter), C.CString(r.URL.Path[10:]))
     io.WriteString(w, C.GoString(C.DST))
 }
 
@@ -348,15 +348,12 @@ func main(){
 	mux.HandleFunc("/static/utils.js", js_utils)
 	
 	mux.HandleFunc("/reason/subreddits/", html_subreddits_given_reason)
-	//mux.HandleFunc("/static/subreddits_given_reason.js", js_subreddits_given_reason)
 	mux.HandleFunc("/api/reason/subreddits/", subreddits_given_reason)
 	mux.HandleFunc("/reason/comments/",   html_comments_given_reason)
-	//mux.HandleFunc("/static/comments_given_reason.js",   js_comments_given_reason)
 	mux.HandleFunc("/api/reason/comments/",   comments_given_reason)
 	
-	mux.HandleFunc("/u/", html_comments_given_user)
-	//mux.HandleFunc("/static/comments_given_user.js", js_comments_given_user)
-	mux.HandleFunc("/api/u/", comments_given_user)
+	mux.HandleFunc("/user/", html_comments_given_username)
+	mux.HandleFunc("/api/user/", comments_given_username)
 	
 	mux.HandleFunc("/api/reasons.json",  get_all_reasons)
 	
