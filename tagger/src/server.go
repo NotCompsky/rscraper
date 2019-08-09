@@ -195,6 +195,7 @@ func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 }
 
 func subreddits_given_reason(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
     C.subreddits_given_reason(C.CString(reasonfilter), C.CString(r.URL.Path[23:]))
     io.WriteString(w, C.GoString(C.DST))
 }
