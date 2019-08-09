@@ -207,11 +207,12 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 			"<body>" +
 				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
 				"<script src=\"/static/populate_table.js\"></script>" +
+				"<script src=\"/static/populate_reasons.js\"></script>" +
 				"<h1>" +
 					"Comments given reason" +
 				"</h1>" +
 				"<div>" +
-					"<input type=\"text\" id=\"m\" placeholder=\"Reason\"/>" +
+					"<select id=\"m\"></select>" +
 					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/reason/comments/' + $('#m')[0].value,  '#tbl tbody')\">" +
 						"Go" +
 					"</button>" +
