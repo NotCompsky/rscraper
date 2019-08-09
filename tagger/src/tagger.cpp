@@ -479,23 +479,6 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 
 extern "C"
 void user_summary(const char* const reasonfilter,  const char* const name){
-	if (name[0] == 0){
-		DST = 
-			"<!DOCTYPE html>"
-			"<body>"
-				"<h1>"
-					"View comments for a given user"
-				"</h1>"
-				"<input id=\"u\" type=\"text\" placeholder=\"Username\"/>"
-				"<button onclick=\"location.href=document.getElementById('u').value\">"
-					"Go"
-				"</button>"
-			"</body>"
-			"</html>"
-		;
-		return;
-	}
-	
 	if (unlikely(!is_valid_username(name))){
 		/*
 		This is the length of the field in the user table
@@ -527,57 +510,22 @@ void user_summary(const char* const reasonfilter,  const char* const name){
 	char comment_id_str[19 + 1];
 	char* created_at;
 	compsky::asciify::reset_index();
-	compsky::asciify::asciify(
-	"<!DOCTYPE html>"
-		"<body>"
-			"<h1>"
-				"Last 1000 tagged comments of /u/", name,
-			"</h1>"
-			"<table>"
-				"<tr>"
-					"<th>"
-						"Reason"
-					"</th>"
-					"<th>"
-						"Timestamp"
-					"</th>"
-					"<th>"
-						"Link"
-					"</th>"
-				"</tr>"
-	);
+	compsky::asciify::asciify('[');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &reason, &subreddit_name, &submission_id, &comment_id, &created_at)){
 		id2str(submission_id, submission_id_str);
 		id2str(comment_id,    comment_id_str);
 		compsky::asciify::asciify(
-				"<tr>"
-					"<td>",
-						reason,
-					"</td>"
-					"<td value=\"", created_at, "\">"
-						"placeholder"
-					"</td>"
-					"<td>"
-						"<a href=\""
-							"https://www.reddit.com/r/",
-							subreddit_name,
-							"/comments/",
-							submission_id_str,
-							"/_/",
-							comment_id_str,
-						"\">",
-							subreddit_name,
-						"</a>"
-					"</td>"
-				"</tr>"
+			'[',
+				'"', _f::esc, '"', reason, '"', ',',
+				'"', _f::esc, '"', subreddit_name, '"', ',',
+				created_at, ',',
+				'"', submission_id_str, "/_/", comment_id_str, '"', ',',
+			']',
+			','
 		);
 	}
-	compsky::asciify::asciify(
-			"</table>"
-		"</body>"
-	"</html>",
-	'\0'
-	);
+	--compsky::asciify::ITR;
+	compsky::asciify::asciify(']', '\0');
 	DST = compsky::asciify::BUF;
 }
 
@@ -585,6 +533,7 @@ extern "C"
 void comments_given_reason(const char* const reasonfilter,  const char* const reason_name){
 	DST = compsky::asciify::BUF;
 	
+	/*
 	if (reason_name[0] == 0){
 		compsky::mysql::query(
 			&RES,
@@ -595,29 +544,15 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 		);
 		char* name;
 		compsky::asciify::reset_index();
-		compsky::asciify::asciify(
-			"<!DOCTYPE html>"
-				"<body>"
-					"<h1>"
-						"Comments for a given reason"
-					"</h1>"
-		);
+		compsky::asciify::asciify('[');
 		while(compsky::mysql::assign_next_row(RES, &ROW, &name)){
-			compsky::asciify::asciify(
-					"<a href=\"", _f::esc, '"', name, "\">",
-						name,
-					"</a>"
-					"<br/>"
-			);
+			compsky::asciify::asciify('"', _f::esc, '"', name, '"', ',');
 		}
-		compsky::asciify::asciify(
-				"</body>"
-			"</html>",
-			'\0'
-		);
+		--compsky::asciify::ITR; // Remove trailing comma
+		compsky::asciify::asciify(']', '\0');
 		return;
 	}
-	
+	*/
 	if (unlikely(is_length_greater_than(reason_name, 129))){
 		DST = http_err::request_too_long;
 		return;
@@ -642,57 +577,28 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 	char comment_id_str[19 + 1];
 	char* created_at;
 	compsky::asciify::reset_index();
-	compsky::asciify::asciify(
-	"<!DOCTYPE html>"
-		"<body>"
-			"<h1>"
-				"Last 100 comments tagged with \"", reason_name, "\""
-			"</h1>"
-			"<table>"
-				"<tr>"
-					"<th>"
-						"Timestamp"
-					"</th>"
-					"<th>"
-						"Link"
-					"</th>"
-				"</tr>"
-	);
+	compsky::asciify::asciify('[');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit_name, &submission_id, &comment_id, &created_at)){
 		id2str(submission_id, submission_id_str);
 		id2str(comment_id,    comment_id_str);
 		compsky::asciify::asciify(
-				"<tr>"
-					"<td value=\"", created_at, "\">"
-						"placeholder"
-					"</td>"
-					"<td>"
-						"<a href=\""
-							"https://www.reddit.com/r/",
-							subreddit_name,
-							"/comments/",
-							submission_id_str,
-							"/_/",
-							comment_id_str,
-						"\">",
-							subreddit_name,
-						"</a>"
-					"</td>"
-				"</tr>"
+			'[',
+				'"', _f::esc, '"', subreddit_name, '"', ',',
+				created_at, ',',
+				'"', submission_id_str, "/_/", comment_id_str, '"',
+			']',
+			','
 		);
 	}
-	compsky::asciify::asciify(
-			"</table>"
-		"</body>"
-	"</html>",
-	'\0'
-	);
+	--compsky::asciify::ITR;
+	compsky::asciify::asciify(']', '\0');
 }
 
 extern "C"
 void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name){
 	DST = compsky::asciify::BUF;
 	
+	/*
 	if (reason_name[0] == 0){
 		compsky::mysql::query(
 			&RES,
@@ -703,28 +609,15 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 		);
 		char* name;
 		compsky::asciify::reset_index();
-		compsky::asciify::asciify(
-			"<!DOCTYPE html>"
-				"<body>"
-					"<h1>"
-						"Subreddits most frequently using a given reason"
-					"</h1>"
-		);
+		compsky::asciify::asciify('[');
 		while(compsky::mysql::assign_next_row(RES, &ROW, &name)){
-			compsky::asciify::asciify(
-					"<a href=\"", _f::esc, '"', name, "\">",
-						name,
-					"</a>"
-					"<br/>"
-			);
+			compsky::asciify::asciify('"', _f::esc, '"', name, '"', ',');
 		}
-		compsky::asciify::asciify(
-				"</body>"
-			"</html>",
-			'\0'
-		);
+		--compsky::asciify::ITR;
+		compsky::asciify::asciify(']', '\0');
 		return;
 	}
+	*/
 	
 	if (unlikely(is_length_greater_than(reason_name, 129))){
 		DST = http_err::request_too_long;
@@ -746,44 +639,19 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 		"ORDER BY count DESC "
 		"LIMIT 100"
 	);
-	char* subreddit;
+	char* subreddit_name;
 	char* proportion;
 	compsky::asciify::reset_index();
-	compsky::asciify::asciify(
-	"<!DOCTYPE html>"
-		"<body>"
-			"<h1>"
-				"Top 100 subreddits tagged with \"", reason_name, "\""
-			"</h1>"
-			"<h2>"
-				"Proportional to their total number of comments"
-			"</h2>"
-			"<table>"
-				"<tr>"
-					"<th>"
-						"Subreddit"
-					"</th>"
-					"<th>"
-						"Proportion"
-					"</th>"
-				"</tr>"
-	);
-	while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit, &proportion)){
+	compsky::asciify::asciify('[');
+	while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit_name, &proportion)){
 		compsky::asciify::asciify(
-				"<tr>"
-					"<td>",
-						subreddit,
-					"</td>"
-					"<td>",
-						proportion,
-					"</td>"
-				"</tr>"
+			'[',
+				'"', _f::esc, '"', subreddit_name, '"', ',',
+				proportion,
+			']',
+			','
 		);
 	}
-	compsky::asciify::asciify(
-			"</table>"
-		"</body>"
-	"</html>",
-	'\0'
-	);
+	--compsky::asciify::ITR;
+	compsky::asciify::asciify(']', '\0');
 }

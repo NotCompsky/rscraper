@@ -25,16 +25,132 @@ import "os/signal"
 var tagfilter string
 var reasonfilter string
 
+// NOTE: To convert JS/HTML to human readable format,  ^(\t*)"|" \+$|\\(")  ->  \1\2
 
-func process(w http.ResponseWriter, r* http.Request){
+
+func js_populate_table(w http.ResponseWriter, r* http.Request){
+	const html = "" +
+		"function wipe_tbl(selector){" +
+			"$(selector + \" tbody tr\").remove();" +
+		"}" +
+		"function populate_tbl(url, selector){" +
+			"$.ajax({" +
+				"dataType: \"json\"," +
+				"url: url," +
+				"success: function(data){" +
+					"for (var row of data){" +
+						"var row$ = $('<tr/>');" +
+						"for (var item of row){" +
+							"row$.append($('<td/>').html(item));" +
+						"}" +
+						"$(selector).append(row$);" +
+					"}" +
+				"}," +
+				"error: function(){" +
+					"alert(\"Error populating table\");" +
+				"}" +
+			"});" +
+		"}"
+    io.WriteString(w, html)
+}
+
+
+func indexof_flairs_given_users(w http.ResponseWriter, r* http.Request){
+	const html = "" +
+		"<!DOCTYPE html>" +
+			"<body>" +
+				"<h1>" +
+					"RTagger Flairs" +
+				"</h1>" +
+				"<h2>" +
+					"How to use" +
+				"</h2>" +
+			"</body>" +
+		"</html>"
+    io.WriteString(w, html)
+}
+
+func flairs_given_users(w http.ResponseWriter, r* http.Request){
     w.Header().Set("Content-Type", "application/json")
     C.csv2cls(C.CString(r.URL.Path[8:]), C.CString(tagfilter), C.CString(reasonfilter))
     io.WriteString(w, C.GoString(C.DST))
 }
 
-func process_user(w http.ResponseWriter, r* http.Request){
+
+func html_comments_given_user(w http.ResponseWriter, r* http.Request){
+	const html = "" +
+		"<!DOCTYPE html>" +
+			"<body>" +
+				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
+				"<script src=\"/static/populate_table.js\"></script>" +
+				"<h1>" +
+					"Comments given user" +
+				"</h1>" +
+				"<div>" +
+					"<input type=\"text\" id=\"u\" placeholder=\"Username\"/>" +
+					"<button onclick=\"wipe_tbl('#tbl'); populate_table('/api/u/' + $('#u')[0].value),  '#tbl'\">" +
+						"Go" +
+					"</button>" +
+				"</div>" +
+				"<table id=\"tbl\">" +
+					"<thead>" +
+						"<tr>" +
+							"<th>" +
+								"Reason" +
+							"</th>" +
+							"<th>" +
+								"Subreddit" +
+							"</th>" +
+							"<th>" +
+								"At" +
+							"</th>" +
+							"<th>" +
+								"Link" +
+							"</th>" +
+						"</tr>" +
+					"</thead>" +
+				"</table>" +
+			"</body>" +
+		"</html>"
+    io.WriteString(w, html)
+}
+
+func comments_given_user(w http.ResponseWriter, r* http.Request){
     C.user_summary(C.CString(reasonfilter), C.CString(r.URL.Path[3:]))
     io.WriteString(w, C.GoString(C.DST))
+}
+
+
+func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
+	const html = "" +
+		"<!DOCTYPE html>" +
+			"<body>" +
+				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
+				"<script src=\"/static/populate_table.js\"></script>" +
+				"<h1>" +
+					"Subreddits given reason" +
+				"</h1>" +
+				"<div>" +
+					"<input type=\"text\" id=\"m\" placeholder=\"Reason\"/>" +
+					"<button onclick=\"wipe_tbl('#tbl'); populate_table('/api/reason/subreddits/' + $('#m')[0].value),  '#tbl'\">" +
+						"Go" +
+					"</button>" +
+				"</div>" +
+				"<table id=\"tbl\">" +
+					"<thead>" +
+						"<tr>" +
+							"<th>" +
+								"Subreddit" +
+							"</th>" +
+							"<th>" +
+								"Proportion" +
+							"</th>" +
+						"</tr>" +
+					"</thead>" +
+				"</table>" +
+			"</body>" +
+		"</html>"
+    io.WriteString(w, html)
 }
 
 func subreddits_given_reason(w http.ResponseWriter, r* http.Request){
@@ -42,13 +158,50 @@ func subreddits_given_reason(w http.ResponseWriter, r* http.Request){
     io.WriteString(w, C.GoString(C.DST))
 }
 
+
+func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
+	const html = "" +
+		"<!DOCTYPE html>" +
+			"<body>" +
+				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
+				"<script src=\"/static/populate_table.js\"></script>" +
+				"<h1>" +
+					"Comments given reason" +
+				"</h1>" +
+				"<div>" +
+					"<input type=\"text\" id=\"m\" placeholder=\"Reason\"/>" +
+					"<button onclick=\"wipe_tbl('#tbl'); populate_table('/api/reason/comments/' + $('#m')[0].value),  '#tbl'\">" +
+						"Go" +
+					"</button>" +
+				"</div>" +
+				"<table id=\"tbl\">" +
+					"<thead>" +
+						"<tr>" +
+							"<th>" +
+								"Subreddit" +
+							"</th>" +
+							"<th>" +
+								"At" +
+							"</th>" +
+							"<th>" +
+								"Link" +
+							"</th>" +
+						"</tr>" +
+					"</thead>" +
+				"</table>" +
+			"</body>" +
+		"</html>"
+    io.WriteString(w, html)
+}
+
 func comments_given_reason(w http.ResponseWriter, r* http.Request){
     C.comments_given_reason(C.CString(reasonfilter), C.CString(r.URL.Path[17:]))
     io.WriteString(w, C.GoString(C.DST))
 }
 
+
 func indexof_reason(w http.ResponseWriter, r* http.Request){
-	const HTML_indexof_reason = "" +
+	const html = "" +
 		"<!DOCTYPE html>" +
 			"<body>" +
 				"<h1>" +
@@ -63,11 +216,11 @@ func indexof_reason(w http.ResponseWriter, r* http.Request){
 				"</a>" +
 			"</body>" +
 		"</html>"
-    io.WriteString(w, HTML_indexof_reason)
+    io.WriteString(w, html)
 }
 
 func indexof_root(w http.ResponseWriter, r* http.Request){
-	const HTML_indexof_root = "" +
+	const html = "" +
 		"<!DOCTYPE html>" +
 			"<body>" +
 				"<h1>" +
@@ -82,7 +235,7 @@ func indexof_root(w http.ResponseWriter, r* http.Request){
 				"</a>" +
 			"</body>" +
 		"</html>"
-    io.WriteString(w, HTML_indexof_root)
+    io.WriteString(w, html)
 }
 
 func main(){
@@ -104,15 +257,29 @@ func main(){
     C.init()
     mux := http.NewServeMux()
 	
+	/* NOTE: 
+		API is unstable.
+		When it is stable, the following (/js and /api) may be versioned.
+	*/
+	
 	mux.HandleFunc("/", indexof_root)
 	mux.HandleFunc("/reason/", indexof_reason)
 	
-    mux.HandleFunc("/flairs/", process)
+	mux.HandleFunc("/flairs/", indexof_flairs_given_users)
+    mux.HandleFunc("/api/flairs/", flairs_given_users)
 	
-	mux.HandleFunc("/reason/subreddits/", subreddits_given_reason)
-	mux.HandleFunc("/reason/comments/",   comments_given_reason)
+	mux.HandleFunc("/static/populate_table.js", js_populate_table)
 	
-	mux.HandleFunc("/u/", process_user)
+	mux.HandleFunc("/reason/subreddits/", html_subreddits_given_reason)
+	//mux.HandleFunc("/static/subreddits_given_reason.js", js_subreddits_given_reason)
+	mux.HandleFunc("/api/reason/subreddits/", subreddits_given_reason)
+	mux.HandleFunc("/reason/comments/",   html_comments_given_reason)
+	//mux.HandleFunc("/static/comments_given_reason.js",   js_comments_given_reason)
+	mux.HandleFunc("/api/reason/comments/",   comments_given_reason)
+	
+	mux.HandleFunc("/u/", html_comments_given_user)
+	//mux.HandleFunc("/static/comments_given_user.js", js_comments_given_user)
+	mux.HandleFunc("/api/u/", comments_given_user)
 	
     http.ListenAndServe(":" + portN,  mux)
 }
