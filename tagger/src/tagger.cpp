@@ -396,7 +396,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	compsky::asciify::asciify("SELECT * FROM (");
 
 	constexpr static const char* stmt_t_1 = 
-		"SELECT 0, A.user_id, SUM(A.c), SUM(A.c), SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), A.tag_id "
+		"SELECT A.user_id, SUM(A.c), SUM(A.c), SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), A.tag_id "
 		"FROM tag2category t2c "
 		"JOIN ( "
 			"SELECT u2scc.user_id, s2t.tag_id, SUM(u2scc.count) AS c, t.r, t.g, t.b, t.a "
@@ -410,7 +410,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		"GROUP BY A.user_id, t2c.category_id";
 
 	constexpr static const char* stmt_m_1 =
-		"SELECT 1, c.author_id AS user_id, COUNT(m.id), 1, m.r, m.g, m.b, m.a, m.id "
+		"SELECT c.author_id AS user_id, COUNT(m.id), 1, m.r, m.g, m.b, m.a, m.id "
 		"FROM comment c, reason_matched m "
 		"WHERE c.reason_matched=m.id AND c.author_id IN (";
 
@@ -433,7 +433,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		memcpy(compsky::asciify::ITR,  stmt_t_2,  strlen_constexpr(stmt_t_2));
 		compsky::asciify::ITR += strlen_constexpr(stmt_t_2);
 		if (reasoncondition != nullptr){
-			compsky::asciify::asciify(" UNION ALL ");
+			compsky::asciify::asciify(" UNION ALL SELECT 0, 0, 0, 0, 0, 0, 0, 0 UNION ALL ");
 			memcpy(compsky::asciify::ITR,  stmt_m_1,  strlen_constexpr(stmt_m_1));
 			compsky::asciify::ITR += strlen_constexpr(stmt_m_1);
 			memcpy(compsky::asciify::ITR,  start_of_user_IDs,  n_bytes_of_IDs);
@@ -471,8 +471,6 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	// These two characters are later overwritten with "[{"
 	
 	{
-	char bit_prev = '0';
-	char bit; // Either 0 or 1
 	uint64_t last_id = 0;
 	uint64_t id;
 	uint64_t n_cmnts;
@@ -482,11 +480,10 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	char id_str[19 + 1];
 	size_t id_str_len;
 	constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f;
-	while (compsky::mysql::assign_next_row(RES, &ROW, &bit, &id, &n_cmnts, &div_rgb_by, &r, &g, &b, &a, &tag_or_reason_id)){
-		if (bit != bit_prev){
-			// i.e. we have moved onto the next set of results in the union
+	while (compsky::mysql::assign_next_row(RES, &ROW, &id, &n_cmnts, &div_rgb_by, &r, &g, &b, &a, &tag_or_reason_id)){
+		if (id == 0){
+			// i.e. we are in between the real selects in the union
 			compsky::asciify::asciify("]},{[");
-			bit_prev = bit;
 		}
 		
 		const size_t max_new_entry_size = strlen_constexpr("],\"id-t2_abcdefghijklm\":[[\"rgba(255,255,255,1.000)\",\"01234567890123456789 01234567890123456789\"],");
@@ -517,16 +514,39 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	}
 	}
 	goto_results:
-	DST = compsky::asciify::BUF;
-	if (compsky::asciify::get_index() != 1){
-		*(--compsky::asciify::ITR) = ']'; // Overwrite trailing comma
-		++DST; // Skip preceding comma
-	} else compsky::asciify::reset_index();
-	DST[0] = '[';
-	DST[1] = '{';
-	*(++compsky::asciify::ITR) = '}';
-	*(++compsky::asciify::ITR) = ']';
-	*(++compsky::asciify::ITR) = 0;
+	if (compsky::asciify::get_index() == 5){
+		DST = "[{},{}]";
+	} else {
+		DST = compsky::asciify::BUF;
+		
+		const bool first_results_nonempty = (compsky::asciify::BUF[1] == ',');
+		const bool secnd_results_nonempty = (*(compsky::asciify::ITR-1) == ',');
+		if (!first_results_nonempty){
+			// Only first results set is empty
+			DST += 1;
+			DST[0] = '[';
+			DST[1] = '{';
+			DST[2] = '}';
+			DST[3] = ',';
+			--compsky::asciify::ITR; // Overwrite trailing comma
+			compsky::asciify::asciify(']', '}', ']');
+		} else {
+			DST[0] = '[';
+			DST[1] = '{';
+			
+			if (secnd_results_nonempty) {
+				// Neither is empty
+				--compsky::asciify::ITR; // Overwrite trailing comma
+				compsky::asciify::asciify(']', '}', ']');
+			} else {
+				// Only second is empty
+				--compsky::asciify::ITR; // Overwrite trailing opening square bracket
+				compsky::asciify::asciify('}', ']');
+			}
+		}
+		
+		compsky::asciify::asciify('\0');
+	}
 }
 
 
