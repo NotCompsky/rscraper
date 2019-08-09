@@ -30,6 +30,7 @@ var reasonfilter string
 
 
 func js_populate_table(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
 		"function wipe_table(selector){" +
 			"$(selector + \" tr\").remove();" +
@@ -58,6 +59,7 @@ func js_populate_table(w http.ResponseWriter, r* http.Request){
 }
 
 func js_populate_reasons(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
 		"function populate_reasons(){" +
 			"$.ajax({" +
@@ -82,12 +84,14 @@ func js_populate_reasons(w http.ResponseWriter, r* http.Request){
 
 func get_all_reasons(w http.ResponseWriter, r* http.Request){
     w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
     C.get_all_reasons(C.CString(reasonfilter))
     io.WriteString(w, C.GoString(C.DST))
 }
 
 
 func indexof_flairs_given_users(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
 		"<!DOCTYPE html>" +
 			"<body>" +
@@ -110,6 +114,7 @@ func flairs_given_users(w http.ResponseWriter, r* http.Request){
 
 
 func html_comments_given_user(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
 		"<!DOCTYPE html>" +
 			"<body>" +
@@ -155,6 +160,7 @@ func comments_given_user(w http.ResponseWriter, r* http.Request){
 
 
 func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
 		"<!DOCTYPE html>" +
 			"<body>" +
@@ -195,6 +201,7 @@ func subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 
 
 func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
 		"<!DOCTYPE html>" +
 			"<body>" +
@@ -237,6 +244,7 @@ func comments_given_reason(w http.ResponseWriter, r* http.Request){
 
 
 func indexof_reason(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
 		"<!DOCTYPE html>" +
 			"<body>" +
@@ -256,6 +264,7 @@ func indexof_reason(w http.ResponseWriter, r* http.Request){
 }
 
 func indexof_root(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
 		"<!DOCTYPE html>" +
 			"<body>" +
