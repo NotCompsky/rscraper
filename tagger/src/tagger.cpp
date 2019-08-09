@@ -519,7 +519,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 
 
 extern "C"
-void user_summary(const char* const reasonfilter,  const char* const name){
+void comments_given_username(const char* const reasonfilter,  const char* const name){
 	/*
 	TODO: 	Move from name-based searches to ID-based.
 			This would allow a very quick cache check, avoiding expensive resultless MySQL queries.

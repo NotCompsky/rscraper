@@ -9,7 +9,7 @@ extern void init();
 extern void exit_mysql();
 extern const char* generate_id_list_string(const char* tblname,  const char** names);
 extern void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
-extern void user_summary(const char* reasonfilter,  const char* const name);
+extern void comments_given_username(const char* reasonfilter,  const char* const name);
 extern void comments_given_reason(const char* const reasonfilter,  const char* const reason_name);
 extern void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name);
 extern void get_all_reasons(const char* const reasonfilter);
@@ -176,7 +176,7 @@ func html_comments_given_user(w http.ResponseWriter, r* http.Request){
 }
 
 func comments_given_user(w http.ResponseWriter, r* http.Request){
-    C.user_summary(C.CString(reasonfilter), C.CString(r.URL.Path[7:]))
+    C.comments_given_username(C.CString(reasonfilter), C.CString(r.URL.Path[7:]))
     io.WriteString(w, C.GoString(C.DST))
 }
 
