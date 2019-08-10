@@ -384,6 +384,8 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	// The former is longer than the latter, so can reuse the same string as the final output
 	// SQL statement might still be longer though, so have to create new string for it
 	
+	compsky::asciify::reset_index();
+	
 	for (auto i = 0;  i < 5;  ++i){
 		// Safely skip first prefix bar the last character
 		if (unlikely(*(csv++) == 0)){
@@ -392,7 +394,6 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		}
 	}
 	
-	compsky::asciify::reset_index();
 	compsky::asciify::asciify("SELECT * FROM (");
 
 	constexpr static const char* stmt_t_1 = 
