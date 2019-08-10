@@ -14,11 +14,11 @@ Firefox users can install the addon by opening the `rtagger.xpi` file from the [
 
 Users of other browsers can install the [userscript](rtagger.js) into their Greasemonkey/Tampermonkey/etc addon.
 
-Creating an extension for Chrome isn't a priority, but I'm open to PRs.
+A Chrome extension is probably just a matter of transferring the fetch requests to a background script (as the script currently runs in the page's context, thereby having the same CORS and mixed content restrictions as Reddit's own javascript).
 
 ## Configuration
 
-By default, the addon and the userscript point towards a server at `http://104.197.15.19:8080`. This is only a proof of concept server - I won't be updating the database as a priority.
+By default, the addon and the userscript point towards a server at [https://104.197.15.19:8080](https://104.197.15.19:8080). This is only a proof of concept server - I won't be updating the database as a priority. I haven't yet configured a Let's Encrypt certificate solution, so for now, **if you are using this server, you have to explicitly allow traffic by navigating to** [https://104.197.15.19:8080](https://104.197.15.19:8080) **and clicking past the warnings**.
 
 It is running on a Google cloud instance, so the IP is a subset of Google cloud's. That means it may be caught by some domain filters, such as uBlock Origin.
 
