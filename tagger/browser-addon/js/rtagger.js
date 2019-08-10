@@ -34,17 +34,13 @@ function process_from_flairs(d){
 	main();
 }
 
-function main(){
-    if (flairs === undefined  ||  reasons === undefined  ||  tags === undefined){
-        // Not all fetch requests have been completed
-        return;
-    }
-    for (var t of document.getElementsByClassName("author")){
+function write_user_flairs(list, id2name){
+	for (var t of document.getElementsByClassName("author")){
         var s = t.classList[2];
         if (s[0] === 'm'){
             s = t.classList[3];
         }
-        var tpls = flairs[s];
+        var tpls = list[s];
         // NOTE: Thread starter has additional (non-ID) tag in 2nd index.
         // TODO: Account for this
         if (tpls === undefined){
@@ -52,12 +48,24 @@ function main(){
         }
         for (var tpl of tpls){
             var tagstrtag = document.createElement("div");
-            tagstrtag.innerText = reasons[tpl[0]] + " " + tpl[1];
-            tagstrtag.style.background = tpl[2];
+            tagstrtag.innerText = id2name[tpl[1]] + " " + tpl[2];
+            tagstrtag.style.background = tpl[0];
             tagstrtag.style.display = "inline";
             t.appendChild(tagstrtag);
         }
     }
+}
+
+function main(){
+    if (flairs === undefined  ||  reasons === undefined  ||  tags === undefined){
+        // Not all fetch requests have been completed
+        return;
+    }
+    console.log("tags", tags);
+	console.log("reasons", reasons);
+	console.log("flairs", flairs);
+	write_user_flairs(flairs[0], tags);
+	write_user_flairs(flairs[1], reasons);
 }
 
 chrome.storage.sync.get({
@@ -83,7 +91,7 @@ chrome.storage.sync.get({
             return r.json();
         })
         .then(function(json){
-            process_from_reasons(json);
+            process_from_tags(json);
         })
         .catch(function(err){
             console.log(err);
@@ -91,9 +99,9 @@ chrome.storage.sync.get({
 });
 
 chrome.storage.sync.get({
-    url: "http://104.197.15.19:8080/api/flairs/slurs/"
+    flairs_url: "http://104.197.15.19:8080/api/flairs/slurs/"
 }, function(items) {
-    fetch(items.url + userIds.join(","))
+    fetch(items.flairs_url + userIds.join(","))
         .then(function(r){
             return r.json();
         })
