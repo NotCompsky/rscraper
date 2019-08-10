@@ -394,8 +394,6 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 			goto goto_results;
 		}
 	}
-	
-	compsky::asciify::asciify("SELECT * FROM (");
 
 	constexpr static const char* stmt_t_1 = 
 		"SELECT A.user_id, SUM(A.c), SUM(A.c) AS distinctname"
@@ -454,7 +452,6 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		compsky::asciify::asciify(reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
 		compsky::asciify::asciify(_f::strlen, stmt_m_2, strlen_constexpr(stmt_m_2));
 	}
-	compsky::asciify::asciify(") A ORDER BY user_id");
 	
 	printf("QRY: %.*s\n",  compsky::asciify::get_index(),  compsky::asciify::BUF); // TMP
 	
@@ -518,8 +515,8 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	} else {
 		DST = compsky::asciify::BUF;
 		
-		const bool first_results_nonempty = (compsky::asciify::BUF[1] == ',');
-		const bool secnd_results_nonempty = (*(compsky::asciify::ITR-1) == ',');
+		const bool first_results_nonempty = (compsky::asciify::BUF[1] == ',');   // Begins with ],"id-t2_
+		const bool secnd_results_nonempty = (*(compsky::asciify::ITR-1) == ','); // Ends   with ],
 		if (!first_results_nonempty){
 			// Only first results set is empty
 			DST += 1;
