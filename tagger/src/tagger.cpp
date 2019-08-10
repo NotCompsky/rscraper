@@ -472,11 +472,14 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	char* tag_or_reason_id;
 	char id_str[19 + 1];
 	size_t id_str_len;
+	char* position_to_overwrite_with_open_square_brkt = nullptr;
 	constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f;
 	while (compsky::mysql::assign_next_row(RES, &ROW, &id, &n_cmnts, &div_rgb_by, &r, &g, &b, &a, &tag_or_reason_id)){
 		if (id == 0){
 			// i.e. we are in between the real selects in the union
-			compsky::asciify::asciify("]},{[");
+			compsky::asciify::asciify("]}"); //[ ",{" is added afterwards, overwriting the "]," that is otherwise placed in this position}
+			position_to_overwrite_with_open_square_brkt = compsky::asciify::ITR;
+			last_id = 0;
 			continue;
 		}
 		
@@ -486,8 +489,9 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 			//{ +1 is to account for the terminating '}' char.
 			break;
 		
-		if (id != last_id){
-			--compsky::asciify::ITR;  // Overwrite trailing comma left by RGBs
+		if (id == last_id){
+			compsky::asciify::asciify(',');
+		} else {
 			id2str(id, id_str);
 			compsky::asciify::asciify("],\"id-t2_",  id_str,  "\":[");
 			// The previous line leads to the assertion that first_results_nonempty==(compsky::asciify::BUF[1]==',')
@@ -504,8 +508,12 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 			tag_or_reason_id,
 			',',
 			n_cmnts,
-			"]," // Leads to the assertion that secnd_results_nonempty==(*(compsky::asciify::ITR-1)==',')
+			"]" // Leads to the assertion that secnd_results_nonempty==(*(compsky::asciify::ITR-1)==']')
 		);
+	}
+	if (position_to_overwrite_with_open_square_brkt != nullptr){
+		position_to_overwrite_with_open_square_brkt[0] = ',';
+		position_to_overwrite_with_open_square_brkt[1] = '{';
 	}
 	}
 	goto_results:
@@ -516,7 +524,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		DST = compsky::asciify::BUF;
 		
 		const bool first_results_nonempty = (compsky::asciify::BUF[1] == ',');   // Begins with ],"id-t2_
-		const bool secnd_results_nonempty = (*(compsky::asciify::ITR-1) == ','); // Ends   with ],
+		const bool secnd_results_nonempty = (*(compsky::asciify::ITR-1) == ']'); // Ends   with ]
 		if (!first_results_nonempty){
 			// Only first results set is empty
 			DST += 1;
@@ -533,11 +541,10 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 			
 			if (secnd_results_nonempty) {
 				// Neither is empty
-				--compsky::asciify::ITR; // Overwrite trailing comma
 				compsky::asciify::asciify(']', '}', ']');
 			} else {
 				// Only second is empty
-				--compsky::asciify::ITR; // Overwrite trailing opening square bracket
+				compsky::asciify::ITR += 2; // Account for position_to_overwrite_with_open_square_brkt
 				compsky::asciify::asciify('}', ']');
 			}
 		}
