@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "RTagger",
-    "version": "0.2.8",
+    "version": "0.2.9",
     "description": "Tag Reddit users based on their comment history",
     
     "icons":{

@@ -23,10 +23,10 @@ function save_options() {
 // Restores select box and checkbox state using the preferences stored in chrome.storage
 function restore_options() {
   chrome.storage.sync.get({
-    flairs_url: "http://104.197.15.19:8080/api/flairs/slurs/",
-    reasons_url: "http://104.197.15.19:8080/api/reasons.json",
-    tags_url: "http://104.197.15.19:8080/api/tags.json",
-	user_info_url: "http://104.197.15.19:8080/u/"
+    flairs_url: "https://104.197.15.19:8080/api/flairs/slurs/",
+    reasons_url: "https://104.197.15.19:8080/api/reasons.json",
+    tags_url: "https://104.197.15.19:8080/api/tags.json",
+	user_info_url: "https://104.197.15.19:8080/u/"
   }, function(items) {
     document.getElementById("flairs_url").value = items.flairs_url;
     document.getElementById("reasons_url").value = items.reasons_url;

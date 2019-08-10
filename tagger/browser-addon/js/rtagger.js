@@ -36,7 +36,7 @@ function process_from_flairs(d){
 
 function write_user_flairs(list, id2name){
 	chrome.storage.sync.get({
-		user_info_url: "http://104.197.15.19:8080/u/"
+		user_info_url: "https://104.197.15.19:8080/u/"
 	}, function(items) {
 	for (var t of document.getElementsByClassName("author")){
         var s = t.classList[2];
@@ -79,7 +79,7 @@ function main(){
 }
 
 chrome.storage.sync.get({
-    reasons_url: "http://104.197.15.19:8080/api/reasons.json"
+    reasons_url: "https://104.197.15.19:8080/api/reasons.json"
 }, function(items) {
     fetch(items.reasons_url)
         .then(function(r){
@@ -94,7 +94,7 @@ chrome.storage.sync.get({
 });
 
 chrome.storage.sync.get({
-    tags_url: "http://104.197.15.19:8080/api/tags.json"
+    tags_url: "https://104.197.15.19:8080/api/tags.json"
 }, function(items) {
     fetch(items.tags_url)
         .then(function(r){
@@ -109,7 +109,7 @@ chrome.storage.sync.get({
 });
 
 chrome.storage.sync.get({
-    flairs_url: "http://104.197.15.19:8080/api/flairs/slurs/"
+    flairs_url: "https://104.197.15.19:8080/api/flairs/slurs/"
 }, function(items) {
     fetch(items.flairs_url + userIds.join(","))
         .then(function(r){
