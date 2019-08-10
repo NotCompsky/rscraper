@@ -569,6 +569,51 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 
 
 extern "C"
+void subreddits_given_userid(const char* const tagfilter,  const char* const id_str){
+	// TODO: De-duplication (comments_given_username)
+	
+	const uint64_t id = str2id(id_str + 6); // Skip "id-t2_" prefix
+	
+	if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
+		// WARNING: May be annoying if users cache is not updated often.
+		DST = http_err::not_in_database;
+		return;
+	}
+	
+	compsky::mysql::query(
+		&RES,
+		"SELECT u2scc.count, r.name, s2t.tag_id "
+		"FROM user u, user2subreddit_cmnt_count u2scc, subreddit2tag s2t, tag t, subreddit r "
+		"WHERE u.id=", id, " "
+		"AND u2scc.user_id=u.id "
+		"AND s2t.subreddit_id=u2scc.subreddit_id "
+		"AND t.id=s2t.tag_id ", // for tagfilter - hopefully optimised out if it is just a condition on t.id
+		tagfilter,
+		"LIMIT 1000"
+	);
+	char* count;
+	char* tag_id;
+	char* subreddit_name;
+	compsky::asciify::reset_index();
+	compsky::asciify::asciify('[');
+	while(compsky::mysql::assign_next_row(RES, &ROW, &count, &subreddit_name, &tag_id)){
+		compsky::asciify::asciify(
+			'[',
+				tag_id, ',',
+				'"', _f::esc, '"', subreddit_name, '"', ',',
+				count,
+			']',
+			','
+		);
+	}
+	if(compsky::asciify::get_index() > 1)
+		--compsky::asciify::ITR;
+	compsky::asciify::asciify(']', '\0');
+	DST = compsky::asciify::BUF;
+}
+
+
+extern "C"
 void comments_given_userid(const char* const reasonfilter,  const char* const id_str){
 	// TODO: De-duplication (comments_given_username)
 	

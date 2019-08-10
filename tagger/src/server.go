@@ -9,6 +9,7 @@ extern void init();
 extern void exit_mysql();
 extern const char* generate_id_list_string(const char* tblname,  const char** names);
 extern void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
+extern void subreddits_given_userid(const char* const tagfilter,  const char* user_id);
 extern void comments_given_userid(const char* const reasonfilter,  const char* const id_str);
 extern void comments_given_username(const char* reasonfilter,  const char* const name);
 extern void comments_given_reason(const char* const reasonfilter,  const char* const reason_name);
@@ -113,6 +114,22 @@ func js_utils(w http.ResponseWriter, r* http.Request){
 					"alert(\"Error populating table\");" +
 				"}" +
 			"});" +
+		"function column_id2name_tag(selector, col){" +
+			"$.ajax({" +
+				"dataType: \"json\"," +
+				"url: \"/api/tags.json\"," +
+				"success: function(data){" +
+					"$(selector).find('tr').each(function (i, el){" +
+						"var $tds = $(this).find('td');" +
+						"var $reason = $tds.eq(col);" +
+						"$reason.value = $reason.text();" +
+						"$reason.text(data[$reason.value]);" +
+					"});" +
+				"}," +
+				"error: function(){" +
+					"alert(\"Error populating table\");" +
+				"}" +
+			"});" +
 		"}"
     io.WriteString(w, html)
 }
@@ -166,6 +183,14 @@ func flairs_given_users(w http.ResponseWriter, r* http.Request){
 }
 
 
+func subreddits_given_userid(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
+	w.Header().Set("Content-Type", "application/json")
+	C.subreddits_given_userid(C.CString(tagfilter), C.CString(r.URL.Path[29:]))
+	io.WriteString(w, C.GoString(C.DST))
+}
+
+
 func html_comments_given_userid(w http.ResponseWriter, r* http.Request){
 	w.Header().Set("Cache-Control", "max-age=60")
 	html := "" +
@@ -175,16 +200,43 @@ func html_comments_given_userid(w http.ResponseWriter, r* http.Request){
 				"<script src=\"/static/utils.js\"></script>" +
 				"<script>" +
 					"function format_table(){" +
-						"column_id2name_reason('#tbl tbody',  0);" +
-						"column_to_permalink('#tbl tbody',  1,  3);" +
-						"column_from_timestamp('#tbl tbody',  2);" +
+						"column_id2name_reason('#cmnt-tbl tbody',  0);" +
+						"column_to_permalink('#cmnt-tbl tbody',  1,  3);" +
+						"column_from_timestamp('#cmnt-tbl tbody',  2);" +
 					"}" +
-					"populate_table('/api/u/" + r.URL.Path[3:] + "',  '#tbl tbody',  format_table);" +
+					"function format_sub_table(){" +
+						"column_id2name_tag('#sub-tbl tbody',  0);" +
+					"}" +
+					"const user_id = \"" + r.URL.Path[3:] + "\";" +
+					"populate_table('/api/u/' + user_id,  '#cmnt-tbl tbody',  format_table);" +
+					"populate_table('/api/subreddits_given_userid/' + user_id,  '#sub-tbl tbody',  format_sub_table);" +
 				"</script>" +
 				"<h1>" +
-					"User Comments" +
+					"User Summary" +
 				"</h1>" +
-				"<table id=\"tbl\">" +
+				"<h2>" +
+					"Subreddits" +
+				"</h2>" +
+				"<table id=\"sub-tbl\">" +
+					"<thead>" +
+						"<tr>" +
+							"<th>" +
+								"Tag" +
+							"</th>" +
+							"<th>" +
+								"Subreddit" +
+							"</th>" +
+							"<th>" +
+								"#Comments" +
+							"</th>" +
+						"</tr>" +
+					"</thead>" +
+					"<tbody></tbody>" +
+				"</table>" +
+				"<h2>" +
+					"Comments" +
+				"</h2>" +
+				"<table id=\"cmnt-tbl\">" +
 					"<thead>" +
 						"<tr>" +
 							"<th>" +
@@ -447,6 +499,8 @@ func main(){
 	mux.HandleFunc("/api/reason/subreddits/", subreddits_given_reason)
 	mux.HandleFunc("/reason/comments/",   html_comments_given_reason)
 	mux.HandleFunc("/api/reason/comments/",   comments_given_reason)
+	
+	mux.HandleFunc("/api/subreddits_given_userid/", subreddits_given_userid)
 	
 	mux.HandleFunc("/user/", html_comments_given_username)
 	mux.HandleFunc("/api/user/", comments_given_username)
