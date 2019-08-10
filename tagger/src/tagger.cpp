@@ -385,8 +385,6 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	// The former is longer than the latter, so can reuse the same string as the final output
 	// SQL statement might still be longer though, so have to create new string for it
 	
-	compsky::asciify::reset_index();
-	
 	for (auto i = 0;  i < 5;  ++i){
 		// Safely skip first prefix bar the last character
 		if (unlikely(*(csv++) == 0)){
@@ -418,6 +416,8 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	constexpr static const char* stmt_m_2 =
 		/* ) */ " GROUP BY c.author_id, m.name, m.r, m.g, m.b, m.a"; // First ')' is not necessary as it is already copied by 'n_bytes_of_IDs' - because the last trailing comma is recorded by n_bytes_of_IDs as the comma is not stripped before then. This is slightly undesirable only for readability, but the alternative is to decrement BUF_INDX within the generate_user_id_list_string function, which would greatly complicate it.
 
+	compsky::asciify::reset_index();
+	
 	if (tagcondition != nullptr){
 		compsky::asciify::asciify(_f::strlen, stmt_t_1, strlen_constexpr(stmt_t_1));
 		char* const start_of_user_IDs = compsky::asciify::ITR;
