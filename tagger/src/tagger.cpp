@@ -459,6 +459,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	
 	
 	compsky::asciify::reset_index();
+	++compsky::asciify::ITR;
 	
 	//[ We obtain an (erroneous) prefix of "]," in the following loop
 	// These two characters are later overwritten with "[{"
@@ -521,19 +522,18 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	if (compsky::asciify::get_index() == 5){
 		DST = "[{},{}]";
 	} else {
-		DST = compsky::asciify::BUF;
+		DST = compsky::asciify::BUF + 1;
 		
-		const bool first_results_nonempty = (compsky::asciify::BUF[1] == ',');   // Begins with ],"id-t2_
+		const bool first_results_nonempty = (DST[1] == ',');   // Begins with ],"id-t2_
 		const bool secnd_results_nonempty = (*(compsky::asciify::ITR-1) == ']'); // Ends   with ]
 		if (!first_results_nonempty){
 			// Only first results set is empty
-			DST += 1;
+			--DST;
 			DST[0] = '[';
 			DST[1] = '{';
 			DST[2] = '}';
 			DST[3] = ',';
 			DST[4] = '{';
-			--compsky::asciify::ITR; // Overwrite trailing comma
 			compsky::asciify::asciify(']', '}', ']');
 		} else {
 			DST[0] = '[';
