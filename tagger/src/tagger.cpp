@@ -493,6 +493,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 			--compsky::asciify::ITR;  // Overwrite trailing comma left by RGBs
 			id2str(id, id_str);
 			compsky::asciify::asciify("],\"id-t2_",  id_str,  "\":[");
+			// The previous line leads to the assertion that first_results_nonempty==(compsky::asciify::BUF[1]==',')
 			last_id = id;
 		}
 		
@@ -506,11 +507,12 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 			tag_or_reason_id,
 			',',
 			n_cmnts,
-			"],"
+			"]," // Leads to the assertion that secnd_results_nonempty==(*(compsky::asciify::ITR-1)==',')
 		);
 	}
 	}
 	goto_results:
+	// TODO: Account for cases ((tagcondition==nullptr), (reasoncondition==nullptr))
 	if (compsky::asciify::get_index() == 5){
 		DST = "[{},{}]";
 	} else {
