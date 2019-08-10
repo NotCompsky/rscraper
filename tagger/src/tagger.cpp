@@ -575,6 +575,7 @@ void comments_given_userid(const char* const reasonfilter,  const char* const id
 	const uint64_t id = str2id(id_str + 6); // Skip "id-t2_" prefix
 	
 	if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
+		// WARNING: May be annoying if users cache is not updated often.
 		DST = http_err::not_in_database;
 		return;
 	}
