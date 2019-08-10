@@ -228,13 +228,13 @@ For instance:
 		curl -g 'https://dev.pushshift.io/rr/_search/?source_content_type=application/json&source={%22query%22:{%22match%22:{%22_id%22:6}}}' | jq '.hits.hits[0]._source.display_name'
 */
 
-bool is_cached(uint64_t* ids,  const size_t ids_len,  const size_t ids_len_log2,  const uint64_t id){
+bool is_cached(const uint64_t* ids,  const size_t ids_len,  const size_t ids_len_log2,  const uint64_t id){
 	// Inspired by Matt Pulver's 2011 article: http://eigenjoy.com/2011/01/21/worlds-fastest-binary-search/
 	size_t i = 0;
 	for(size_t b = 1 << ids_len_log2;   b != 0;   b >>= 1){
 		// TODO: Check for endianness?
 		size_t j = i | b;
-		if (j >= n_reasons)
+		if (j >= ids_len)
 			;
 		else if (ids[j] <= id)
 			i = j;
