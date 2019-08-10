@@ -105,8 +105,8 @@ func js_utils(w http.ResponseWriter, r* http.Request){
 					"$(selector).find('tr').each(function (i, el){" +
 						"var $tds = $(this).find('td');" +
 						"var $reason = $tds.eq(col);" +
-						"$reason.value = $link.text();" +
-						"$reason.text(data[$link.value]);" +
+						"$reason.value = $reason.text();" +
+						"$reason.text(data[$reason.value]);" +
 					"});" +
 				"}," +
 				"error: function(){" +
