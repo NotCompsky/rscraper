@@ -39,6 +39,7 @@ namespace _f {
 	constexpr static const compsky::asciify::flag::concat::Start cc_start;
 	constexpr static const compsky::asciify::flag::concat::End   cc_end;
 	constexpr static const compsky::asciify::flag::Escape esc;
+	constexpr static const compsky::asciify::flag::StrLen strlen;
 }
 
 
@@ -420,8 +421,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		/* ) */ " GROUP BY c.author_id, m.name, m.r, m.g, m.b, m.a"; // First ')' is not necessary as it is already copied by 'n_bytes_of_IDs' - because the last trailing comma is recorded by n_bytes_of_IDs as the comma is not stripped before then. This is slightly undesirable only for readability, but the alternative is to decrement BUF_INDX within the generate_user_id_list_string function, which would greatly complicate it.
 
 	if (tagcondition != nullptr){
-		memcpy(compsky::asciify::ITR,  stmt_t_1,  strlen_constexpr(stmt_t_1));
-		compsky::asciify::ITR += strlen_constexpr(stmt_t_1);
+		compsky::asciify::asciify(_f::strlen, stmt_t_1, strlen_constexpr(stmt_t_1));
 		char* const start_of_user_IDs = compsky::asciify::ITR;
 		const size_t n_bytes_of_IDs = generate_user_id_list_string(csv);
 		if (n_bytes_of_IDs == 0){
@@ -432,22 +432,17 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		--compsky::asciify::ITR; // Remove trailing comma
 		compsky::asciify::asciify(')'); // Close 'WHERE id IN (' condition
 		compsky::asciify::asciify(tagcondition); // Could be empty string, or "AND t.id IN (...)", etc.
-		memcpy(compsky::asciify::ITR,  stmt_t_2,  strlen_constexpr(stmt_t_2));
-		compsky::asciify::ITR += strlen_constexpr(stmt_t_2);
+		compsky::asciify::asciify(_f::strlen, stmt_t_2, strlen_constexpr(stmt_t_2));
 		if (reasoncondition != nullptr){
 			compsky::asciify::asciify(" UNION ALL SELECT 0, 0, 0, 0, 0, 0, 0, 0 UNION ALL ");
-			memcpy(compsky::asciify::ITR,  stmt_m_1,  strlen_constexpr(stmt_m_1));
-			compsky::asciify::ITR += strlen_constexpr(stmt_m_1);
-			memcpy(compsky::asciify::ITR,  start_of_user_IDs,  n_bytes_of_IDs);
-			compsky::asciify::ITR += n_bytes_of_IDs;
+			compsky::asciify::asciify(_f::strlen, stmt_m_1, strlen_constexpr(stmt_m_1));
+			compsky::asciify::asciify(_f::strlen, start_of_user_IDs, n_bytes_of_IDs);
 			// No need to add closing bracket - copied by the above
 			compsky::asciify::asciify(reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
-			memcpy(compsky::asciify::ITR,  stmt_m_2,  strlen_constexpr(stmt_m_2));
-			compsky::asciify::ITR += strlen_constexpr(stmt_m_2);
+			compsky::asciify::asciify(_f::strlen, stmt_m_2, strlen_constexpr(stmt_m_2));
 		}
 	} else { // Realistically, this should be 'reasons != nullptr' - though no effort is made to check that this holds
-		memcpy(compsky::asciify::ITR,  stmt_m_1,  strlen_constexpr(stmt_m_1));
-		compsky::asciify::ITR += strlen_constexpr(stmt_m_1);
+		compsky::asciify::asciify(_f::strlen, stmt_m_1, strlen_constexpr(stmt_m_1));
 		const size_t n_bytes_of_IDs = generate_user_id_list_string(csv);
 		if (n_bytes_of_IDs == 0){
 			// No valid IDs were found
@@ -457,8 +452,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		--compsky::asciify::ITR; // Remove trailing comma
 		compsky::asciify::asciify(')');
 		compsky::asciify::asciify(reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
-		memcpy(compsky::asciify::ITR,  stmt_m_2,  strlen_constexpr(stmt_m_2));
-		compsky::asciify::ITR += strlen_constexpr(stmt_m_2);
+		compsky::asciify::asciify(_f::strlen, stmt_m_2, strlen_constexpr(stmt_m_2));
 	}
 	compsky::asciify::asciify(") A ORDER BY user_id");
 	
