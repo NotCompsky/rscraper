@@ -114,6 +114,7 @@ func js_utils(w http.ResponseWriter, r* http.Request){
 					"alert(\"Error populating table\");" +
 				"}" +
 			"});" +
+		"}" +
 		"function column_id2name_tag(selector, col){" +
 			"$.ajax({" +
 				"dataType: \"json\"," +
