@@ -139,9 +139,21 @@ func indexof_flairs_given_users(w http.ResponseWriter, r* http.Request){
 				"<h1>" +
 					"RTagger Flairs" +
 				"</h1>" +
-				"<h2>" +
-					"How to use" +
-				"</h2>" +
+				"<div>" +
+					"<a href=\"https://104.197.15.19:8080/flairs/slurs/\">" +
+						"Slurs Flair Server" +
+					"</a>" +
+					"<img src=\"https://user-images.githubusercontent.com/30552567/62826417-06416580-bbb3-11e9-88a7-ed035f82c2ab.png\"/>" +
+				"</div>" +
+				"<div>" +
+					"<a href=\"https://104.197.15.19:8080/flairs/regions/\">" +
+						"Regions Flair Server" +
+					"</a>" +
+					"Image pending" +
+				"</div>" +
+				"<a href=\"https://github.com/NotCompsky/rscraper/tree/master/tagger\">" +
+					"Source code and installation instructions" +
+				"</a>" +
 			"</body>" +
 		"</html>"
     io.WriteString(w, html)
