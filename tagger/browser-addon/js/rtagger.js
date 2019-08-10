@@ -35,6 +35,9 @@ function process_from_flairs(d){
 }
 
 function write_user_flairs(list, id2name){
+	chrome.storage.sync.get({
+		user_info_url: "http://104.197.15.19:8080/u/"
+	}, function(items) {
 	for (var t of document.getElementsByClassName("author")){
         var s = t.classList[2];
         if (s[0] === 'm'){
@@ -46,6 +49,12 @@ function write_user_flairs(list, id2name){
         if (tpls === undefined){
             continue;
         }
+        
+		var linktag = document.createElement("a");
+		linktag.href = items.user_info_url + s;
+		linktag.innerText = "[Summary]";
+		t.appendChild(linktag);
+		
         for (var tpl of tpls){
             var tagstrtag = document.createElement("div");
             tagstrtag.innerText = id2name[tpl[1]] + " " + tpl[2];
@@ -54,6 +63,7 @@ function write_user_flairs(list, id2name){
             t.appendChild(tagstrtag);
         }
     }
+	})
 }
 
 function main(){

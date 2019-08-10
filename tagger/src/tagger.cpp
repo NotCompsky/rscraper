@@ -50,6 +50,7 @@ namespace http_err {
 	// TODO: Sort of the const-ness of DST. This should be const char* const
 	constexpr static char* const request_too_long = "414";
 	constexpr static char* const bad_request = "400";
+	constexpr static char* const not_in_database = "400";
 }
 
 
@@ -84,6 +85,21 @@ void id2str(uint64_t id_orig,  char* buf){
 		buf[--n_digits] = digit + ((digit<10) ? '0' : 'a' - 10);
 		id_orig /= 36;
 	}
+}
+
+constexpr
+uint64_t str2id(const char* str){
+	// End points to the comma after the id
+	uint64_t n = 0;
+	while(*str != 0){
+		n *= (10 + 26);
+		if (*str >= '0'  &&  *str <= '9')
+			n += *str - '0';
+		else
+			n += *str - 'a' + 10;
+		++str;
+	}
+	return n;
 }
 
 constexpr uint64_t str2id(const char* start,  const char* end){
@@ -186,7 +202,7 @@ bool is_valid_username(const char* str){
 
 //static_assert(n_required_bytes("id-t2_foo,id-t2_bar") == strlen_constexpr("{\"foo\":\"#123456\",\"bar\":\"#123456\"}") + 1);
 
-#ifdef CACHE_VALID_IDS
+
 // NOTE: Such caching will likely use up a few megabytes.
 uint64_t* reasons;
 uint64_t* users;
@@ -212,7 +228,7 @@ For instance:
 		curl -g 'https://dev.pushshift.io/rr/_search/?source_content_type=application/json&source={%22query%22:{%22match%22:{%22_id%22:6}}}' | jq '.hits.hits[0]._source.display_name'
 */
 
-bool is_cached(uint64_t* ids,  const size_t ids_len,  const size_t ids_len_log2  const uint64_t id){
+bool is_cached(uint64_t* ids,  const size_t ids_len,  const size_t ids_len_log2,  const uint64_t id){
 	// Inspired by Matt Pulver's 2011 article: http://eigenjoy.com/2011/01/21/worlds-fastest-binary-search/
 	size_t i = 0;
 	for(size_t b = 1 << ids_len_log2;   b != 0;   b >>= 1){
@@ -225,7 +241,6 @@ bool is_cached(uint64_t* ids,  const size_t ids_len,  const size_t ids_len_log2 
 	}
 	return (ids[i] == id);
 }
-#endif
 
 extern "C"
 void init(){
@@ -233,7 +248,6 @@ void init(){
 	if (compsky::asciify::alloc(compsky::asciify::BUF_SZ))
 		abort();
 	
-#ifdef CACHE_VALID_IDS
 	compsky::mysql::query_buffer(
 		&RES,
 		"SELECT "
@@ -261,16 +275,16 @@ void init(){
 	
 	compsky::mysql::query(
 		&RES,
-		"SELECT "
-			"(SELECT id FROM reason_matched LIMIT ", n_reasons, "),"
-			"(SELECT id FROM user LIMIT ", n_users, "),"
-			"(SELECT id FROM subreddit LIMIT ", n_subreddits, "),"
+		"(SELECT id FROM reason_matched LIMIT ", n_reasons, ")"
+		" UNION ALL "
+		"(SELECT id FROM user LIMIT ", n_users, ")"
+		" UNION ALL "
+		"(SELECT id FROM subreddit LIMIT ", n_subreddits, ")"
 	);
 	// NOTE: MySQL implicitly orders (ascending) by ID, as it is the primary key.
 	uint64_t n;
 	while(compsky::mysql::assign_next_row(RES, &ROW, &n))
 		*(buf++) = n;
-#endif
 }
 
 extern "C"
@@ -555,6 +569,59 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 
 
 extern "C"
+void comments_given_userid(const char* const reasonfilter,  const char* const id_str){
+	// TODO: De-duplication (comments_given_username)
+	
+	const uint64_t id = str2id(id_str + 6); // Skip "id-t2_" prefix
+	
+	if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
+		DST = http_err::not_in_database;
+		return;
+	}
+	
+	compsky::mysql::query(
+		&RES,
+		"SELECT m.id, r.name, s.id, c.id, c.created_at "
+		"FROM comment c, subreddit r, submission s, user u, reason_matched m "
+		"WHERE u.id=", id, " "
+		  "AND c.author_id=u.id "
+		  "AND s.id=c.submission_id "
+		  "AND r.id=s.subreddit_id "
+		  "AND m.id=c.reason_matched ",
+		  reasonfilter,
+		  " ORDER BY c.created_at DESC "
+		  "LIMIT 1000"
+	);
+	char* reason_id;
+	char* subreddit_name;
+	uint64_t submission_id;
+	uint64_t comment_id;
+	char submission_id_str[19 + 1];
+	char comment_id_str[19 + 1];
+	char* created_at;
+	compsky::asciify::reset_index();
+	compsky::asciify::asciify('[');
+	while(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, &subreddit_name, &submission_id, &comment_id, &created_at)){
+		id2str(submission_id, submission_id_str);
+		id2str(comment_id,    comment_id_str);
+		compsky::asciify::asciify(
+			'[',
+				reason_id, ',',
+				'"', subreddit_name, '"', ',', // No need to escape '"' - it would be an invalid subreddit name
+				created_at, ',',
+				'"', submission_id_str, "/_/", comment_id_str, '"',
+			']',
+			','
+		);
+	}
+	if(compsky::asciify::get_index() > 1)
+		--compsky::asciify::ITR;
+	compsky::asciify::asciify(']', '\0');
+	DST = compsky::asciify::BUF;
+}
+
+
+extern "C"
 void comments_given_username(const char* const reasonfilter,  const char* const name){
 	/*
 	TODO: 	Move from name-based searches to ID-based.
@@ -578,7 +645,7 @@ void comments_given_username(const char* const reasonfilter,  const char* const 
 	
 	compsky::mysql::query(
 		&RES,
-		"SELECT m.name, r.name, s.id, c.id, c.created_at "
+		"SELECT m.id, r.name, s.id, c.id, c.created_at "
 		"FROM comment c, subreddit r, submission s, user u, reason_matched m "
 		"WHERE u.name=\"", name, "\" "
 		  "AND c.author_id=u.id "
@@ -589,7 +656,7 @@ void comments_given_username(const char* const reasonfilter,  const char* const 
 		  " ORDER BY c.created_at DESC "
 		  "LIMIT 1000"
 	);
-	char* reason;
+	char* reason_id;
 	char* subreddit_name;
 	uint64_t submission_id;
 	uint64_t comment_id;
@@ -598,13 +665,13 @@ void comments_given_username(const char* const reasonfilter,  const char* const 
 	char* created_at;
 	compsky::asciify::reset_index();
 	compsky::asciify::asciify('[');
-	while(compsky::mysql::assign_next_row(RES, &ROW, &reason, &subreddit_name, &submission_id, &comment_id, &created_at)){
+	while(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, &subreddit_name, &submission_id, &comment_id, &created_at)){
 		id2str(submission_id, submission_id_str);
 		id2str(comment_id,    comment_id_str);
 		compsky::asciify::asciify(
 			'[',
-				'"', _f::esc, '"', reason, '"', ',',
-				'"', _f::esc, '"', subreddit_name, '"', ',',
+				reason_id, ',',
+				'"', subreddit_name, ',',
 				created_at, ',',
 				'"', submission_id_str, "/_/", comment_id_str, '"',
 			']',

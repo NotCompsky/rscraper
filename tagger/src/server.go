@@ -9,6 +9,7 @@ extern void init();
 extern void exit_mysql();
 extern const char* generate_id_list_string(const char* tblname,  const char** names);
 extern void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncondition);
+extern void comments_given_userid(const char* const reasonfilter,  const char* const id_str);
 extern void comments_given_username(const char* reasonfilter,  const char* const name);
 extern void comments_given_reason(const char* const reasonfilter,  const char* const reason_name);
 extern void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name);
@@ -96,7 +97,23 @@ func js_utils(w http.ResponseWriter, r* http.Request){
 				"}" +
 			"});" +
 		"}" +
-		"window.onload=populate_reasons;"
+		"function column_id2name_reason(selector, col){" +
+			"$.ajax({" +
+				"dataType: \"json\"," +
+				"url: \"/api/reasons.json\"," +
+				"success: function(data){" +
+					"$(selector).find('tr').each(function (i, el){" +
+						"var $tds = $(this).find('td');" +
+						"var $reason = $tds.eq(col);" +
+						"$reason.value = $link.text();" +
+						"$reason.text(data[$link.value]);" +
+					"});" +
+				"}," +
+				"error: function(){" +
+					"alert(\"Error populating table\");" +
+				"}" +
+			"});" +
+		"}"
     io.WriteString(w, html)
 }
 
@@ -137,6 +154,54 @@ func flairs_given_users(w http.ResponseWriter, r* http.Request){
 }
 
 
+func html_comments_given_userid(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=60")
+	html := "" +
+		"<!DOCTYPE html>" +
+			"<body>" +
+				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
+				"<script src=\"/static/utils.js\"></script>" +
+				"<script>" +
+					"function format_table(){" +
+						"column_id2name_reason('#tbl tbody',  0);" +
+						"column_to_permalink('#tbl tbody',  1,  3);" +
+						"column_from_timestamp('#tbl tbody',  2);" +
+					"}" +
+					"populate_table('/api/u/" + r.URL.Path[3:] + "',  '#tbl tbody',  format_table);" +
+				"</script>" +
+				"<h1>" +
+					"User Comments" +
+				"</h1>" +
+				"<table id=\"tbl\">" +
+					"<thead>" +
+						"<tr>" +
+							"<th>" +
+								"Reason" +
+							"</th>" +
+							"<th>" +
+								"Subreddit" +
+							"</th>" +
+							"<th>" +
+								"At" +
+							"</th>" +
+							"<th>" +
+								"Link" +
+							"</th>" +
+						"</tr>" +
+					"</thead>" +
+					"<tbody></tbody>" +
+				"</table>" +
+			"</body>" +
+		"</html>"
+    io.WriteString(w, html)
+}
+
+func comments_given_userid(w http.ResponseWriter, r* http.Request){
+    C.comments_given_userid(C.CString(reasonfilter), C.CString(r.URL.Path[7:]))
+    io.WriteString(w, C.GoString(C.DST))
+}
+
+
 func html_comments_given_username(w http.ResponseWriter, r* http.Request){
 	w.Header().Set("Cache-Control", "max-age=86400") // 24h
 	const html = "" +
@@ -146,6 +211,7 @@ func html_comments_given_username(w http.ResponseWriter, r* http.Request){
 				"<script src=\"/static/utils.js\"></script>" +
 				"<script>" +
 					"function format_table(){" +
+						"column_id2name_reason('#tbl tbody',  0);" +
 						"column_to_permalink('#tbl tbody',  1,  3);" +
 						"column_from_timestamp('#tbl tbody',  2);" +
 					"}" +
@@ -196,6 +262,7 @@ func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 			"<body>" +
 				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
 				"<script src=\"/static/utils.js\"></script>" +
+				"<script>window.onload=populate_reasons;</script>" +
 				"<h1>" +
 					"Subreddits given reason" +
 				"</h1>" +
@@ -237,6 +304,7 @@ func html_comments_given_reason(w http.ResponseWriter, r* http.Request){
 			"<body>" +
 				"<script src=\"https://code.jquery.com/jquery-3.4.1.min.js\"></script>" +
 				"<script src=\"/static/utils.js\"></script>" +
+				"<script>window.onload=populate_reasons;</script>" +
 				"<script>" +
 					"function format_table(){" +
 						"column_to_permalink('#tbl tbody',  0,  2);" +
@@ -370,6 +438,8 @@ func main(){
 	
 	mux.HandleFunc("/user/", html_comments_given_username)
 	mux.HandleFunc("/api/user/", comments_given_username)
+	mux.HandleFunc("/u/",     html_comments_given_userid)
+	mux.HandleFunc("/api/u/", comments_given_userid)
 	
 	mux.HandleFunc("/api/reasons.json",  get_all_reasons)
 	mux.HandleFunc("/api/tags.json",  get_all_tags)

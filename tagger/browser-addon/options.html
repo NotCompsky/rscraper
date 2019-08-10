@@ -2,20 +2,36 @@
 <html>
     <head><title>RTagger Options</title></head>
     <body>
-        Default flairs_url: http://104.197.15.19:8080/api/flairs/slurs/
-        Default reasons_url: http://104.197.15.19:8080/api/reasons.json
-        Default tags_url: http://104.197.15.19:8080/api/tags.json
         This is an example server, that only displays regional subreddits, and has a pre-set colour scheme.
         To host your own, visit https://github.com/NotCompsky/rscraper
         <label>
-            Server Flairs_Url:
-            <input type="text" id="flairs_url"/>
-            <br/>
-            Server Reasons_Url:
-            <input type="text" id="reasons_url"/>
-            <br/>
-            Server Tags_Url:
-            <input type="text" id="tags_url"/>
+			<table>
+				<tr>
+					<th>Variable</th>
+					<th>Value</th>
+					<th>Default</th>
+				</tr>
+				</tr>
+					<td>Server Flairs Base Url</td>
+					<td><input type="text" id="flairs_url"/></td>
+					<td>http://104.197.15.19:8080/api/flairs/slurs/</td>
+				<tr>
+				</tr>
+					<td>Server Reasons JSON Url</td>
+					<td><input type="text" id="reasons_url"/></td>
+					<td>http://104.197.15.19:8080/api/reasons.json</td>
+				<tr>
+				</tr>
+					<td>Server Tags JSON Url</td>
+					<td><input type="text" id="tags_url"/></td>
+					<td>http://104.197.15.19:8080/api/tags.json</td>
+				<tr>
+				</tr>
+					<td>User Info Base Url</td>
+					<td><input type="text" id="user_info_url"/></td>
+					<td>http://104.197.15.19:8080/u/</td>
+				<tr>
+			</table>
         </label>
         <button id="save">Save</button>
         <script src="options.js"></script>
