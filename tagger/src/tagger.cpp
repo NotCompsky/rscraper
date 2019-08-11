@@ -586,14 +586,15 @@ void subreddits_given_userid(const char* const tagfilter,  const char* const id_
 		"FROM user u, user2subreddit_cmnt_count u2scc, subreddit2tag s2t, tag t, subreddit r "
 		"WHERE u.id=", id, " "
 		"AND u2scc.user_id=u.id "
+		"AND r.id=u2scc.subreddit_id "
 		"AND s2t.subreddit_id=u2scc.subreddit_id "
 		"AND t.id=s2t.tag_id ", // for tagfilter - hopefully optimised out if it is just a condition on t.id
 		tagfilter,
 		"LIMIT 1000"
 	);
 	char* count;
-	char* tag_id;
 	char* subreddit_name;
+	char* tag_id;
 	compsky::asciify::reset_index();
 	compsky::asciify::asciify('[');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &count, &subreddit_name, &tag_id)){
