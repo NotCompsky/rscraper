@@ -26,6 +26,7 @@ class ViewMatchedComments : public QWidget {
 	~ViewMatchedComments();
   private:
 	void next();
+	void ch_reason();
 	void del_cmnt();
 	void generate_query();
 	void execute_query();
@@ -39,6 +40,7 @@ class ViewMatchedComments : public QWidget {
 	QLineEdit* reasonname_input;
 	QLineEdit* limit_input;
 	QPlainTextEdit* textarea;
+	QLineEdit* ch_reason_input;
 	QLabel* subname;
 	QLabel* username;
 	QLabel* reasonname;

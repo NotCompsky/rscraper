@@ -41,6 +41,7 @@ namespace filter_comment_body {
 
 namespace _f {
 	constexpr static const compsky::asciify::flag::ChangeBufferTmp chbuf;
+	constexpr static const compsky::asciify::flag::Escape esc;
 }
 
 namespace details {
@@ -194,13 +195,27 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 	
 	this->subname   = new QLabel(this);
 	this->username  = new QLabel(this);
-	this->reasonname = new QLabel(this);
 	this->datetime  = new QLabel(this);
 	this->permalink = new QLineEdit(this);
 	this->permalink->setReadOnly(true);
 	l->addWidget(this->subname);
 	l->addWidget(this->username);
-	l->addWidget(this->reasonname);
+	{
+		QHBoxLayout* hbox = new QHBoxLayout;
+		
+		this->reasonname = new QLabel(this);
+		hbox->addWidget(this->reasonname);
+		
+		QPushButton* ch_reason_btn = new QPushButton("Change to");
+		connect(ch_reason_btn, &QPushButton::clicked, this, &ViewMatchedComments::ch_reason);
+		hbox->addWidget(ch_reason_btn);
+		
+		this->ch_reason_input = new QLineEdit(this);
+		this->ch_reason_input->setCompleter(reason_name_completer);
+		hbox->addWidget(this->ch_reason_input);
+		
+		l->addLayout(hbox);
+	}
 	l->addWidget(this->datetime);
 	l->addWidget(this->permalink);
 	
@@ -259,11 +274,11 @@ void ViewMatchedComments::generate_query(){
 	if (!tag.isEmpty())
 		if (!reason.isEmpty())
 			// TODO: Make different
-			compsky::asciify::asciify(tag_a1, tag_b1, tag, tag_b2, tag_a2);
+			compsky::asciify::asciify(tag_a1, tag_b1, _f::esc, '"', tag, tag_b2, tag_a2);
 		else
-			compsky::asciify::asciify(tag_a1, tag_b1, tag, tag_b2, tag_a2);
+			compsky::asciify::asciify(tag_a1, tag_b1, _f::esc, '"', tag, tag_b2, tag_a2);
 	else if (!reason.isEmpty())
-		compsky::asciify::asciify(reason_a1, reason_b1, reason, reason_b2, reason_a2);
+		compsky::asciify::asciify(reason_a1, reason_b1, _f::esc, '"', reason, reason_b2, reason_a2);
 	else
 		compsky::asciify::asciify(reason_a1, reason_a2);
 	
@@ -394,6 +409,15 @@ void ViewMatchedComments::next(){
 
 void ViewMatchedComments::toggle_order_btns(){
 	this->is_ascending = !this->is_ascending;
+}
+
+void ViewMatchedComments::ch_reason(){
+	const QString s = this->ch_reason_input->text();
+	
+	if (s.isEmpty())
+		return;
+	
+	compsky::mysql::exec("UPDATE comment c, reason_matched m SET c.reason_matched=m.id WHERE m.name=\"", _f::esc, '"', s, "\" AND c.id=", this->cmnt_id);
 }
 
 void ViewMatchedComments::del_cmnt(){
