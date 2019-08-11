@@ -21,10 +21,14 @@
 #include <QCompleter>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMessageBox>
+#include <QProcess>
 #include <QPushButton>
 #include <QRegExpValidator>
 #include <QStringList>
+#include <QVariantMap>
 #include <QVBoxLayout>
 
 
@@ -88,6 +92,13 @@ constexpr const char* reason_a2 =
 	"  AND s.id=c.submission_id\n"
 	"  AND r.id=s.subreddit_id\n"
 	"  AND u.id=c.author_id\n";
+
+
+uint64_t indexof(const std::vector<uint64_t>& ms,  const uint64_t n){
+	for (auto i = ms.size();  i != 0;  )
+		if (ms[--i] == n)
+			return i;
+}
 
 
 ViewMatchedComments::ViewMatchedComments(QWidget* parent)
@@ -269,6 +280,61 @@ void ViewMatchedComments::generate_query(){
 
 void ViewMatchedComments::execute_query(){
 	compsky::mysql::query(&this->res1, this->query_text->toPlainText());
+	this->query_indx = 0;
+	this->cached_cmnt_indx = 0;
+	this->cmnt_contents_from_remote.clear();
+	if (this->get_empty_comments->isChecked()){
+		compsky::asciify::reset_index();
+		compsky::asciify::asciify("https://api.pushshift.io/reddit/comment/search/?ids=");
+		char* _subname;
+		char* _post_id;
+		uint64_t _cmnt_id;
+		char* _t;
+		char* _cmnt_body;
+		
+		std::vector<uint64_t> cmnt_id_2_result_indx;
+		// Pushshift automatically orders the results, and there does not appear to be an option for retaining the order of IDs passed in.
+		
+		while(compsky::mysql::assign_next_row__no_free(this->res1, &this->row1, &_subname, &_post_id, &_cmnt_id, &_t, &_cmnt_body)){
+			if(_cmnt_body[0] == 0){
+				compsky::asciify::ITR += id2str(_cmnt_id, compsky::asciify::ITR);
+				compsky::asciify::asciify(',');
+				cmnt_id_2_result_indx.push_back(_cmnt_id);
+			}
+		}
+		
+		this->cmnt_contents_from_remote.reserve(cmnt_id_2_result_indx.size());
+		for (auto i = 0;  i < cmnt_id_2_result_indx.size();  ++i)
+			// Initialise members, otherwise assert fails when setting values via arbitrary indexes
+			this->cmnt_contents_from_remote.append(0);
+		
+		mysql_data_seek(this->res1, 0); // Return to start of results set
+		--compsky::asciify::ITR; // Overwrite trailing comma
+		compsky::asciify::asciify("&filter=id,body", '\0');
+		
+		QProcess proc;
+		proc.start("curl",  {compsky::asciify::BUF});
+		if (!proc.waitForFinished()){
+			QMessageBox::information(this,  "Cannot get comment contents",  QString("Comment failed: curl $1\nIs CURL installed?").arg(compsky::asciify::BUF));
+			goto goto__init_first_cmnt;
+		}
+		const QByteArray json_str = proc.readAllStandardOutput();
+		proc.close();
+		
+		const QJsonDocument jdoc = QJsonDocument::fromJson(json_str);
+		const QJsonObject   jobj = jdoc.object();
+		const QVariantMap   jmap = jobj.toVariantMap();
+		const QVariantList jdata = jmap["data"].toList();
+		
+		for (auto i = 0;  i < jdata.size();  ++i){
+			const QVariantMap cmnt   = jdata.at(i).toMap();
+			const QByteArray id_ba   = cmnt["id"].toByteArray();
+			const char* const id_str = id_ba.data();
+			const uint64_t id = str2id(id_str);
+			this->cmnt_contents_from_remote[indexof(cmnt_id_2_result_indx, id)] = cmnt["body"].toString();
+		}
+	}
+	goto__init_first_cmnt:
 	this->next();
 }
 
@@ -306,10 +372,12 @@ void ViewMatchedComments::next(){
 		this->datetime->setText(dt_buf);
 		
 		if (cmnt_body[0] == 0  &&  this->get_empty_comments->isChecked()){
-			this->is_content_from_remote->setChecked(true);
-			compsky::asciify::reset_index();
-			compsky::asciify::asciify("https://dev.pushshift.io/rc/_search/?source_content_type=application/json&source={%22query%22:{%22match%22:{%22_id%22:", this->cmnt_id, "}}}&pretty", '\0');
-			this->textarea->setPlainText(compsky::asciify::BUF);
+			if (this->cmnt_contents_from_remote.isEmpty()){
+				QMessageBox::warning(this,  "Error",  "Contents can only be grabbed at the start of a query.\nRun query again in order to capture empties' contents");
+			} else {
+				this->is_content_from_remote->setChecked(true);
+				this->textarea->setPlainText(this->cmnt_contents_from_remote.at(this->cached_cmnt_indx++));
+			}
 		} else {
 			this->is_content_from_remote->setChecked(false);
 			this->textarea->setPlainText(this->cmnt_body);
@@ -319,6 +387,8 @@ void ViewMatchedComments::next(){
 		palette.setColor(this->textarea->backgroundRole(), Qt::black);
 		palette.setColor(this->textarea->foregroundRole(), Qt::yellow);
 		this->textarea->setPalette(palette);
+		
+		++this->query_indx;
 	} else this->res1 = nullptr;
 }
 

@@ -14,6 +14,7 @@
 #include <QRadioButton>
 #include <QLabel>
 #include <QPlainTextEdit>
+#include <QStringList>
 #include <QLineEdit>
 #include <QWidget>
 
@@ -31,6 +32,9 @@ class ViewMatchedComments : public QWidget {
 	void toggle_order_btns();
 	void view_matches();
 	const char* get_sort_column();
+	int query_indx;
+	int cached_cmnt_indx;
+	QStringList cmnt_contents_from_remote;
 	QLineEdit* tagname_input;
 	QLineEdit* reasonname_input;
 	QLineEdit* limit_input;
