@@ -776,6 +776,44 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 }
 
 extern "C"
+void subreddits_correlation_to_reasons(const char* const reasonfilter){
+	compsky::mysql::query(
+		&RES,
+		"SELECT m.id, r.name, COUNT(c.id)/s2cc.count AS count "
+		"FROM subreddit r, submission s, comment c, reason_matched m, subreddit2cmnt_count s2cc "
+		"WHERE r.id=s.subreddit_id "
+		  "AND s.id=c.submission_id "
+		  "AND c.reason_matched=m.id "
+		  "AND s2cc.id=r.id "
+		  "AND s2cc.count>1000 ",
+		  reasonfilter,
+		"GROUP BY r.name "
+		"HAVING count>10 "
+		"ORDER BY count DESC "
+		"LIMIT 1000"
+	);
+	char* reason_id;
+	char* subreddit_name;
+	char* proportion;
+	compsky::asciify::reset_index();
+	compsky::asciify::asciify('[');
+	while(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, &subreddit_name, &proportion)){
+		compsky::asciify::asciify(
+			'[',
+				reason_id, ',',
+				'"', _f::esc, '"', subreddit_name, '"', ',',
+				proportion,
+			']',
+			','
+		);
+	}
+	if(compsky::asciify::get_index() > 1)
+		--compsky::asciify::ITR;
+	compsky::asciify::asciify(']', '\0');
+	DST = compsky::asciify::BUF;
+}
+
+extern "C"
 void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_id){
 	if (unlikely(!is_number(reason_id))){
 		DST = http_err::bad_request;
@@ -789,11 +827,12 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 		"WHERE m.id=", reason_id, " "
 		  "AND r.id=s.subreddit_id "
 		  "AND s.id=c.submission_id "
-		  "AND c.reason_matched=m.id ",
+		  "AND c.reason_matched=m.id "
 		  "AND s2cc.id=r.id "
 		  "AND s2cc.count>1000 ",
 		  reasonfilter,
 		"GROUP BY r.name "
+		"HAVING count>10 "
 		"ORDER BY count DESC "
 		"LIMIT 100"
 	);

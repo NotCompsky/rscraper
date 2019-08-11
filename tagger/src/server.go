@@ -14,6 +14,7 @@ extern void comments_given_userid(const char* const reasonfilter,  const char* c
 extern void comments_given_username(const char* reasonfilter,  const char* const name);
 extern void comments_given_reason(const char* const reasonfilter,  const char* const reason_name);
 extern void subreddits_given_reason(const char* const reasonfilter,  const char* const reason_name);
+extern void subreddits_correlation_to_reasons(const char* const reasonfilter);
 extern void get_all_reasons(const char* const reasonfilter);
 extern void get_all_tags(const char* const tagfilter);
 */
@@ -30,6 +31,7 @@ var tagfilter string
 var reasonfilter string
 var all_reasons string
 var all_tags string
+var JSON_subreddits_correlation_to_reasons string
 
 // NOTE: To convert JS/HTML to human readable format,  ^(\t*)"|" \+$|\\(")  ->  \1\2
 
@@ -332,7 +334,9 @@ func html_subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 					"Subreddits given reason" +
 				"</h1>" +
 				"<div>" +
-					"<select id=\"m\"></select>" +
+					"<select id=\"m\">" +
+						"<option value=\"all\">All</option>" +
+					"</select>" +
 					"<button onclick=\"wipe_table('#tbl tbody'); populate_table('/api/reason/subreddits/' + $('#m')[0].value,  '#tbl tbody')\">" +
 						"Go" +
 					"</button>" +
@@ -359,6 +363,11 @@ func subreddits_given_reason(w http.ResponseWriter, r* http.Request){
 	w.Header().Set("Cache-Control", "max-age=86400") // 24h
     C.subreddits_given_reason(C.CString(reasonfilter), C.CString(r.URL.Path[23:]))
     io.WriteString(w, C.GoString(C.DST))
+}
+
+func subreddits_correlation_to_reasons(w http.ResponseWriter, r* http.Request){
+	w.Header().Set("Cache-Control", "max-age=86400") // 24h
+	io.WriteString(w, JSON_subreddits_correlation_to_reasons)
 }
 
 
@@ -480,6 +489,9 @@ func main(){
 	C.get_all_tags(C.CString(tagfilter))
 	all_tags = C.GoString(C.DST) // Deep copied
 	
+	C.subreddits_correlation_to_reasons(C.CString(reasonfilter))
+	JSON_subreddits_correlation_to_reasons = C.GoString(C.DST)
+	
 	
     mux := http.NewServeMux()
 	
@@ -498,6 +510,7 @@ func main(){
 	
 	mux.HandleFunc("/reason/subreddits/", html_subreddits_given_reason)
 	mux.HandleFunc("/api/reason/subreddits/", subreddits_given_reason)
+	mux.HandleFunc("/api/reason/subreddits/all", subreddits_correlation_to_reasons)
 	mux.HandleFunc("/reason/comments/",   html_comments_given_reason)
 	mux.HandleFunc("/api/reason/comments/",   comments_given_reason)
 	
