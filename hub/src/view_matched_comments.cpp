@@ -113,7 +113,7 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 		box->addWidget(this->reasonname_input);
 		
 		box->addWidget(new QLabel("Limit:", this));
-		this->limit_input = new QLineEdit(this);
+		this->limit_input = new QLineEdit("10", this);
 		this->limit_input->setValidator(new QRegExpValidator(QRegExp("\\d*"), this));
 		box->addWidget(this->limit_input);
 		
