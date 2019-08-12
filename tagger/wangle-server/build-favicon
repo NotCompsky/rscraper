@@ -1,0 +1,7 @@
+#!/bin/sh
+
+printf 'R"=====(' >  favicon.txt
+cat favicon.ico   >> favicon.txt
+printf ')====="'  >> favicon.txt
+
+stat -c '%s' favicon.ico
