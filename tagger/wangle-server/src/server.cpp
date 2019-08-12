@@ -4,6 +4,8 @@
 #include "FrameDecoder.h"
 #include "CStringCodec.h"
 
+#include <cstring> // for malloc
+
 
 typedef wangle::Pipeline<folly::IOBufQueue&,  const char*> RTaggerPipeline;
 
@@ -142,7 +144,11 @@ std::string_view if_http_string(const char* s,  const char* const return_string)
 
 class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::string_view> {
   private:
-	  constexpr
+	constexpr static const size_t buf_sz = 2 * 1024 * 1024;
+	char* buf;
+	char* itr;
+	
+	constexpr
 	std::string_view comments_given_reason(const char* s){
 		return
 			#include "headers/return_code/OK.c"
@@ -393,17 +399,23 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		}
 	}
   public:
+	RTaggerHandler(){
+		this->buf = (char*)malloc(this->buf_sz);
+		if(this->buf == nullptr)
+			// TODO: Replace with compsky::asciify::alloc
+			exit(4096);
+		this->itr = this->buf;
+	}
 		void read(Context* ctx,  const char* msg) override {
-			static char buf[4096];
-			size_t buf_sz = 4096 - 1;
-			char* itr = buf;
+			size_t remaining_buf_sz = this->buf_sz;
+			this->itr = this->buf; // reset_index()
 			const std::string_view r = this->determine_response(msg);
-			while(*msg != '\n'  &&  *msg != 0  &&  buf_sz != 0){
-				*(itr++) = *(msg++);
-				--buf_sz;
+			while(*msg != '\n'  &&  *msg != 0  &&  remaining_buf_sz != 0){
+				*(this->itr++) = *(msg++);
+				--remaining_buf_sz;
 			}
-			*itr = 0;
-			std::cout << ctx->getPipeline()->getTransportInfo()->remoteAddr->getHostStr() << '\t' << buf << std::endl;
+			*this->itr = 0;
+			std::cout << ctx->getPipeline()->getTransportInfo()->remoteAddr->getHostStr() << '\t' << this->buf << std::endl;
 			write(ctx, r);
 			close(ctx);
 		}
