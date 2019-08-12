@@ -66,103 +66,6 @@ namespace _r {
 			"{}"
 		;
 	}
-	
-	constexpr
-	std::string_view comments_given_reason(const char* s){
-		return
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			"\n"
-			"{}"
-		;
-	}
-	
-	constexpr
-	std::string_view subreddits_given_reason(const char* s){
-		return
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			"\n"
-			"{}"
-		;
-	}
-	
-	constexpr
-	std::string_view subreddits_given_userid(const char* s){
-		return
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			"\n"
-			"{}"
-		;
-	}
-	
-	constexpr
-	std::string_view flairs_given_users(const char* s){
-		return
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			"\n"
-			"{}"
-		;
-	}
-	
-	constexpr
-	std::string_view return_api(const char* s){
-		switch(*(s++)){
-			case 'f':
-				switch(*(s++)){
-					case '/':
-						return flairs_given_users(s);
-					default: return not_found;
-				}
-			case 'm':
-				switch(*(s++)){
-					case '.':
-						// m.json
-						return _r::reasons_json();
-					case '/':
-						switch(*(s++)){
-							case 'c':
-								switch(*(s++)){
-									case '/':
-										return _r::comments_given_reason(s);
-									default: return not_found;
-								}
-							case 'r':
-								switch(*(s++)){
-									case '/':
-										return _r::subreddits_given_reason(s);
-									default: return not_found;
-								}
-							default: return not_found;
-						}
-					default: return not_found;
-				}
-			case 't':
-				switch(*(s++)){
-					case '.':
-						// m.json
-						return _r::tags_json();
-					default: return not_found;
-				}
-			case 'u':
-				switch(*(s++)){
-					case '/':
-						switch(*(s++)){
-							case 'r':
-								switch(*(s++)){
-									case '/':
-										return _r::subreddits_given_userid(s);
-									default: return not_found;
-								}
-							default: return not_found;
-						}
-					default: return not_found;
-				}
-			default: return not_found;
-		}
-	}
 }
 
 namespace _method {
@@ -237,167 +140,264 @@ std::string_view if_http_string(const char* s,  const char* const return_string)
 }
 */
 
-constexpr
-std::string_view determine_response(const char* s){
-	switch(which_method(s)){
-		case _method::GET:
-			switch(*(s++)){
-				case '/':
-					switch(*(s++)){
-						case ' ':
-							return
-								#include "headers/return_code/OK.c"
-								#include "headers/Content-Type/html.c"
-								#include "headers/Cache-Control/1day.c"
-								"\n"
-								#include "html/root.html"
-							;
-						case 'a':
-							switch(*(s++)){
-								case '/':
-									return _r::return_api(s);
-								default: return _r::not_found;
-							}
-						case 'f':
-							switch(*(s++)){
-								case 'a':
-									switch(*(s++)){
-										case 'v':
-											// /favicon.ico
-											return std::string_view(
-												#include "headers/return_code/OK.c"
-												#include "headers/Content-Type/ico.c"
-												#include "headers/Cache-Control/1day.c"
-												"Content-Length: 78\n"
-												"\n"
-												#include "favicon.txt"
-												, strlen(
+class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::string_view> {
+  private:
+	  constexpr
+	std::string_view comments_given_reason(const char* s){
+		return
+			#include "headers/return_code/OK.c"
+			#include "headers/Content-Type/json.c"
+			"\n"
+			"{}"
+		;
+	}
+	
+	constexpr
+	std::string_view subreddits_given_reason(const char* s){
+		return
+			#include "headers/return_code/OK.c"
+			#include "headers/Content-Type/json.c"
+			"\n"
+			"{}"
+		;
+	}
+	
+	constexpr
+	std::string_view subreddits_given_userid(const char* s){
+		return
+			#include "headers/return_code/OK.c"
+			#include "headers/Content-Type/json.c"
+			"\n"
+			"{}"
+		;
+	}
+	
+	constexpr
+	std::string_view flairs_given_users(const char* s){
+		return
+			#include "headers/return_code/OK.c"
+			#include "headers/Content-Type/json.c"
+			"\n"
+			"{}"
+		;
+	}
+	
+	constexpr
+	std::string_view return_api(const char* s){
+		switch(*(s++)){
+			case 'f':
+				switch(*(s++)){
+					case '/':
+						return flairs_given_users(s);
+					default: return _r::not_found;
+				}
+			case 'm':
+				switch(*(s++)){
+					case '.':
+						// m.json
+						return _r::reasons_json();
+					case '/':
+						switch(*(s++)){
+							case 'c':
+								switch(*(s++)){
+									case '/':
+										return this->comments_given_reason(s);
+									default: return _r::not_found;
+								}
+							case 'r':
+								switch(*(s++)){
+									case '/':
+										return this->subreddits_given_reason(s);
+									default: return _r::not_found;
+								}
+							default: return _r::not_found;
+						}
+					default: return _r::not_found;
+				}
+			case 't':
+				switch(*(s++)){
+					case '.':
+						// m.json
+						return _r::tags_json();
+					default: return _r::not_found;
+				}
+			case 'u':
+				switch(*(s++)){
+					case '/':
+						switch(*(s++)){
+							case 'r':
+								switch(*(s++)){
+									case '/':
+										return this->subreddits_given_userid(s);
+									default: return _r::not_found;
+								}
+							default: return _r::not_found;
+						}
+					default: return _r::not_found;
+				}
+			default: return _r::not_found;
+		}
+	}
+	
+	constexpr
+	std::string_view determine_response(const char* s){
+		switch(which_method(s)){
+			case _method::GET:
+				switch(*(s++)){
+					case '/':
+						switch(*(s++)){
+							case ' ':
+								return
+									#include "headers/return_code/OK.c"
+									#include "headers/Content-Type/html.c"
+									#include "headers/Cache-Control/1day.c"
+									"\n"
+									#include "html/root.html"
+								;
+							case 'a':
+								switch(*(s++)){
+									case '/':
+										return this->return_api(s);
+									default: return _r::not_found;
+								}
+							case 'f':
+								switch(*(s++)){
+									case 'a':
+										switch(*(s++)){
+											case 'v':
+												// /favicon.ico
+												return std::string_view(
 													#include "headers/return_code/OK.c"
 													#include "headers/Content-Type/ico.c"
 													#include "headers/Cache-Control/1day.c"
 													"Content-Length: 78\n"
 													"\n"
-												) + 78
-											);
-										default: return _r::not_found;
-									}
-								case '/':
-									switch(*(s++)){
-										case ' ':
-											// /flairs
-											return
-												#include "headers/return_code/OK.c"
-												#include "headers/Content-Type/html.c"
-												#include "headers/Cache-Control/1day.c"
-												"\n"
-												#include "html/flairs.html"
-											;
-										case 'r':
-											// /regions
-											return
-												#include "headers/return_code/OK.c"
-												#include "headers/Content-Type/html.c"
-												#include "headers/Cache-Control/1day.c"
-												"\n"
-												#include "html/flairs_regions.html"
-											;
-										case 's':
-											// /slurs
-											return
-												#include "headers/return_code/OK.c"
-												#include "headers/Content-Type/html.c"
-												#include "headers/Cache-Control/1day.c"
-												"\n"
-												#include "html/flairs_slurs.html"
-											;
-										default: return _r::not_found;
-									}
-								default: return _r::not_found;
-							}
-						case 'm':
-							switch(*(s++)){
-								case '/':
-									switch(*(s++)){
-										case ' ':
-											// /m/
-											return
-												#include "headers/return_code/OK.c"
-												#include "headers/Content-Type/html.c"
-												#include "headers/Cache-Control/1day.c"
-												"\n"
-												#include "html/reason.html"
-											;
-										case 'c':
-											switch(*(s++)){
-												case '/':
-													switch(*(s++)){
-														case ' ':
-															// /m/c/
-															return
-																#include "headers/return_code/OK.c"
-																#include "headers/Content-Type/html.c"
-																#include "headers/Cache-Control/1day.c"
-																"\n"
-																#include "html/comments_given_reason.html"
-															;
-														default: return _r::not_found;
-													}
-												default: return _r::not_found;
-											}
-										case 'r':
-											switch(*(s++)){
-												case '/':
-													switch(*(s++)){
-														case ' ':
-															// /m/r/
-															return
-																#include "headers/return_code/OK.c"
-																#include "headers/Content-Type/html.c"
-																#include "headers/Cache-Control/1day.c"
-																"\n"
-																#include "html/subreddits_given_reason.html"
-															;
-														default: return _r::not_found;
-													}
-												default: return _r::not_found;
-											}
-										default: return _r::not_found;
-									}
-								default: return _r::not_found;
-							}
-						case 's':
-							switch(*(s++)){
-								case '/':
-									return _r::return_static(s);
-								default: return _r::not_found;
-							}
-						case 'u':
-							switch(*(s++)){
-								case '/':
-									return
-										#include "headers/return_code/OK.c"
-										#include "headers/Content-Type/html.c"
-										#include "headers/Cache-Control/1day.c"
-										"\n"
-										#include "html/user_summary.html"
-									;
-								default: return _r::not_found;
-							}
-						default: return _r::not_found;
-					}
-				default: return _r::not_found;
-			}
-		default: return _r::not_found;
+													#include "favicon.txt"
+													, strlen(
+														#include "headers/return_code/OK.c"
+														#include "headers/Content-Type/ico.c"
+														#include "headers/Cache-Control/1day.c"
+														"Content-Length: 78\n"
+														"\n"
+													) + 78
+												);
+											default: return _r::not_found;
+										}
+									case '/':
+										switch(*(s++)){
+											case ' ':
+												// /flairs
+												return
+													#include "headers/return_code/OK.c"
+													#include "headers/Content-Type/html.c"
+													#include "headers/Cache-Control/1day.c"
+													"\n"
+													#include "html/flairs.html"
+												;
+											case 'r':
+												// /regions
+												return
+													#include "headers/return_code/OK.c"
+													#include "headers/Content-Type/html.c"
+													#include "headers/Cache-Control/1day.c"
+													"\n"
+													#include "html/flairs_regions.html"
+												;
+											case 's':
+												// /slurs
+												return
+													#include "headers/return_code/OK.c"
+													#include "headers/Content-Type/html.c"
+													#include "headers/Cache-Control/1day.c"
+													"\n"
+													#include "html/flairs_slurs.html"
+												;
+											default: return _r::not_found;
+										}
+									default: return _r::not_found;
+								}
+							case 'm':
+								switch(*(s++)){
+									case '/':
+										switch(*(s++)){
+											case ' ':
+												// /m/
+												return
+													#include "headers/return_code/OK.c"
+													#include "headers/Content-Type/html.c"
+													#include "headers/Cache-Control/1day.c"
+													"\n"
+													#include "html/reason.html"
+												;
+											case 'c':
+												switch(*(s++)){
+													case '/':
+														switch(*(s++)){
+															case ' ':
+																// /m/c/
+																return
+																	#include "headers/return_code/OK.c"
+																	#include "headers/Content-Type/html.c"
+																	#include "headers/Cache-Control/1day.c"
+																	"\n"
+																	#include "html/comments_given_reason.html"
+																;
+															default: return _r::not_found;
+														}
+													default: return _r::not_found;
+												}
+											case 'r':
+												switch(*(s++)){
+													case '/':
+														switch(*(s++)){
+															case ' ':
+																// /m/r/
+																return
+																	#include "headers/return_code/OK.c"
+																	#include "headers/Content-Type/html.c"
+																	#include "headers/Cache-Control/1day.c"
+																	"\n"
+																	#include "html/subreddits_given_reason.html"
+																;
+															default: return _r::not_found;
+														}
+													default: return _r::not_found;
+												}
+											default: return _r::not_found;
+										}
+									default: return _r::not_found;
+								}
+							case 's':
+								switch(*(s++)){
+									case '/':
+										return _r::return_static(s);
+									default: return _r::not_found;
+								}
+							case 'u':
+								switch(*(s++)){
+									case '/':
+										return
+											#include "headers/return_code/OK.c"
+											#include "headers/Content-Type/html.c"
+											#include "headers/Cache-Control/1day.c"
+											"\n"
+											#include "html/user_summary.html"
+										;
+									default: return _r::not_found;
+								}
+							default: return _r::not_found;
+						}
+					default: return _r::not_found;
+				}
+			default: return _r::not_found;
+		}
 	}
-}
-
-class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::string_view> {
-	public:
+  public:
 		void read(Context* ctx,  const char* msg) override {
 			static char buf[4096];
 			size_t buf_sz = 4096 - 1;
 			char* itr = buf;
-			const std::string_view r = determine_response(msg);
+			const std::string_view r = this->determine_response(msg);
 			while(*msg != '\n'  &&  *msg != 0  &&  buf_sz != 0){
 				*(itr++) = *(msg++);
 				--buf_sz;
