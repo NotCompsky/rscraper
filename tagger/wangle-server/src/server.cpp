@@ -20,6 +20,18 @@ namespace _f {
 	//constexpr static const compsky::asciify::flag::MaxBufferSize max_sz;
 }
 
+namespace _filter {
+	static char* EMPTY = "";
+	static char* REASONS;
+	static char* TAGS;
+}
+
+namespace _mysql {
+	char buf[512];
+	char* auth[6];
+	constexpr static const size_t buf_sz = 512; // TODO: Alloc file size
+}
+
 namespace _r {
 	constexpr static const std::string_view not_found =
 		#include "headers/return_code/NOT_FOUND.c"
@@ -64,26 +76,74 @@ namespace _r {
 		}
 	}
 	
-	constexpr
-	std::string_view reasons_json(){
-		return
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			#include "headers/Cache-Control/1day.c"
-			"\n"
-			"{}"
-		;
-	}
+	static char buf[4096];
+	char* itr = nullptr;
 	
-	constexpr
-	std::string_view tags_json(){
-		return
+	static char* reasons_json;
+	static char* tags_json;
+	
+	void init_json(MYSQL*& mysql_obj,  const char* const tbl_name,  const char* const tbl_alias,  char*& dst,  const char* const qry_filter){
+		MYSQL_RES* mysql_res;
+		MYSQL_ROW mysql_row;
+		
+		compsky::mysql::query(
+			mysql_obj,
+			&mysql_res,
+			buf,
+			"SELECT ", tbl_alias, ".name, ", tbl_alias, ".id "
+			"FROM ", tbl_name, ' ', tbl_alias, ' ',
+			"WHERE TRUE ",
+			  qry_filter
+		);
+		
+		constexpr static const char* const _headers =
 			#include "headers/return_code/OK.c"
 			#include "headers/Content-Type/json.c"
 			#include "headers/Cache-Control/1day.c"
 			"\n"
-			"{}"
 		;
+		
+		size_t sz = 0;
+		
+		char* name;
+		char* id;
+		
+		sz += std::char_traits<char>::length(_headers);
+		sz += 1;
+		while(compsky::mysql::assign_next_row__no_free(mysql_res, &mysql_row, &name, &id)){
+			sz +=
+				1 +
+					1 + 2*strlen(name) + 1 + 1 +
+					strlen(id) +
+				1 +
+				1
+			;
+		}
+		sz += 1;
+		sz += 1;
+		
+		dst = (char*)malloc(sz);
+		char* itr = dst;
+		if(unlikely(itr == nullptr))
+			exit(4096);
+		
+		compsky::asciify::asciify(itr, _headers);
+		compsky::asciify::asciify(itr, '[');
+		while(compsky::mysql::assign_next_row(mysql_res, &mysql_row, &name, &id)){
+			compsky::asciify::asciify(
+				itr,
+				'[',
+					'"', _f::esc, '"', name, '"', ',',
+					id,
+				']',
+				','
+			);
+		}
+		if (unlikely(*itr == ','))
+			// If there was at least one iteration of the loop...
+			--itr; // ...wherein a trailing comma was left
+		*(itr++) = ']';
+		*itr = 0;
 	}
 }
 
@@ -94,8 +154,6 @@ namespace _method {
 		UNKNOWN
 	};
 }
-
-const char* MYSQL_AUTH_FP;
 
 constexpr
 uint64_t str2id(const char* str){
@@ -129,9 +187,10 @@ uint64_t str2id(const char* from,  const char* const to){
 constexpr
 uint64_t a_to_uint64__space_terminated(const char* s){
 	uint64_t n = 0;
-	while(*s != ' '  &&  *s != 0){
+	while(*s >= '0'  &&  *s <= '9'){
 		n *= 10;
 		n += *s - '0';
+		++s;
 	}
 	return n;
 }
@@ -207,9 +266,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	char* itr;
 	size_t remaining_buf_sz;
 	
-	char* reason_filter;
-	char* tag_filter;
-	
+	MYSQL* mysql_obj;
 	MYSQL_RES* res;
 	MYSQL_ROW row;
 	
@@ -224,6 +281,11 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		this->remaining_buf_sz = this->buf_sz;
 	}
 	
+	inline
+	char last_char_in_buf(){
+		return *(this->itr - 1);
+	}
+	
 	template<typename... Args>
 	void asciify(Args... args){
 		compsky::asciify::asciify(this->itr,  args...);
@@ -231,13 +293,22 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		*this->itr = 0;
 	};
 	
+	void init_mysql_if_required(){
+		if (this->mysql_obj != nullptr)
+			return;
+		compsky::mysql::login_from_auth(this->mysql_obj, _mysql::auth);
+		std::cout << mysql_stat(this->mysql_obj) << std::endl;
+	}
+	
 	template<typename... Args>
 	void mysql_query(Args... args){
-		compsky::mysql::query(this->buf, &this->res, args...);
+		this->init_mysql_if_required();
+		compsky::mysql::query(this->mysql_obj, &this->res, this->buf, args...);
 	}
 	
 	void mysql_query_using_buf(){
-		compsky::mysql::query_buffer(&this->res, this->buf, this->buf_indx());
+		this->init_mysql_if_required();
+		compsky::mysql::query_buffer(this->mysql_obj, &this->res, this->buf, this->buf_indx());
 	}
 	
 	template<typename... Args>
@@ -252,15 +323,17 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	std::string_view comments_given_reason(const char* const reason_id_str){
 		const uint64_t reason_id = a_to_uint64__space_terminated(reason_id_str);
 		
+		if (reason_id == 0)
+			return _r::bad_request;
+		
 		this->mysql_query(
-			&this->res,
 			"SELECT r.name, s.id, c.id, c.created_at "
 			"FROM comment c, subreddit r, submission s, reason_matched m "
 			"WHERE m.id=", reason_id, " "
 			  "AND s.id=c.submission_id "
 			  "AND r.id=s.subreddit_id "
 			  "AND m.id=c.reason_matched ",
-			  this->reason_filter,
+			  _filter::REASONS,
 			" ORDER BY c.created_at DESC "
 			"LIMIT 100"
 		);
@@ -277,7 +350,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		);
 		this->asciify('[');
 		while(this->mysql_assign_next_row(&subreddit_name, &submission_id, &comment_id, &created_at)){
-			created_at = "1565684444";
 			this->asciify(
 				'[',
 					'"', _f::esc, '"', subreddit_name, '"', ',',
@@ -287,7 +359,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 				','
 			);
 		}
-		if(this->buf_indx() != 1)
+		if (this->last_char_in_buf() == ',')
 			// If there was at least one iteration of the loop...
 			--this->itr; // ...wherein a trailing comma was left
 		this->asciify(']');
@@ -298,8 +370,10 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	std::string_view subreddits_given_reason(const char* reason_id_str){
 		const uint64_t reason_id = a_to_uint64__space_terminated(reason_id_str);
 		
+		if (reason_id == 0)
+			return _r::bad_request;
+		
 		this->mysql_query(
-			&this->res,
 			"SELECT r.name, COUNT(c.id)/s2cc.count AS count "
 			"FROM subreddit r, submission s, comment c, reason_matched m, subreddit2cmnt_count s2cc "
 			"WHERE m.id=", reason_id, " "
@@ -308,7 +382,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			  "AND c.reason_matched=m.id "
 			  "AND s2cc.id=r.id "
 			  "AND s2cc.count>1000 ",
-			  this->reason_filter,
+			  _filter::REASONS,
 			"GROUP BY r.name "
 			"HAVING count>10 "
 			"ORDER BY count DESC "
@@ -325,7 +399,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		);
 		this->asciify('[');
 		while(this->mysql_assign_next_row(&subreddit_name, &proportion)){
-			proportion = "123.456";
 			this->asciify(
 				'[',
 					'"', _f::esc, '"', subreddit_name, '"', ',',
@@ -334,7 +407,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 				','
 			);
 		}
-		if(this->buf_indx() != 1)
+		if (this->last_char_in_buf() == ',')
 			// If there was at least one iteration of the loop...
 			--this->itr; // ...wherein a trailing comma was left
 		this->asciify(']');
@@ -354,7 +427,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		*/
 		
 		this->mysql_query(
-			&this->res,
 			"SELECT u2scc.count, r.name, s2t.tag_id "
 			"FROM user u, user2subreddit_cmnt_count u2scc, subreddit2tag s2t, tag t, subreddit r "
 			"WHERE u.id=", id, " "
@@ -362,7 +434,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			  "AND r.id=u2scc.subreddit_id "
 			  "AND s2t.subreddit_id=u2scc.subreddit_id "
 			  "AND t.id=s2t.tag_id ", // for tagfilter - hopefully optimised out if it is just a condition on t.id
-			  this->tag_filter,
+			  _filter::TAGS,
 			"LIMIT 1000"
 		);
 		
@@ -377,8 +449,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		);
 		this->asciify('[');
 		while(this->mysql_assign_next_row(&count, &subreddit_name, &tag_id)){
-			count = "3";
-			tag_id = "4";
 			this->asciify(
 				'[',
 					tag_id,
@@ -388,7 +458,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 				','
 			);
 		}
-		if(this->buf_indx() != 1)
+		if (this->last_char_in_buf() == ',')
 			// If there was at least one iteration of the loop...
 			--this->itr; // ...wherein a trailing comma was left
 		this->asciify(']');
@@ -400,12 +470,12 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	size_t generate_user_id_list_string(const char* csv){
 		char* const buf_init = this->itr;
 		bool current_id_valid = (*csv == '_');
-		printf("%c\n", *csv);
 		++csv; // Skip last character of first prefix (no need to check for 0 - done in switch)
 		const char* current_id_start = csv;
 		while (true){
 			switch(*csv){
-				case 0:
+				case 0: // Don't expect a 0-terminated string
+				case ' ':
 				case ',':
 					if (current_id_valid){
 						const uint64_t id = str2id(current_id_start, csv);
@@ -420,7 +490,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 							// Otherwise, there was not the expected prefix in after the comma
 							return (uintptr_t)this->itr - (uintptr_t)buf_init;
 					current_id_valid = (*csv == '_');
-					printf("%c\n", *csv);
 					current_id_start = csv + 1; // Start at character after comma
 					break;
 			}
@@ -428,12 +497,28 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		}
 	}
 	
+	std::string_view flairs_given_users__empty(){
+		if (_filter::TAGS != nullptr  &&  _filter::REASONS != nullptr)
+			return
+				#include "headers/return_code/OK.c"
+				#include "headers/Content-Type/json.c"
+				"\n"
+				"[{},{}]"
+			;
+		return
+			#include "headers/return_code/OK.c"
+			#include "headers/Content-Type/json.c"
+			"\n"
+			"{}"
+		;
+	}
+	
 	std::string_view flairs_given_users(const char* csv){
 		/*
-		Both 'this->tag_filter' and 'this->reason_filter' are arrays of IDs used to filter the objects that populate the users' tag flair.
-		E.g. if this->tag_filter==nullptr, all tags are ignored.
-		If this->tag_filter=="", all tags are used.
-		If this->tag_filter=="AND id=1", only the tag with ID of 1 is used when generating the flair.
+		Both '_filter::TAGS' and '_filter::REASONS' are arrays of IDs used to filter the objects that populate the users' tag flair.
+		E.g. if _filter::TAGS==nullptr, all tags are ignored.
+		If _filter::TAGS=="", all tags are used.
+		If _filter::TAGS=="AND id=1", only the tag with ID of 1 is used when generating the flair.
 		There is no effort to account for the case where both tags and reasons are null. There is no use case for such a configuration.
 		*/
 		/*
@@ -456,6 +541,12 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			// Safely skip first prefix bar the last character
 			if (unlikely(*(csv++) == 0))
 				return _r::bad_request;
+		
+		constexpr static const char* const ok_begin =
+			#include "headers/return_code/OK.c"
+			#include "headers/Content-Type/json.c"
+			"\n"
+		;
 
 		constexpr static const char* const stmt_t_1 = 
 			"SELECT A.user_id, SUM(A.c), SUM(A.c) AS distinctname"
@@ -482,24 +573,24 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 
 		this->reset_buf_index();
 		
-		if (this->tag_filter != nullptr){
+		if (_filter::TAGS != nullptr){
 			this->asciify(_f::strlen, stmt_t_1, std::char_traits<char>::length(stmt_t_1));
 			char* const start_of_user_IDs = this->itr;
 			const size_t n_bytes_of_IDs = generate_user_id_list_string(csv);
 			if (n_bytes_of_IDs == 0){
 				// No valid IDs were found
-				return "{}";
+				return this->flairs_given_users__empty();
 			}
 			--this->itr; // Remove trailing comma
 			this->asciify(')'); // Close 'WHERE id IN (' condition
-			this->asciify(this->tag_filter); // Could be empty string, or "AND t.id IN (...)", etc.
+			this->asciify(_filter::TAGS); // Could be empty string, or "AND t.id IN (...)", etc.
 			this->asciify(_f::strlen, stmt_t_2, std::char_traits<char>::length(stmt_t_2));
-			if (this->reason_filter != nullptr){
+			if (_filter::REASONS != nullptr){
 				this->asciify(" UNION ALL SELECT 0, 0, 0, 0, 0, 0, 0, 0 UNION ALL ");
 				this->asciify(_f::strlen, stmt_m_1, std::char_traits<char>::length(stmt_m_1));
 				this->asciify(_f::strlen, start_of_user_IDs, n_bytes_of_IDs);
 				// No need to add closing bracket - copied by the above
-				this->asciify(this->reason_filter); // Could be empty string, or "AND t.id IN (...)", etc.
+				this->asciify(_filter::REASONS); // Could be empty string, or "AND t.id IN (...)", etc.
 				this->asciify(_f::strlen, stmt_m_2, std::char_traits<char>::length(stmt_m_2));
 			}
 		} else { // Realistically, this should be 'reasons != nullptr' - though no effort is made to check that this holds
@@ -507,11 +598,11 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			const size_t n_bytes_of_IDs = generate_user_id_list_string(csv);
 			if (n_bytes_of_IDs == 0){
 				// No valid IDs were found
-				return "{}";
+				return this->flairs_given_users__empty();
 			}
 			--this->itr; // Remove trailing comma
 			this->asciify(')');
-			this->asciify(this->reason_filter); // Could be empty string, or "AND t.id IN (...)", etc.
+			this->asciify(_filter::REASONS); // Could be empty string, or "AND t.id IN (...)", etc.
 			this->asciify(_f::strlen, stmt_m_2, std::char_traits<char>::length(stmt_m_2));
 		}
 		
@@ -523,6 +614,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		//[ We obtain an (erroneous) prefix of "]," in the following loop
 		// These two characters are later overwritten with "[{"
 		
+		this->asciify(ok_begin);
 		{
 		uint64_t last_id = 0;
 		uint64_t id;
@@ -576,10 +668,10 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		}
 		goto_results:
 		
-		// TODO: Account for cases ((this->tag_filter==nullptr), (this->reason_filter==nullptr))
+		// TODO: Account for cases ((_filter::TAGS==nullptr), (_filter::REASONS==nullptr))
 		
-		if (this->buf_indx() == 5)
-			return "[{},{}]";
+		if (this->buf_indx()  ==  5 + std::char_traits<char>::length(ok_begin))
+			return this->flairs_given_users__empty();
 		
 		char* DST = this->buf + 1;
 		
@@ -624,7 +716,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 				switch(*(s++)){
 					case '.':
 						// m.json
-						return _r::reasons_json();
+						return _r::reasons_json;
 					case '/':
 						switch(*(s++)){
 							case 'c':
@@ -647,7 +739,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 				switch(*(s++)){
 					case '.':
 						// m.json
-						return _r::tags_json();
+						return _r::tags_json;
 					default: return _r::not_found;
 				}
 			case 'u':
@@ -823,16 +915,19 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	}
   public:
 	RTaggerHandler()
-	: reason_filter("")
-	, tag_filter("")
+	: mysql_obj(nullptr)
 	{
 		this->buf = (char*)malloc(this->buf_sz);
 		if(unlikely(this->buf == nullptr))
 			// TODO: Replace with compsky::asciify::alloc
 			exit(4096);
-		
-		compsky::mysql::init_auth(MYSQL_AUTH_FP);
 	}
+	
+	~RTaggerHandler(){
+		if (this->mysql_obj != nullptr)
+			mysql_close(this->mysql_obj);
+	}
+	
 		void read(Context* ctx,  const char* const msg) override {
 			this->reset_buf_index();
 			for(const char* msg_itr = msg;  *msg_itr != 0  &&  *msg_itr != '\n';  ++msg_itr){
@@ -861,14 +956,29 @@ class RTaggerPipelineFactory : public wangle::PipelineFactory<RTaggerPipeline> {
 };
 
 int main(int argc,  char** argv) {
-	folly::Init init(&argc, &argv);
+	_filter::REASONS = (argc > 1) ? argv[1] : _filter::EMPTY;
+	_filter::TAGS    = (argc > 2) ? argv[2] : _filter::EMPTY;
 	
-	MYSQL_AUTH_FP = getenv("RSCRAPER_MYSQL_CFG");
+	int dummy_argc = 1;
+	folly::Init init(&dummy_argc, &argv);
+	
+	if (mysql_library_init(0, NULL, NULL))
+		throw compsky::mysql::except::SQLLibraryInit();
+	
+	MYSQL* mysql_obj;
+	compsky::mysql::init_auth(_mysql::buf, _mysql::buf_sz, _mysql::auth, getenv("RSCRAPER_MYSQL_CFG"));
+	compsky::mysql::login_from_auth(mysql_obj, _mysql::auth);
+	_r::init_json(mysql_obj,  "reason_matched", "m", _r::reasons_json, _filter::REASONS);
+	_r::init_json(mysql_obj,  "tag",            "t", _r::tags_json,    _filter::TAGS);
+	mysql_close(mysql_obj);
 
 	wangle::ServerBootstrap<RTaggerPipeline> server;
 	server.childPipeline(std::make_shared<RTaggerPipelineFactory>());
 	server.bind(8080);
 	server.waitForStop();
+	
+	mysql_library_end();
+	compsky::mysql::wipe_auth(_mysql::buf, _mysql::buf_sz);
 
 	return 0;
 }
