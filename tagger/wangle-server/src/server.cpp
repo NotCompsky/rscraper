@@ -497,18 +497,11 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	}
 	
 	std::string_view flairs_given_users__empty(){
-		if (_filter::TAGS != nullptr  &&  _filter::REASONS != nullptr)
-			return
-				#include "headers/return_code/OK.c"
-				#include "headers/Content-Type/json.c"
-				"\n"
-				"[{},{}]"
-			;
 		return
 			#include "headers/return_code/OK.c"
 			#include "headers/Content-Type/json.c"
 			"\n"
-			"{}"
+			"[{},{}]"
 		;
 	}
 	
