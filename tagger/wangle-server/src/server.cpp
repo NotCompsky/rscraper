@@ -8,6 +8,7 @@
 #include <wangle/bootstrap/ServerBootstrap.h>
 #include <wangle/channel/AsyncSocketHandler.h>
 
+#include <mutex>
 #include <cstring> // for malloc
 
 
@@ -27,6 +28,7 @@ namespace _filter {
 }
 
 namespace _mysql {
+	MYSQL* mysql_obj;
 	char buf[512];
 	char* auth[6];
 	constexpr static const size_t buf_sz = 512; // TODO: Alloc file size
@@ -82,13 +84,13 @@ namespace _r {
 	static char* reasons_json;
 	static char* tags_json;
 	
-	void init_json(MYSQL*& mysql_obj,  const char* const tbl_name,  const char* const tbl_alias,  char*& dst,  const char* const qry_filter){
+	void init_json(const char* const tbl_name,  const char* const tbl_alias,  char*& dst,  const char* const qry_filter){
 		MYSQL_RES* mysql_res;
 		MYSQL_ROW mysql_row;
 		
 		compsky::mysql::query(
-			mysql_obj,
-			&mysql_res,
+			_mysql::mysql_obj,
+			mysql_res,
 			buf,
 			"SELECT ", tbl_alias, ".name, ", tbl_alias, ".id "
 			"FROM ", tbl_name, ' ', tbl_alias, ' ',
@@ -129,6 +131,7 @@ namespace _r {
 		
 		compsky::asciify::asciify(itr, _headers);
 		compsky::asciify::asciify(itr, '[');
+		mysql_data_seek(mysql_res, 0); // Reset to first result
 		while(compsky::mysql::assign_next_row(mysql_res, &mysql_row, &name, &id)){
 			compsky::asciify::asciify(
 				itr,
@@ -139,7 +142,7 @@ namespace _r {
 				','
 			);
 		}
-		if (unlikely(*itr == ','))
+		if (unlikely(*(itr - 1) == ','))
 			// If there was at least one iteration of the loop...
 			--itr; // ...wherein a trailing comma was left
 		*(itr++) = ']';
@@ -266,7 +269,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	char* itr;
 	size_t remaining_buf_sz;
 	
-	MYSQL* mysql_obj;
+	static std::mutex mysql_mutex;
 	MYSQL_RES* res;
 	MYSQL_ROW row;
 	
@@ -293,22 +296,17 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		*this->itr = 0;
 	};
 	
-	void init_mysql_if_required(){
-		if (this->mysql_obj != nullptr)
-			return;
-		compsky::mysql::login_from_auth(this->mysql_obj, _mysql::auth);
-		std::cout << mysql_stat(this->mysql_obj) << std::endl;
+	void mysql_query_using_buf(){
+		this->mysql_mutex.lock();
+		compsky::mysql::query_buffer(_mysql::mysql_obj, this->res, this->buf, this->buf_indx());
+		this->mysql_mutex.unlock();
 	}
 	
 	template<typename... Args>
 	void mysql_query(Args... args){
-		this->init_mysql_if_required();
-		compsky::mysql::query(this->mysql_obj, &this->res, this->buf, args...);
-	}
-	
-	void mysql_query_using_buf(){
-		this->init_mysql_if_required();
-		compsky::mysql::query_buffer(this->mysql_obj, &this->res, this->buf, this->buf_indx());
+		this->reset_buf_index();
+		this->asciify(args...);
+		this->mysql_query_using_buf();
 	}
 	
 	template<typename... Args>
@@ -384,7 +382,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			  "AND s2cc.count>1000 ",
 			  _filter::REASONS,
 			"GROUP BY r.name "
-			"HAVING count>10 "
+			//"HAVING count>10 "
 			"ORDER BY count DESC "
 			"LIMIT 100"
 		);
@@ -475,7 +473,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		while (true){
 			switch(*csv){
 				case 0: // Don't expect a 0-terminated string
-				case ' ':
+				case ' ': // This is the expected terminator
 				case ',':
 					if (current_id_valid){
 						const uint64_t id = str2id(current_id_start, csv);
@@ -485,7 +483,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 					}
 					for (auto i = 0;  i < 6;  ++i)
 						// Safely skip the prefix ("id-t2_")
-						if (*(++csv) == 0)
+						++csv;
+						if (*csv == ' '  ||  *csv == 0)
 							// Good input would end only on k = 0 (corresponding to 'case 0')
 							// Otherwise, there was not the expected prefix in after the comma
 							return (uintptr_t)this->itr - (uintptr_t)buf_init;
@@ -673,7 +672,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		if (this->buf_indx()  ==  5 + std::char_traits<char>::length(ok_begin))
 			return this->flairs_given_users__empty();
 		
-		char* DST = this->buf + 1;
+		char* DST = this->buf + std::char_traits<char>::length(ok_begin) + 1;
 		
 		const bool first_results_nonempty = (DST[1] == ',');   // Begins with ],"id-t2_
 		const bool secnd_results_nonempty = (*(this->itr-1) == ']'); // Ends   with ]
@@ -915,7 +914,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	}
   public:
 	RTaggerHandler()
-	: mysql_obj(nullptr)
 	{
 		this->buf = (char*)malloc(this->buf_sz);
 		if(unlikely(this->buf == nullptr))
@@ -924,8 +922,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	}
 	
 	~RTaggerHandler(){
-		if (this->mysql_obj != nullptr)
-			mysql_close(this->mysql_obj);
 	}
 	
 		void read(Context* ctx,  const char* const msg) override {
@@ -941,6 +937,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			close(ctx);
 		}
 };
+std::mutex RTaggerHandler::mysql_mutex;
 
 class RTaggerPipelineFactory : public wangle::PipelineFactory<RTaggerPipeline> {
 	public:
@@ -965,18 +962,17 @@ int main(int argc,  char** argv) {
 	if (mysql_library_init(0, NULL, NULL))
 		throw compsky::mysql::except::SQLLibraryInit();
 	
-	MYSQL* mysql_obj;
 	compsky::mysql::init_auth(_mysql::buf, _mysql::buf_sz, _mysql::auth, getenv("RSCRAPER_MYSQL_CFG"));
-	compsky::mysql::login_from_auth(mysql_obj, _mysql::auth);
-	_r::init_json(mysql_obj,  "reason_matched", "m", _r::reasons_json, _filter::REASONS);
-	_r::init_json(mysql_obj,  "tag",            "t", _r::tags_json,    _filter::TAGS);
-	mysql_close(mysql_obj);
+	compsky::mysql::login_from_auth(_mysql::mysql_obj, _mysql::auth);
+	_r::init_json("reason_matched", "m", _r::reasons_json, _filter::REASONS);
+	_r::init_json("tag",            "t", _r::tags_json,    _filter::TAGS);
 
 	wangle::ServerBootstrap<RTaggerPipeline> server;
 	server.childPipeline(std::make_shared<RTaggerPipelineFactory>());
 	server.bind(8080);
 	server.waitForStop();
 	
+	mysql_close(_mysql::mysql_obj);
 	mysql_library_end();
 	compsky::mysql::wipe_auth(_mysql::buf, _mysql::buf_sz);
 
