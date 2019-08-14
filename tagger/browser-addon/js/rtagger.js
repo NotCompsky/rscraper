@@ -51,7 +51,7 @@ function write_user_flairs(list, id2name){
         }
         
 		var linktag = document.createElement("a");
-		linktag.href = items.user_info_url + s;
+		linktag.href = items.user_info_url + s.substr(6); // Skip "id-t2_"
 		linktag.innerText = "[Summary]";
 		t.appendChild(linktag);
 		
