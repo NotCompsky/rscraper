@@ -783,16 +783,16 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 													#include "headers/return_code/OK.c"
 													#include "headers/Content-Type/ico.c"
 													#include "headers/Cache-Control/1day.c"
-													"Content-Length: 78\n"
+													"Content-Length: 198\n"
 													"\n"
 													#include "favicon.txt"
-													, strlen(
+													, std::char_traits<char>::length(
 														#include "headers/return_code/OK.c"
 														#include "headers/Content-Type/ico.c"
 														#include "headers/Cache-Control/1day.c"
-														"Content-Length: 78\n"
+														"Content-Length: 198\n"
 														"\n"
-													) + 78
+													) + 198
 												);
 											default: return _r::not_found;
 										}
