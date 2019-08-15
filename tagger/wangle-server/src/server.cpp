@@ -114,10 +114,8 @@ namespace _r {
 		sz += 1;
 		while(compsky::mysql::assign_next_row__no_free(mysql_res, &mysql_row, &name, &id)){
 			sz +=
-				1 +
-					1 + 2*strlen(name) + 1 + 1 +
-					strlen(id) +
-				1 +
+				strlen(id) + 1 +
+					1 + 2*strlen(name) + 1 +
 				1
 			;
 		}
@@ -130,22 +128,20 @@ namespace _r {
 			exit(4096);
 		
 		compsky::asciify::asciify(itr, _headers);
-		compsky::asciify::asciify(itr, '[');
+		compsky::asciify::asciify(itr, '{');
 		mysql_data_seek(mysql_res, 0); // Reset to first result
 		while(compsky::mysql::assign_next_row(mysql_res, &mysql_row, &name, &id)){
 			compsky::asciify::asciify(
 				itr,
-				'[',
-					'"', _f::esc, '"', name, '"', ',',
-					id,
-				']',
+				id, ':',
+					'"', _f::esc, '"', name, '"',
 				','
 			);
 		}
 		if (unlikely(*(itr - 1) == ','))
 			// If there was at least one iteration of the loop...
 			--itr; // ...wherein a trailing comma was left
-		*(itr++) = ']';
+		*(itr++) = '}';
 		*itr = 0;
 	}
 }
