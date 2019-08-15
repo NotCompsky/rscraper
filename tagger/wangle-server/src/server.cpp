@@ -1,4 +1,3 @@
-#include "init_cred_processor_callbacks.hpp"
 #include "FrameDecoder.h"
 #include "CStringCodec.h"
 
@@ -6,11 +5,8 @@
 #include <compsky/asciify/asciify.hpp>
 
 #include <folly/init/Init.h>
-#include <folly/io/async/AsyncSSLSocket.h>
-#include <folly/ssl/Init.h>
 #include <wangle/bootstrap/ServerBootstrap.h>
 #include <wangle/channel/AsyncSocketHandler.h>
-#include <wangle/ssl/TLSCredProcessor.h>
 
 #include <mutex>
 #include <cstring> // for malloc
@@ -946,38 +942,11 @@ class RTaggerPipelineFactory : public wangle::PipelineFactory<RTaggerPipeline> {
 };
 
 int main(int argc,  char** argv) {
-	const char* const ssl_crt_fp = argv[1];
-	const char* const ssl_key_fp = argv[2];
-	_filter::REASONS = (argc > 3) ? argv[3] : _filter::EMPTY;
-	_filter::TAGS    = (argc > 4) ? argv[4] : _filter::EMPTY;
+	_filter::REASONS = (argc > 1) ? argv[1] : _filter::EMPTY;
+	_filter::TAGS    = (argc > 2) ? argv[2] : _filter::EMPTY;
 	
 	int dummy_argc = 1;
 	folly::Init init(&dummy_argc, &argv);
-	folly::ssl::init();
-	
-	wangle::ServerSocketConfig cfg;
-	folly::Optional<wangle::TLSTicketKeySeeds> seeds;
-
-	wangle::ServerBootstrap<RTaggerPipeline> server;
-	wangle::TLSCredProcessor processor;
-	
-	std::cout << "Configuring SSL" << std::endl;
-	wangle::SSLContextConfig sslCfg;
-	sslCfg.addCertificate(ssl_crt_fp, ssl_key_fp, "");
-	//sslCfg.clientCAFile = ssl_csr_fp;
-	sslCfg.isDefault = true;
-	cfg.sslContextConfigs.push_back(sslCfg);
-	// IMPORTANT: when allowing both plaintext and ssl on the same port,
-	// the acceptor requires 9 bytes of data to determine what kind of
-	// connection is coming in.  If the client does not send 9 bytes the
-	// connection will idle out before the EchoCallback receives data.
-	cfg.allowInsecureConnectionsOnSecureServer = false;
-
-	// reload ssl contexts when certs change
-	std::set<std::string> pathsToWatch { ssl_crt_fp, ssl_key_fp };
-	processor.setCertPathsToWatch(std::move(pathsToWatch));
-
-	initCredProcessorCallbacks(server, processor);
 	
 	if (mysql_library_init(0, NULL, NULL))
 		throw compsky::mysql::except::SQLLibraryInit();
@@ -986,8 +955,8 @@ int main(int argc,  char** argv) {
 	compsky::mysql::login_from_auth(_mysql::mysql_obj, _mysql::auth);
 	_r::init_json("reason_matched", "m", _r::reasons_json, _filter::REASONS);
 	_r::init_json("tag",            "t", _r::tags_json,    _filter::TAGS);
-	
-	server.acceptorConfig(cfg);
+
+	wangle::ServerBootstrap<RTaggerPipeline> server;
 	server.childPipeline(std::make_shared<RTaggerPipelineFactory>());
 	server.bind(8080);
 	server.waitForStop();
