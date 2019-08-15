@@ -114,7 +114,7 @@ namespace _r {
 		sz += 1;
 		while(compsky::mysql::assign_next_row__no_free(mysql_res, &mysql_row, &name, &id)){
 			sz +=
-				strlen(id) + 1 +
+				1 + strlen(id) + 1 + 1 +
 					1 + 2*strlen(name) + 1 +
 				1
 			;
@@ -133,7 +133,7 @@ namespace _r {
 		while(compsky::mysql::assign_next_row(mysql_res, &mysql_row, &name, &id)){
 			compsky::asciify::asciify(
 				itr,
-				id, ':',
+				'"', id, '"', ':',
 					'"', _f::esc, '"', name, '"',
 				','
 			);
