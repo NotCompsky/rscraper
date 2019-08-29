@@ -417,6 +417,8 @@ void ViewMatchedComments::ch_reason(){
 	if (s.isEmpty())
 		return;
 	
+	compsky::mysql::exec(_mysql::obj, BUF,"INSERT IGNORE INTO reason_matched (name) VALUES (\"", _f::esc, '"', s, "\")");
+	
 	compsky::mysql::exec(_mysql::obj, BUF,"UPDATE comment c, reason_matched m SET c.reason_matched=m.id WHERE m.name=\"", _f::esc, '"', s, "\" AND c.id=", this->cmnt_id);
 }
 
