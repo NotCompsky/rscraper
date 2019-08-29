@@ -7,7 +7,7 @@
 
 
 #include "scraper_tab.hpp"
-
+#include "mysql_declarations.hpp"
 #include "sql_name_dialog.hpp"
 #include "wlbl_label.hpp"
 #include "wlbl_reasonwise_label.hpp"
@@ -29,10 +29,6 @@
 #include <QMessageBox>
 #include <QPushButton>
 
-
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
-
 extern QStringList subreddit_names;
 extern QCompleter* subreddit_name_completer;
 QStringList user_names;
@@ -41,24 +37,19 @@ QStringList reason_names;
 QCompleter* reason_name_completer;
 
 
-namespace _f {
-	constexpr static const compsky::asciify::flag::Escape esc;
-}
-
-
 void populate_user_name_completer(){
-	compsky::mysql::query_buffer(&RES1, "SELECT name FROM user");
-	char* name;
-	while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
+	compsky::mysql::query_buffer(_mysql::obj, _mysql::res1, "SELECT name FROM user");
+	const char* name;
+	while (compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &name)){
 		user_names << name;
 	}
 	user_name_completer = new QCompleter(user_names);
 }
 
 void populate_reason_name_completer(){
-	compsky::mysql::query_buffer(&RES1, "SELECT name FROM reason_matched");
-	char* name;
-	while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
+	compsky::mysql::query_buffer(_mysql::obj, _mysql::res1, "SELECT name FROM reason_matched");
+	const char* name;
+	while (compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &name)){
 		reason_names << name;
 	}
 	reason_name_completer = new QCompleter(reason_names);
@@ -179,11 +170,11 @@ void ScraperTab::add_subreddit_to(const char* tblname,  const bool delete_from){
 		dialog->name_edit->setCompleter(subreddit_name_completer);
 	else {
 		QStringList tbl_user_names;
-		compsky::mysql::query(&RES1, "SELECT s.name, t.id FROM subreddit s RIGHT JOIN ", tblname, " t ON s.id=t.id");
-		char* name;
+		compsky::mysql::query(_mysql::obj, _mysql::res1, BUF, "SELECT s.name, t.id FROM subreddit s RIGHT JOIN ", tblname, " t ON s.id=t.id");
+		const char* name;
 		uint64_t id;
 		char buf[20];
-		while(compsky::mysql::assign_next_row(RES1, &ROW1, &name, &id)){
+		while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &name, &id)){
 			if (name != nullptr)
 				tbl_user_names << name;
 			else {
@@ -209,7 +200,7 @@ void ScraperTab::add_subreddit_to(const char* tblname,  const bool delete_from){
 	if (!is_pattern  &&  !subreddit_names.contains(qstr))
 		return notfound::subreddit(this, qstr);
 	
-	compsky::mysql::exec(
+	compsky::mysql::exec(_mysql::obj, BUF,
 		(delete_from) ? "DELETE a FROM " : "INSERT IGNORE INTO ",
 		tblname,
 		(delete_from) ? " a, subreddit b WHERE a.id=b.id AND b.name" : " SELECT id FROM subreddit WHERE name",
@@ -256,7 +247,7 @@ void ScraperTab::add_subreddit_to_reason(const char* tblname,  const bool delete
 	if (!is_pattern  &&  !subreddit_names.contains(qstr_subreddit))
 		return notfound::subreddit(this, qstr_subreddit);
 	
-	compsky::mysql::exec(
+	compsky::mysql::exec(_mysql::obj, BUF,
 		(delete_from) ? "DELETE x FROM " : "INSERT IGNORE INTO ",
 		tblname,
 		(delete_from) ? " x, reason_matched a, subreddit b WHERE x.reason=a.id AND x.subreddit=b.id AND a.name=\"" : " SELECT a.id,b.id FROM reason_matched a, subreddit b WHERE a.name=\"",
@@ -278,11 +269,11 @@ void ScraperTab::add_user_to(const char* tblname,  const bool delete_from){
 		dialog->name_edit->setCompleter(user_name_completer);
 	else {
 		QStringList tbl_user_names;
-		compsky::mysql::query(&RES1, "SELECT u.name, t.id FROM user u RIGHT JOIN ", tblname, " t ON u.id=t.id");
-		char* name;
+		compsky::mysql::query(_mysql::obj, _mysql::res1, BUF, "SELECT u.name, t.id FROM user u RIGHT JOIN ", tblname, " t ON u.id=t.id");
+		const char* name;
 		uint64_t id;
 		char buf[20];
-		while(compsky::mysql::assign_next_row(RES1, &ROW1, &name, &id)){
+		while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &name, &id)){
 			if (name != nullptr)
 				tbl_user_names << name;
 			else {
@@ -309,7 +300,7 @@ void ScraperTab::add_user_to(const char* tblname,  const bool delete_from){
 			QMessageBox::information(this, "Invalid Format", "User ID must be in format id-t2_<alphanumerics>");
 			return;
 		}
-		compsky::mysql::exec(
+		compsky::mysql::exec(_mysql::obj, BUF,
 			(delete_from) ? "DELETE FROM " : "INSERT IGNORE INTO ",
 			tblname,
 			(delete_from) ? " WHERE id=" : " (id) VALUES (", str2id(s + 6), ")"
@@ -320,7 +311,7 @@ void ScraperTab::add_user_to(const char* tblname,  const bool delete_from){
 	if (!user_names.contains(qstr))
 		return notfound::user(this, qstr);
 	
-	compsky::mysql::exec(
+	compsky::mysql::exec(_mysql::obj, BUF,
 		(delete_from) ? "DELETE a FROM " : "INSERT IGNORE INTO ",
 		tblname,
 		(delete_from) ? "a, user b WHERE a.id=b.id AND b.name=\"" : " SELECT id FROM user WHERE name=\"",

@@ -7,6 +7,7 @@
 
 
 #include "clbtn.hpp"
+#include "mysql_declarations.hpp"
 
 #include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
@@ -14,10 +15,6 @@
 #include <QColorDialog>
 #include <QMessageBox>
 #include <QPalette>
-
-
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
 
 
 SelectColourButton::SelectColourButton(const uint64_t id,  const unsigned char r,  const unsigned char g,  const unsigned char b,  const unsigned char a,  QWidget* parent,  const char* tblname_)
@@ -55,7 +52,7 @@ void SelectColourButton::set_colour(){
 	
 	constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f;
 	
-	compsky::mysql::exec("UPDATE ", this->tblname, " SET r=", f, r, 3, ",g=", f, g, 3, ",b=", f, b, 3, ",a=", f, a, 3, " WHERE id=", this->tag_id);
+	compsky::mysql::exec(_mysql::obj, BUF, "UPDATE ", this->tblname, " SET r=", f, r, 3, ",g=", f, g, 3, ",b=", f, b, 3, ",a=", f, a, 3, " WHERE id=", this->tag_id);
 }
 
 void SelectColourButton::mousePressEvent(QMouseEvent* e){

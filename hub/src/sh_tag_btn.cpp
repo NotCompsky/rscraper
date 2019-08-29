@@ -6,7 +6,7 @@
  */
 
 #include "sh_tag_btn.hpp"
-
+#include "mysql_declarations.hpp"
 #include "categorytab.hpp"
 #include "clbtn.hpp"
 #include "name_dialog.hpp"
@@ -19,9 +19,6 @@
 #include <QMessageBox>
 #include <QStringList>
 
-
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
 
 extern QStringList category_names;
 
@@ -48,16 +45,16 @@ void ShTagBtn::exec(){
 	
 	constexpr static const compsky::asciify::flag::Escape f_esc;
 	
-	compsky::mysql::query(&RES1, "SELECT t2c.tag_id FROM tag2category t2c, category c WHERE t2c.category_id=c.id AND t2c.tag_id=", this->tag_id, " AND c.name=\"", f_esc, '"', qstr, "\"");
+	compsky::mysql::query(_mysql::obj, _mysql::res1, BUF, "SELECT t2c.tag_id FROM tag2category t2c, category c WHERE t2c.category_id=c.id AND t2c.tag_id=", this->tag_id, " AND c.name=\"", f_esc, '"', qstr, "\"");
 	uint64_t prev_id = 0;
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &prev_id));
+	while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &prev_id));
 	if (prev_id != 0){
 		QMessageBox::information(this, "Ignored", "Tag already belongs to that category");
 		return;
 	}
 	
 	
-	compsky::mysql::exec("INSERT IGNORE INTO tag2category SELECT ", this->tag_id, ", id FROM category WHERE name=\"", f_esc, '"', qstr, "\"");
+	compsky::mysql::exec(_mysql::obj, BUF, "INSERT IGNORE INTO tag2category SELECT ", this->tag_id, ", id FROM category WHERE name=\"", f_esc, '"', qstr, "\"");
 	
 	ClTagsTab* cat_tab = reinterpret_cast<ClTagsTab*>(this->parent());
 	ClTagsTab* w = reinterpret_cast<ClTagsTab*>(cat_tab->tab_named(qstr)->widget());

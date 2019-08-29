@@ -6,7 +6,7 @@
  */
 
 #include "rm_tag_btn.hpp"
-
+#include "mysql_declarations.hpp"
 #include "categorytab.hpp"
 #include "clbtn.hpp"
 #include "unlink_tag_btn.hpp"
@@ -15,10 +15,6 @@
 
 #include <QGridLayout>
 #include <QMessageBox>
-
-
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
 
 
 RmTagBtn::RmTagBtn(const uint64_t id,  QWidget* parent) : QPushButton("Delete", parent), tag_id(id) {
@@ -31,9 +27,9 @@ RmTagBtn::RmTagBtn(const uint64_t id,  QWidget* parent) : QPushButton("Delete", 
 }
 
 void RmTagBtn::rm_tag(){
-	compsky::mysql::exec("DELETE FROM subreddit2tag WHERE tag_id=", this->tag_id);
-	compsky::mysql::exec("DELETE FROM tag WHERE id=", this->tag_id);
-	compsky::mysql::exec("DELETE FROM tag2category WHERE tag_id=", this->tag_id);
+	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM subreddit2tag WHERE tag_id=", this->tag_id);
+	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM tag WHERE id=", this->tag_id);
+	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM tag2category WHERE tag_id=", this->tag_id);
 	
 	ClTagsTab* cat_tab = reinterpret_cast<ClTagsTab*>(this->parent());
 	const int indx = cat_tab->l->indexOf(this);

@@ -6,7 +6,7 @@
  */
 
 #include "btn_with_id.hpp"
-
+#include "mysql_declarations.hpp"
 #include "categorytab.hpp"
 #include "name_dialog.hpp"
 
@@ -16,9 +16,6 @@
 #include <QMessageBox>
 #include <QStringList>
 
-
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
 
 extern QStringList category_names;
 

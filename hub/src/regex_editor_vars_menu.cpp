@@ -6,7 +6,7 @@
  */
 
 #include "regex_editor_vars_menu.hpp"
-
+#include "mysql_declarations.hpp"
 #include "name_dialog.hpp"
 
 #include <compsky/mysql/query.hpp>
@@ -23,18 +23,10 @@ Why store variables in SQL? Laziness. Filesystem storage is ultimately the goal,
 #include <QVBoxLayout>
 
 
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
-
-
 static const QStringList type_id2name = {
 	"0:raw_string",
 	"1:array", // i.e. a list - not a string
 };
-
-namespace _f {
-	constexpr static const compsky::asciify::flag::Escape esc;
-}
 
 
 void optimise_regex(QString& data,  QString& result){
@@ -79,13 +71,13 @@ RegexEditorVarsMenu::RegexEditorVarsMenu(QWidget* parent) : QDialog(parent), row
 	this->l->addWidget(btn, 0, 0);
 	}
 
-	compsky::mysql::query_buffer(&RES1,  "SELECT name, type FROM regex_vars");
+	compsky::mysql::query_buffer(_mysql::obj, _mysql::res1,  "SELECT name, type FROM regex_vars");
 	
 	{
-	char* name;
+	const char* name;
 	unsigned int type;
 	
-	while (compsky::mysql::assign_next_row(RES1, &ROW1, &name, &type)){
+	while (compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &name, &type)){
 		add_var_row(name,  type_id2name[type]);
 	}
 	}
@@ -113,7 +105,7 @@ void RegexEditorVarsMenu::add_var(){
 		return;
 	}
 
-	compsky::mysql::exec("INSERT IGNORE INTO regex_vars (name, type) VALUES (\"",  _f::esc, '"', name,  "\",",  type,  ")");
+	compsky::mysql::exec(_mysql::obj, BUF, "INSERT IGNORE INTO regex_vars (name, type) VALUES (\"",  _f::esc, '"', name,  "\",",  type,  ")");
 	
 	this->add_var_row(name, type_name);
 }
@@ -151,10 +143,10 @@ void RegexEditorVarsMenu::var_edit_btn_clicked(){
 	const int row_ = btn->objectName().toInt();
 	const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row_, 0)->widget())->text();
 
-	compsky::mysql::query(&RES1,  "SELECT data FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
-	char* data_raw;
+	compsky::mysql::query(_mysql::obj, _mysql::res1,  BUF, "SELECT data FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
+	const char* data_raw;
 	QString data_;
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &data_raw)){
+	while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &data_raw)){
 		static const QString qstr_uninitialised("!!!<Uninitialised>!!!");
 		data_ = (data_raw==nullptr) ? qstr_uninitialised : QString(data_raw);
 	}
@@ -164,7 +156,7 @@ void RegexEditorVarsMenu::var_edit_btn_clicked(){
 	if (!ok)
 		return;
 
-	compsky::mysql::exec("UPDATE regex_vars SET data=\"", _f::esc, '"', data_, "\" WHERE name=\"", _f::esc, '"', name, "\"");
+	compsky::mysql::exec(_mysql::obj, BUF, "UPDATE regex_vars SET data=\"", _f::esc, '"', data_, "\" WHERE name=\"", _f::esc, '"', name, "\"");
 
 	const unsigned int type = this->l->itemAtPosition(row_, 1)->widget()->objectName().toInt();
 
@@ -179,7 +171,7 @@ void RegexEditorVarsMenu::var_edit_btn_clicked(){
 				break;
 		}
 		QMessageBox::information(this,  "Result",  result);
-		compsky::mysql::exec("UPDATE regex_vars SET result=\"", _f::esc, '"', result, "\" WHERE name=\"", name, "\"");
+		compsky::mysql::exec(_mysql::obj, BUF, "UPDATE regex_vars SET result=\"", _f::esc, '"', result, "\" WHERE name=\"", name, "\"");
 	}
 }
 
@@ -189,9 +181,9 @@ void RegexEditorVarsMenu::var_view_btn_clicked(){
 	const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row_, 0)->widget())->text();
 	const unsigned int type = this->l->itemAtPosition(row_, 1)->widget()->objectName().toInt();
 
-	compsky::mysql::query(&RES1,  "SELECT result FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
-	char* result;
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &result)){
+	compsky::mysql::query(_mysql::obj, _mysql::res1, BUF,  "SELECT result FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
+	const char* result;
+	while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &result)){
 		QMessageBox::information(this,  "Result",  result);
 	}
 }
@@ -200,7 +192,7 @@ void RegexEditorVarsMenu::var_del_btn_clicked(){
 	QWidget* btn = static_cast<QPushButton*>(sender());
 	const int row_ = btn->objectName().toInt();
 	const QString name = static_cast<QLabel*>(this->l->itemAtPosition(row_, 0)->widget())->text();
-	compsky::mysql::exec("DELETE FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
+	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM regex_vars WHERE name=\"", _f::esc, '"', name, "\"");
 	for (auto i = 0;  i < n_per_row;  ++i){
 		QLayoutItem* a = this->l->itemAtPosition(row_, i);
 		delete a->widget();

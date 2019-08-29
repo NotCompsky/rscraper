@@ -6,21 +6,11 @@
  */
 
 #include "wlbl_label.hpp"
-
+#include "msgbox.hpp"
+#include "mysql_declarations.hpp"
 #include <QMessageBox>
 
 #include <compsky/mysql/query.hpp>
-
-#include "msgbox.hpp"
-
-
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
-
-
-namespace _f {
-	constexpr static const compsky::asciify::flag::Escape esc;
-}
 
 
 WlBlLabel::WlBlLabel(const char* name,  const char* typ_,  const char* typ_id_varname_,  const char* tblname_)
@@ -32,11 +22,11 @@ WlBlLabel::WlBlLabel(const char* name,  const char* typ_,  const char* typ_id_va
 
 
 void WlBlLabel::display_subs_w_tag(){
-	compsky::mysql::query(&RES1,  "SELECT IFNULL(b.name, CONCAT('<ID>', a.id)) FROM ", this->tblname, " a LEFT JOIN ", this->typ, " b ON a.", this->typ_id_varname, "=b.id");
+	compsky::mysql::query(_mysql::obj, _mysql::res1,  BUF, "SELECT IFNULL(b.name, CONCAT('<ID>', a.id)) FROM ", this->tblname, " a LEFT JOIN ", this->typ, " b ON a.", this->typ_id_varname, "=b.id");
 	
-	char* name;
+	const char* name;
 	QString s = "";
-	while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
+	while (compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &name)){
 		s += '\n';
 		s += name;
 	}

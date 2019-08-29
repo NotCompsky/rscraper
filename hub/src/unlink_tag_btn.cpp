@@ -6,7 +6,7 @@
  */
 
 #include "unlink_tag_btn.hpp"
-
+#include "mysql_declarations.hpp"
 #include "categorytab.hpp"
 
 #include <compsky/mysql/query.hpp>
@@ -17,7 +17,7 @@
 UnlinkTagBtn::UnlinkTagBtn(const uint64_t id,  QWidget* parent) : QPushButton("Unlink", parent), tag_id(id) {}
 
 void UnlinkTagBtn::exec(){
-	compsky::mysql::exec("DELETE FROM tag2category WHERE tag_id=", this->tag_id, " AND category_id=", static_cast<ClTagsTab*>(this->parent())->cat_id);
+	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM tag2category WHERE tag_id=", this->tag_id, " AND category_id=", static_cast<ClTagsTab*>(this->parent())->cat_id);
 	
 	const QWidget* par = reinterpret_cast<QWidget*>(this->parent());
 	QGridLayout* l = reinterpret_cast<QGridLayout*>(par->layout());

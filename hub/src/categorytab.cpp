@@ -7,7 +7,7 @@
 
 
 #include "categorytab.hpp"
-
+#include "mysql_declarations.hpp"
 #include "add_sub2tag_btn.hpp"
 #include "btn_with_id.hpp"
 #include "cat_pie.hpp"
@@ -34,11 +34,6 @@
 #include <QtCharts/QHorizontalBarSeries>
 #include <QtCharts/QValueAxis>
 
-
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
-extern MYSQL_RES* RES2;
-extern MYSQL_ROW ROW2;
 
 extern std::map<QString, uint64_t> tag_name2id;
 extern QStringList tagslist;
@@ -69,14 +64,14 @@ ClTagsTab::ClTagsTab(const uint64_t cat_id_,  QTabWidget* tab_widget_,  QWidget*
 	connect(add_tag_btn, &QPushButton::clicked, this, &ClTagsTab::add_tag);
 	this->l->addWidget(add_tag_btn, 0, 0);
 	
-	compsky::mysql::query(&RES2,  "SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM tag WHERE id IN (SELECT tag_id FROM tag2category WHERE category_id=",  cat_id,  ") ORDER BY name");
+	compsky::mysql::query(_mysql::obj, _mysql::res2,  BUF,  "SELECT id, name, FLOOR(255*r), FLOOR(255*g), FLOOR(255*b), FLOOR(255*a) FROM tag WHERE id IN (SELECT tag_id FROM tag2category WHERE category_id=",  cat_id,  ") ORDER BY name");
 	
 	{
 	uint64_t id;
-	char* name;
+	const char* name;
 	uint8_t r, g, b, a;
 	
-	while (compsky::mysql::assign_next_row(RES2, &ROW2, &id, &name, &r, &g, &b, &a))
+	while (compsky::mysql::assign_next_row(_mysql::res2, &_mysql::row2, &id, &name, &r, &g, &b, &a))
 		add_tag_row(id, name, QColor(r, g, b, a));
 	}
 	
@@ -104,10 +99,10 @@ QScrollArea* ClTagsTab::tab_named(const QString& qs){
 
 uint64_t ClTagsTab::create_tag(const QString& qs){
 	constexpr static const compsky::asciify::flag::Escape f;
-	compsky::mysql::exec("INSERT IGNORE INTO tag (name, r,g,b,a) VALUES (\"",  f,  '"',  qs,  "\",0,0,0,0)");
-	compsky::mysql::query_buffer(&RES1,  "SELECT LAST_INSERT_ID() as ''");
+	compsky::mysql::exec(_mysql::obj, BUF, "INSERT IGNORE INTO tag (name, r,g,b,a) VALUES (\"",  f,  '"',  qs,  "\",0,0,0,0)");
+	compsky::mysql::query_buffer(_mysql::obj, _mysql::res1,  "SELECT LAST_INSERT_ID() as ''");
 	uint64_t id = 0;
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &id));
+	while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &id));
 	tag_name2id[qs] = id;
 	return id;
 }
@@ -126,7 +121,7 @@ void ClTagsTab::add_tag(){
 	
 	const uint64_t tag_id  =  (tagslist.contains(tagstr))  ?  tag_name2id[tagstr]  :  this->create_tag(tagstr);
 	
-	compsky::mysql::exec("INSERT IGNORE INTO tag2category (category_id, tag_id) VALUES (",  this->cat_id,  ',',  tag_id,  ')');
+	compsky::mysql::exec(_mysql::obj, BUF, "INSERT IGNORE INTO tag2category (category_id, tag_id) VALUES (",  this->cat_id,  ',',  tag_id,  ')');
 	tagslist << tagstr;
 	
 	this->add_tag_row(tag_id,  tagstr,  QColor(0, 0, 0, 0));
@@ -151,11 +146,11 @@ void ClTagsTab::add_tag_row(const uint64_t tag_id,  QString tagstr,  const QColo
 
 void ClTagsTab::rm_self(){
 	// For safety reasons, only empty categories will be deleted
-	compsky::mysql::query(&RES1, "SELECT t2c.tag_id, t.name FROM tag2category t2c, tag t WHERE t.id=t2c.tag_id AND t2c.category_id=", this->cat_id);
+	compsky::mysql::query(_mysql::obj, _mysql::res1, BUF, "SELECT t2c.tag_id, t.name FROM tag2category t2c, tag t WHERE t.id=t2c.tag_id AND t2c.category_id=", this->cat_id);
 	uint64_t tag_id = 0;
-	char* name;
+	const char* name;
 	QString s = "Refusing to delete non-empty category.\nTags with this category are:";
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &tag_id, &name)){
+	while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &tag_id, &name)){
 		s += "\n";
 		s += name;
 	}
@@ -163,7 +158,7 @@ void ClTagsTab::rm_self(){
 		QMessageBox::information(this, tr("Error"), s);
 		return;
 	}
-	compsky::mysql::exec("DELETE FROM category WHERE id=", this->cat_id);
+	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM category WHERE id=", this->cat_id);
 	
 	category_names.removeAt(category_names.indexOf(this->tab_widget->tabText(this->tab_widget->indexOf(this))));
 	

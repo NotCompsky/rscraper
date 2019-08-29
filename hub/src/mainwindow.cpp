@@ -28,20 +28,20 @@
 #define DIGITS_IN_UINT64 19
 
 
-namespace compsky {
-	namespace asciify {
-		int BUF_SZ = 4096; // int rather than size_t as Qt string length returns int
-		char* BUF = (char*)malloc(4096);
-		char* ITR = BUF;
-	}
+char BUF[4096];
+
+
+namespace _mysql {
+	MYSQL* obj;
+	
+	MYSQL_RES* res1;
+	MYSQL_ROW row1;
+
+	MYSQL_RES* res2;
+	MYSQL_ROW row2;
+	
+	char auth[512];
 }
-
-MYSQL_RES* RES1;
-MYSQL_ROW ROW1;
-
-MYSQL_RES* RES2;
-MYSQL_ROW ROW2;
-
 
 std::map<QString, uint64_t> tag_name2id;
 QStringList tagslist;
@@ -54,10 +54,7 @@ constexpr static const compsky::asciify::flag::Escape f_esc;
 
 
 MainWindow::MainWindow(QWidget* parent){
-	if (compsky::asciify::BUF == nullptr)
-		exit(4096);
-
-	compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
+	compsky::mysql::init(_mysql::obj, _mysql::auth, 512, getenv("RSCRAPER_MYSQL_CFG"));
 	
 	// TODO: Add status bar, to display messages such as "Executing query, might take a while"
 	
@@ -83,31 +80,31 @@ MainWindow::MainWindow(QWidget* parent){
 
 	
 	tag_name2id.clear();
-	compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM tag");
+	compsky::mysql::query_buffer(_mysql::obj, _mysql::res1, "SELECT id, name FROM tag");
 	{
 	uint64_t id;
-	char* name;
-	while (compsky::mysql::assign_next_row(RES1, &ROW1, &id, &name)){
+	const char* name;
+	while (compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &id, &name)){
 		tag_name2id[name] = id;
 		tagslist << name;
 	}
 	}
 	
-	compsky::mysql::query_buffer(&RES1, "SELECT id, name FROM category");
+	compsky::mysql::query_buffer(_mysql::obj, _mysql::res1, "SELECT id, name FROM category");
 	
 	{
 	uint64_t id;
-	char* name;
-	while (compsky::mysql::assign_next_row(RES1, &ROW1, &id, &name)){
+	const char* name;
+	while (compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &id, &name)){
 		this->insert_category(id, name);
 		category_names << name;
 	}
 	}
 	
-	compsky::mysql::query_buffer(&RES1, "SELECT name FROM subreddit");
+	compsky::mysql::query_buffer(_mysql::obj, _mysql::res1, "SELECT name FROM subreddit");
 	{
-	char* name;
-	while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
+	const char* name;
+	while (compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &name)){
 		subreddit_names << name;
 	}
 	}
@@ -127,7 +124,7 @@ MainWindow::MainWindow(QWidget* parent){
 }
 
 MainWindow::~MainWindow(){
-	compsky::mysql::exit_mysql();
+	compsky::mysql::wipe_auth(_mysql::auth, 512);
 }
 
 void MainWindow::insert_category(const uint64_t id,  const char* name){
@@ -158,5 +155,5 @@ void MainWindow::rename_category(int indx){
 	
 	const uint64_t cat_id = static_cast<ClTagsTab*>(static_cast<QScrollArea*>(this->tab_widget->widget(indx))->widget())->cat_id;
 	
-	compsky::mysql::exec("UPDATE category SET name=\"", f_esc, '"', qstr, "\" WHERE id=", cat_id);
+	compsky::mysql::exec(_mysql::obj, BUF, "UPDATE category SET name=\"", f_esc, '"', qstr, "\" WHERE id=", cat_id);
 }

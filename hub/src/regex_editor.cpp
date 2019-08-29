@@ -8,7 +8,7 @@
 #ifdef USE_BOOST_REGEX
 
 #include "regex_editor.hpp"
-
+#include "mysql_declarations.hpp"
 #include "regex_editor_highlighter.hpp"
 #include "msgbox.hpp"
 #include "sql_name_dialog.hpp"
@@ -30,21 +30,8 @@
 #include <QVBoxLayout>
 
 
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
-
-namespace compsky {
-	namespace asciify {
-		extern int BUF_SZ; // int rather than size_t as Qt string length returns int
-	}
-}
-
 namespace filter_comment_body {
 	extern boost::basic_regex<char, boost::cpp_regex_traits<char>>* regexpr;
-}
-
-namespace _f {
-	constexpr static const compsky::asciify::flag::Escape esc;
 }
 
 static const QString help_text = 
@@ -70,19 +57,24 @@ static const QString help_text =
 ;
 
 
-void ensure_buf_sized(const size_t buf_sz){
-	if (buf_sz < compsky::asciify::BUF_SZ)
+void RegexEditor::ensure_buf_sized(const size_t buf_sz){
+	if (buf_sz < this->buf_sz)
 		return;
 	// Ensure there is sufficient space to run the compsky::mysql::exec commands below
-	compsky::asciify::BUF_SZ = 2*buf_sz;
-	void* dummy = malloc(compsky::asciify::BUF_SZ);
-	if (dummy == nullptr)
+	this->buf_sz = 2*buf_sz;
+	void* dummy = malloc(this->buf_sz);
+	if (unlikely(dummy == nullptr))
 		exit(4096);
-	compsky::asciify::BUF = (char*)dummy;
+	this->buf = (char*)dummy;
 }
 
 
 RegexEditor::RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* parent) : QDialog(parent), src(srcvar), dst(dstvar) {
+	this->buf = (char*)malloc(4096);
+	if(unlikely(this->buf == nullptr))
+		exit(4096);
+	this->itr = buf;
+	
 	QVBoxLayout* l = new QVBoxLayout;
 	
 	this->text_editor = new CodeEditor(this);
@@ -194,9 +186,9 @@ void RegexEditor::display_help() const{
 }
 
 void RegexEditor::load_file(){
-	compsky::mysql::query(&RES1,  "SELECT data FROM longstrings WHERE name='", this->src, "'");
-	char* data_;
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &data_))
+	compsky::mysql::query(_mysql::obj, _mysql::res1,  BUF, "SELECT data FROM longstrings WHERE name='", this->src, "'");
+	const char* data_;
+	while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &data_))
 		this->text_editor->setPlainText(data_);
 }
 
@@ -208,7 +200,7 @@ int get_line_n(const QString& s,  int end){
 	return n;
 }
 
-bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  int j,  int last_optimised_group_indx,  int var_depth) const { // Use seperate buffer to avoid overwriting text_editor contents
+bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  int j,  int last_optimised_group_indx,  int var_depth){ // Use seperate buffer to avoid overwriting text_editor contents
 	// WARNING: Does not currently support special encodings, i.e. non-ASCII characters are likely to be mangled.
 	// TODO: Add utf8 support.
 	const QString q = this->text_editor->toPlainText();
@@ -284,7 +276,7 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 			}
 			buf += var;
 			j += var.size();
-			ensure_buf_sized(j);
+			this->ensure_buf_sized(j);
 			continue;
 		}
 		if (c == QChar('{')){
@@ -376,7 +368,7 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 	return false;
 }
 
-void RegexEditor::test_regex() const{
+void RegexEditor::test_regex(){
 	QString buf; // Dummy character to create space for 1 char at beginning
 	buf.reserve(this->text_editor->toPlainText().size());
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
@@ -460,17 +452,17 @@ void RegexEditor::test_regex() const{
 	delete msgbox;
 }
 
-void RegexEditor::save_to_file() const {
+void RegexEditor::save_to_file(){
 	QString buf;
 	const int buf_sz = this->text_editor->toPlainText().size() + 1; // Extra char for trailing \0
 	buf.reserve(buf_sz);
 	if (!this->to_final_format(this->does_user_want_optimisations(), buf, 0, 0))
 		return;
 	
-	ensure_buf_sized(buf_sz);
+	this->ensure_buf_sized(buf_sz);
 	
-	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', this->text_editor->toPlainText(), "\" WHERE name='", this->src, "'");
-	compsky::mysql::exec("UPDATE longstrings SET data=\"", _f::esc, '"', buf, "\" WHERE name='", this->dst, "'");
+	compsky::mysql::exec(_mysql::obj, BUF, "UPDATE longstrings SET data=\"", _f::esc, '"', this->text_editor->toPlainText(), "\" WHERE name='", this->src, "'");
+	compsky::mysql::exec(_mysql::obj, BUF, "UPDATE longstrings SET data=\"", _f::esc, '"', buf, "\" WHERE name='", this->dst, "'");
 }
 
 bool RegexEditor::does_user_want_optimisations() const {

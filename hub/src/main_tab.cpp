@@ -18,8 +18,13 @@
 #include <QPushButton>
 
 
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
+extern char BUF[];
+
+namespace _mysql {
+	extern MYSQL* obj;
+	extern MYSQL_RES* res1;
+	extern MYSQL_ROW row1;
+}
 
 namespace _f {
 	constexpr static const compsky::asciify::flag::Escape esc;
@@ -61,12 +66,12 @@ void MainTab::add_category(){
 	if (rc != QDialog::Accepted  ||  cat_qstr.isEmpty())
 		return;
 	
-	compsky::mysql::exec("INSERT INTO category (name) VALUES (\"", _f::esc, '"', cat_qstr, "\")");
+	compsky::mysql::exec(_mysql::obj, BUF, "INSERT INTO category (name) VALUES (\"", _f::esc, '"', cat_qstr, "\")");
 	
-	compsky::mysql::query(&RES1, "SELECT id FROM category WHERE name=\"", _f::esc, '"', cat_qstr, "\"");
+	compsky::mysql::query(_mysql::obj, _mysql::res1, BUF, "SELECT id FROM category WHERE name=\"", _f::esc, '"', cat_qstr, "\"");
 	
 	uint64_t cat_id = 0;
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &cat_id));
+	while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &cat_id));
 	
 	this->tab_widget->addTab(new ClTagsTab(cat_id, this->tab_widget), cat_qstr);
 }

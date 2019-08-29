@@ -3,6 +3,7 @@
  */
 
 #include "cat_pie.hpp"
+#include "mysql_declarations.hpp"
 
 #include <compsky/mysql/query.hpp>
 
@@ -13,10 +14,6 @@
 #include <QPieSlice>
 #include <QPushButton>
 #include <QVBoxLayout>
-
-
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
 
 
 CatPie::CatPie(const uint64_t category_id,  QWidget* parent) : QDialog(parent), chart(nullptr), cat_id(category_id), is_initialised(false) {}
@@ -33,13 +30,13 @@ void CatPie::init(){
 	using namespace QtCharts;
 	
 	// TODO: Use worker thread for this
-	compsky::mysql::query(&RES1,  "SELECT t.name, COUNT(u2scc.count), FLOOR(255*r) as r, FLOOR(255*g) as g, FLOOR(255*b) as b, FLOOR(255*a) as a FROM tag2category t2c, tag t, subreddit2tag s2t, user2subreddit_cmnt_count u2scc WHERE t2c.category_id=", this->cat_id, " AND t.id=t2c.tag_id AND t.id=s2t.tag_id AND s2t.subreddit_id=u2scc.subreddit_id GROUP BY t.name, r, g, b, a");
+	compsky::mysql::query(_mysql::obj, _mysql::res1,  BUF, "SELECT t.name, COUNT(u2scc.count), FLOOR(255*r) as r, FLOOR(255*g) as g, FLOOR(255*b) as b, FLOOR(255*a) as a FROM tag2category t2c, tag t, subreddit2tag s2t, user2subreddit_cmnt_count u2scc WHERE t2c.category_id=", this->cat_id, " AND t.id=t2c.tag_id AND t.id=s2t.tag_id AND s2t.subreddit_id=u2scc.subreddit_id GROUP BY t.name, r, g, b, a");
 	uint64_t tag_count;
-	char* tag_name;
+	const char* tag_name;
 	uint8_t r, g, b, a;
 	QPieSeries* series = new QPieSeries();
 	this->chart = new QChart();
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &tag_name, &tag_count, &r, &g, &b, &a)){
+	while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &tag_name, &tag_count, &r, &g, &b, &a)){
 		QPieSlice* slice = series->append(QString(tag_name), tag_count);
 		slice->setColor(QColor(r, g, b, a));
 	}

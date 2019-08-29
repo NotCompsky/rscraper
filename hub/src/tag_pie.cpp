@@ -3,6 +3,7 @@
  */
 
 #include "tag_pie.hpp"
+#include "mysql_declarations.hpp"
 
 #include <compsky/mysql/query.hpp>
 
@@ -15,22 +16,18 @@
 #include <QVBoxLayout>
 
 
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
-
-
 TagPie::TagPie(const int tag_id,  QWidget* parent) : QDialog(parent) {
 	using namespace QtCharts;
 	
 	// TODO: Use worker thread for this
-	compsky::mysql::query(&RES1,  "SELECT s.name, COUNT(u2scc.count) as c FROM subreddit s, subreddit2tag s2t, user2subreddit_cmnt_count u2scc WHERE s2t.tag_id=", tag_id, " AND s.id=s2t.subreddit_id AND s2t.subreddit_id=u2scc.subreddit_id GROUP BY s.name ORDER BY c DESC");
+	compsky::mysql::query(_mysql::obj,  _mysql::res1,  BUF, "SELECT s.name, COUNT(u2scc.count) as c FROM subreddit s, subreddit2tag s2t, user2subreddit_cmnt_count u2scc WHERE s2t.tag_id=", tag_id, " AND s.id=s2t.subreddit_id AND s2t.subreddit_id=u2scc.subreddit_id GROUP BY s.name ORDER BY c DESC");
 	uint64_t count;
-	char* subreddit_name;
+	const char* subreddit_name;
 	int subreddit_count = 0;
 	uint64_t misc_count = 0;
 	QPieSeries* series = new QPieSeries();
 	QChart* chart = new QChart();
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &subreddit_name, &count)){
+	while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &subreddit_name, &count)){
 		if (++subreddit_count < 30)
 			series->append(QString("%1: %2").arg(subreddit_name).arg(count), count);
 		else

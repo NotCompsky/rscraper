@@ -6,19 +6,10 @@
  */
 
 #include "wlbl_reasonwise_label.hpp"
-
 #include "msgbox.hpp"
+#include "mysql_declarations.hpp"
 
 #include <compsky/mysql/query.hpp>
-
-
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
-
-
-namespace _f {
-	constexpr static const compsky::asciify::flag::Escape esc;
-}
 
 
 WlBlReasonwiseLabel::WlBlReasonwiseLabel(const char* name,  const char* typ_,  const char* typ_id_varname_,  const char* tblname_)
@@ -28,12 +19,12 @@ WlBlReasonwiseLabel::WlBlReasonwiseLabel(const char* name,  const char* typ_,  c
 
 
 void WlBlReasonwiseLabel::display_subs_w_tag(){
-	compsky::mysql::query(&RES1,  "SELECT m.name,b.name FROM reason_matched m,", this->tblname, " a,", this->typ, " b WHERE m.id=a.reason AND a.", this->typ_id_varname, "=b.id");
+	compsky::mysql::query(_mysql::obj, _mysql::res1,  BUF,  "SELECT m.name,b.name FROM reason_matched m,", this->tblname, " a,", this->typ, " b WHERE m.id=a.reason AND a.", this->typ_id_varname, "=b.id");
 	
-	char* reason_name;
-	char* subreddit_name;
+	const char* reason_name;
+	const char* subreddit_name;
 	QString s = this->text();
-	while (compsky::mysql::assign_next_row(RES1, &ROW1, &reason_name, &subreddit_name)){
+	while (compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &reason_name, &subreddit_name)){
 		s += '\n';
 		s += reason_name;
 		s += '\t';

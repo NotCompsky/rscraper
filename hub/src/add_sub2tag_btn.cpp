@@ -6,7 +6,7 @@
  */
 
 #include "add_sub2tag_btn.hpp"
-
+#include "mysql_declarations.hpp"
 #include "notfound.hpp"
 #include "sql_name_dialog.hpp"
 
@@ -14,9 +14,6 @@
 
 #include <QCompleter>
 
-
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
 
 extern QStringList subreddit_names;
 extern QCompleter* subreddit_name_completer;
@@ -36,9 +33,9 @@ void AddSub2TagBtn::add_subreddit(){
 			namedialog->name_edit->setCompleter(subreddit_name_completer);
 		else {
 			QStringList tag_subreddits_names;
-			compsky::mysql::query(&RES1, "SELECT name FROM subreddit s, subreddit2tag s2t WHERE s2t.subreddit_id=s.id AND s2t.tag_id=", this->tag_id);
-			char* name;
-			while(compsky::mysql::assign_next_row(RES1, &ROW1, &name))
+			compsky::mysql::query(_mysql::obj, _mysql::res1, BUF, "SELECT name FROM subreddit s, subreddit2tag s2t WHERE s2t.subreddit_id=s.id AND s2t.tag_id=", this->tag_id);
+			const char* name;
+			while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &name))
 				tag_subreddits_names << name;
 			QCompleter* tag_subreddits_names_completer = new QCompleter(tag_subreddits_names, namedialog);
 			namedialog->name_edit->setCompleter(tag_subreddits_names_completer);
@@ -62,7 +59,7 @@ void AddSub2TagBtn::add_subreddit(){
 		if (!is_pattern  &&  !subreddit_names.contains(qstr))
 			return notfound::subreddit(this, qstr);
 		
-		compsky::mysql::exec(
+		compsky::mysql::exec(_mysql::obj, BUF,
 			(this->delete_from) ? "DELETE s2t FROM subreddit2tag s2t LEFT JOIN subreddit s ON s2t.subreddit_id=s.id WHERE tag_id=" : "INSERT IGNORE INTO subreddit2tag SELECT id,",
 			this->tag_id,
 			(this->delete_from) ? " AND s.name" : " FROM subreddit WHERE name",

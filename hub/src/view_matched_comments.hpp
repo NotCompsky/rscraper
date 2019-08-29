@@ -20,7 +20,6 @@
 
 
 class ViewMatchedComments : public QWidget {
-	Q_OBJECT
   public:
 	explicit ViewMatchedComments(QWidget* parent);
 	~ViewMatchedComments();
@@ -33,6 +32,9 @@ class ViewMatchedComments : public QWidget {
 	void toggle_order_btns();
 	void view_matches();
 	const char* get_sort_column();
+	void reset_index();
+	char buf[4096];
+	char* itr;
 	int query_indx;
 	int cached_cmnt_indx;
 	QStringList cmnt_contents_from_remote;
@@ -50,7 +52,7 @@ class ViewMatchedComments : public QWidget {
 	char post_id_str[10];
 	char cmnt_id_str[10];
 	uint64_t cmnt_id;
-	char* cmnt_body;
+	const char* cmnt_body;
 	size_t cmnt_body_sz;
 	MYSQL_RES* res1;
 	MYSQL_ROW row1;

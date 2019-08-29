@@ -6,7 +6,7 @@
  */
 
 #include "view_matched_comments.hpp"
-
+#include "mysql_declarations.hpp"
 #include "init_regexp_from_file.hpp"
 
 #include "id2str.hpp"
@@ -37,11 +37,6 @@ extern QCompleter* reason_name_completer;
 
 namespace filter_comment_body {
 	extern boost::basic_regex<char, boost::cpp_regex_traits<char>>* regexpr;
-}
-
-namespace _f {
-	constexpr static const compsky::asciify::flag::ChangeBufferTmp chbuf;
-	constexpr static const compsky::asciify::flag::Escape esc;
 }
 
 namespace details {
@@ -104,6 +99,7 @@ uint64_t indexof(const std::vector<uint64_t>& ms,  const uint64_t n){
 
 ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 : QWidget(parent)
+, itr(buf)
 , cmnt_body(nullptr)
 , res1(0)
 , is_ascending(false)
@@ -261,6 +257,10 @@ const char* ViewMatchedComments::get_sort_column(){
 			return details::sorting_columns[i];
 }
 
+void ViewMatchedComments::reset_index(){
+	this->itr = this->buf;
+}
+
 void ViewMatchedComments::generate_query(){
 	if (this->res1 != nullptr)
 		mysql_free_result(this->res1);
@@ -269,51 +269,52 @@ void ViewMatchedComments::generate_query(){
 	const QString reason = this->reasonname_input->text();
 	const QString limit_str = this->limit_input->text();
 	
-	compsky::asciify::reset_index();
+	this->reset_index();
 	
 	if (!tag.isEmpty())
 		if (!reason.isEmpty())
 			// TODO: Make different
-			compsky::asciify::asciify(tag_a1, tag_b1, _f::esc, '"', tag, tag_b2, tag_a2);
+			compsky::asciify::asciify(this->itr, tag_a1, tag_b1, _f::esc, '"', tag, tag_b2, tag_a2);
 		else
-			compsky::asciify::asciify(tag_a1, tag_b1, _f::esc, '"', tag, tag_b2, tag_a2);
+			compsky::asciify::asciify(this->itr, tag_a1, tag_b1, _f::esc, '"', tag, tag_b2, tag_a2);
 	else if (!reason.isEmpty())
-		compsky::asciify::asciify(reason_a1, reason_b1, _f::esc, '"', reason, reason_b2, reason_a2);
+		compsky::asciify::asciify(this->itr, reason_a1, reason_b1, _f::esc, '"', reason, reason_b2, reason_a2);
 	else
-		compsky::asciify::asciify(reason_a1, reason_a2);
+		compsky::asciify::asciify(this->itr, reason_a1, reason_a2);
 	
-	compsky::asciify::asciify(" ORDER BY ", this->get_sort_column());
-	compsky::asciify::asciify((this->is_ascending) ? " asc" : " desc");
+	compsky::asciify::asciify(this->itr, " ORDER BY ", this->get_sort_column());
+	compsky::asciify::asciify(this->itr, (this->is_ascending) ? " asc" : " desc");
 	
 	if (!limit_str.isEmpty()) 
-		compsky::asciify::asciify("\nLIMIT ",  limit_str.toInt());
+		compsky::asciify::asciify(this->itr, "\nLIMIT ",  limit_str.toInt());
 	
-	compsky::asciify::asciify('\0');
+	compsky::asciify::asciify(this->itr, '\0');
 	
-	this->query_text->setPlainText(compsky::asciify::BUF);
+	this->query_text->setPlainText(this->buf);
 }
 
 void ViewMatchedComments::execute_query(){
-	compsky::mysql::query(&this->res1, this->query_text->toPlainText());
+	compsky::mysql::query(_mysql::obj, this->res1, this->buf, this->query_text->toPlainText());
+	// TODO: Improve performance of the above, by removing the unnecessary write.
 	this->query_indx = 0;
 	this->cached_cmnt_indx = 0;
 	this->cmnt_contents_from_remote.clear();
 	if (this->get_empty_comments->isChecked()){
-		compsky::asciify::reset_index();
-		compsky::asciify::asciify("https://api.pushshift.io/reddit/comment/search/?ids=");
-		char* _subname;
-		char* _post_id;
+		this->reset_index();
+		compsky::asciify::asciify(this->itr, "https://api.pushshift.io/reddit/comment/search/?ids=");
+		const char* _subname;
+		const char* _post_id;
 		uint64_t _cmnt_id;
-		char* _t;
-		char* _cmnt_body;
+		const char* _t;
+		const char* _cmnt_body;
 		
 		std::vector<uint64_t> cmnt_id_2_result_indx;
 		// Pushshift automatically orders the results, and there does not appear to be an option for retaining the order of IDs passed in.
 		
 		while(compsky::mysql::assign_next_row__no_free(this->res1, &this->row1, &_subname, &_post_id, &_cmnt_id, &_t, &_cmnt_body)){
 			if(_cmnt_body[0] == 0){
-				compsky::asciify::ITR += id2str(_cmnt_id, compsky::asciify::ITR);
-				compsky::asciify::asciify(',');
+				this->itr += id2str(_cmnt_id, this->itr);
+				compsky::asciify::asciify(this->itr, ',');
 				cmnt_id_2_result_indx.push_back(_cmnt_id);
 			}
 		}
@@ -324,13 +325,13 @@ void ViewMatchedComments::execute_query(){
 			this->cmnt_contents_from_remote.append(0);
 		
 		mysql_data_seek(this->res1, 0); // Return to start of results set
-		--compsky::asciify::ITR; // Overwrite trailing comma
-		compsky::asciify::asciify("&filter=id,body", '\0');
+		--this->itr; // Overwrite trailing comma
+		compsky::asciify::asciify(this->itr, "&filter=id,body", '\0');
 		
 		QProcess proc;
-		proc.start("curl",  {compsky::asciify::BUF});
+		proc.start("curl",  {this->buf});
 		if (!proc.waitForFinished()){
-			QMessageBox::information(this,  "Cannot get comment contents",  QString("Comment failed: curl $1\nIs CURL installed?").arg(compsky::asciify::BUF));
+			QMessageBox::information(this,  "Cannot get comment contents",  QString("Comment failed: curl $1\nIs CURL installed?").arg(this->buf));
 			goto goto__init_first_cmnt;
 		}
 		const QByteArray json_str = proc.readAllStandardOutput();
@@ -362,13 +363,12 @@ void ViewMatchedComments::next(){
 		this->textarea->setPlainText("");
 		return;
 	}
-	char* subname_;
-	constexpr static const compsky::asciify::flag::StrLen f;
+	const char* subname_;
 	uint64_t post_id;
 	uint64_t t;
-	char* username_;
-	char* reason;
-	if (compsky::mysql::assign_next_row(this->res1, &this->row1, &subname_, &post_id, &this->cmnt_id, &t, f, &this->cmnt_body_sz, &this->cmnt_body, &username_, &reason)){
+	const char* username_;
+	const char* reason;
+	if (compsky::mysql::assign_next_row(this->res1, &this->row1, &subname_, &post_id, &this->cmnt_id, &t, _f::strlen, &this->cmnt_body_sz, &this->cmnt_body, &username_, &reason)){
 		post_id_str[id2str(post_id,         post_id_str)] = 0;
 		cmnt_id_str[id2str(this->cmnt_id,   cmnt_id_str)] = 0;
 		
@@ -376,10 +376,10 @@ void ViewMatchedComments::next(){
 		
 		const time_t tt = t;
 		const struct tm* dt = localtime(&tt);
-		char* const dt_buf = compsky::asciify::BUF;
-		compsky::asciify::reset_index();
-		compsky::asciify::asciify(dt);
-		compsky::asciify::append(0);
+		char* const dt_buf = this->buf;
+		this->reset_index();
+		compsky::asciify::asciify(this->itr, dt);
+		compsky::asciify::asciify(this->itr, '\0');
 		
 		this->subname->setText(subname_);
 		this->username->setText(username_);
@@ -417,11 +417,11 @@ void ViewMatchedComments::ch_reason(){
 	if (s.isEmpty())
 		return;
 	
-	compsky::mysql::exec("UPDATE comment c, reason_matched m SET c.reason_matched=m.id WHERE m.name=\"", _f::esc, '"', s, "\" AND c.id=", this->cmnt_id);
+	compsky::mysql::exec(_mysql::obj, BUF,"UPDATE comment c, reason_matched m SET c.reason_matched=m.id WHERE m.name=\"", _f::esc, '"', s, "\" AND c.id=", this->cmnt_id);
 }
 
 void ViewMatchedComments::del_cmnt(){
-	compsky::mysql::exec("DELETE FROM comment WHERE id=", this->cmnt_id);
+	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM comment WHERE id=", this->cmnt_id);
 	this->next();
 }
 

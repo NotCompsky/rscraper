@@ -6,7 +6,7 @@
  */
 
 #include "tagnamelabel.hpp"
-
+#include "mysql_declarations.hpp"
 #include "msgbox.hpp"
 #include "name_dialog.hpp"
 
@@ -17,13 +17,6 @@
 
 
 extern QStringList tagslist;
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
-
-
-namespace _f {
-	constexpr static const compsky::asciify::flag::Escape esc;
-}
 
 
 TagNameLabel::TagNameLabel(const uint64_t tag_id_,  char* name,  QWidget* parent)
@@ -52,18 +45,18 @@ void TagNameLabel::rename_tag(){
 	
 	tagslist[tagslist.indexOf(this->text())] = tagstr;
 	
-	compsky::mysql::exec("UPDATE tag SET name=\"", _f::esc, '"', tag_str, "\" WHERE id=",  this->tag_id);
+	compsky::mysql::exec(_mysql::obj, BUF, "UPDATE tag SET name=\"", _f::esc, '"', tag_str, "\" WHERE id=",  this->tag_id);
 	
 	this->setText(tagstr);
 }
 
 
 void TagNameLabel::display_subs_w_tag(){
-	compsky::mysql::query(&RES1,  "SELECT r.name FROM subreddit r, subreddit2tag s WHERE s.subreddit_id=r.id AND  s.tag_id=",  this->tag_id,  " ORDER BY r.name");
+	compsky::mysql::query(_mysql::obj, _mysql::res1, BUF,  "SELECT r.name FROM subreddit r, subreddit2tag s WHERE s.subreddit_id=r.id AND  s.tag_id=",  this->tag_id,  " ORDER BY r.name");
 	
-	char* name;
+	const char* name;
 	QString DISPLAY_TAGS_RES = "";
-	while (compsky::mysql::assign_next_row(RES1, &ROW1, &name)){
+	while (compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &name)){
 		DISPLAY_TAGS_RES += name;
 		DISPLAY_TAGS_RES += '\n';
 	}
