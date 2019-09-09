@@ -26,6 +26,8 @@ If you want customisation - such as more tagged subreddits, and different colour
 
 To run your own instance of the `rscraper-tagger-server`, you would need to run the `rscraper-tagger` package. You would also need to point the server towards a MySQL/MariaDB database - for this, you'd need to install `rscraper-init` to (initialise it) and either `rscraper-scraper` or `rscraper-io` (to populate it). See the [root instructions](https://github.com/NotCompsky/rscraper) for how to do this.
 
+There are multiple choices for the server software. There are example backends for - in increasing order of performance - Python's Flask package, Golang, and C++'s [wangle](https://github.com/facebook/wangle) framework.
+
 ## Building
 
 If you wish to build the `xpi` from source, navigate to the `browser-addon` directory and run `./build`.
