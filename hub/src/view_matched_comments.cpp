@@ -310,7 +310,7 @@ void ViewMatchedComments::execute_query(){
 		
 		std::vector<uint64_t> cmnt_id_2_result_indx;
 		// Pushshift automatically orders the results, and there does not appear to be an option for retaining the order of IDs passed in.
-		
+		cmnt_id_2_result_indx.reserve(compsky::mysql::n_results<uint64_t>(this->res1));
 		while(compsky::mysql::assign_next_row__no_free(this->res1, &this->row1, &_subname, &_post_id, &_cmnt_id, &_t, &_cmnt_body)){
 			if(_cmnt_body[0] == 0){
 				this->itr += id2str(_cmnt_id, this->itr);
