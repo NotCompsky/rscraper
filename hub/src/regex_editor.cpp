@@ -311,10 +311,10 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 			++i;
 			while((i < q.size())  &&  (q.at(i) == QChar(' ')  ||  q.at(i) == QChar('\t')))
 				++i;
+			on_line_where_group_was_declared = false;
 			continue;
 		}
 		if (c == QChar('#')  &&  (i == 0  ||  q.at(i-1) == QChar(' ')  ||  q.at(i-1) == QChar('\t')  ||  q.at(i-1) == QChar('\n'))){
-			++i;
 			do {
 				// Remove all preceding unescaped whitespace
 				--j;
@@ -327,11 +327,26 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 			if (on_line_where_group_was_declared  and  i != 0  and  q.at(i-1) != QChar('\n')){
 				if (q.at(i+1) == QChar('F')  and  q.at(i+2) == QChar('L')  and  q.at(i+3) == QChar('A')  and  q.at(i+4) == QChar('G')  and  q.at(i+5) == QChar('=')){
 					i += 6;
-					if (q.at(i) == QChar('N')  and  q.at(i+1) == QChar('o')  and  q.at(i+2) == QChar('O')  and  q.at(i+3) == QChar('p')  and  q.at(i+4) == QChar('t'))
+					int _end_of_flag = i;
+					while(i < q.size()  and  q.at(_end_of_flag) != QChar(' ')  and q.at(_end_of_flag) != QChar('\t')  and q.at(_end_of_flag) != QChar('\n'))
+						++_end_of_flag;
+					if (optimise  and  q.at(i) == QChar('N')  and  q.at(i+1) == QChar('o')  and  q.at(i+2) == QChar('O')  and  q.at(i+3) == QChar('p')  and  q.at(i+4) == QChar('t')){
 						do_not_optimise_this_group = true;
+					} else {
+						MsgBox* msgbox = new MsgBox(
+							0,  
+							"Unrecognised flag: " + QStringRef(&q,  i,  _end_of_flag - i) + " at line " + QString::number(get_line_n(q, i)),
+							"Recognised flags:\n"
+							"	NoOpt"
+						);
+						msgbox->exec();
+						delete msgbox;
+						goto goto_RE_tff_cleanup;
+					}
 				}
 			}
 			
+			++i;
 			while((i < q.size())  &&  (q.at(i) != QChar('\n')))
 				++i;
 			continue;
