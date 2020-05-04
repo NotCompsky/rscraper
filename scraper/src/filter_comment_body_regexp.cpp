@@ -109,10 +109,8 @@ void init(){
 		};
 		
 		const unsigned int actual_reason = match(metadata, body, strlen(body));
-		if(actual_reason != expected_reason){
-			fprintf(stderr, "cmnt_body regex test #%u failed\n\tExpected:\n\t\tGroup #%u (%s)\n\tActual:\n\t\tGroup #%u (%s)\n\t%s\n", id, expected_reason, reason_name2id[expected_reason], actual_reason, reason_name2id[actual_reason], body);
-			++n_failures;
-		}
+		n_failures += (actual_reason == expected_reason);
+		fprintf(stderr, "cmnt_body regex test #%u %s\n\tExpected:\n\t\tReason #%u (%s)\n\tActual:\n\t\tReason #%u (%s)\n\t%s\n", id, (actual_reason==expected_reason)?"passed":"failed", expected_reason, reason_name2id[expected_reason], actual_reason, reason_name2id[actual_reason], body);
 	}
 	if (n_failures != 0){
 		for (size_t i = 1;  i < groupindx2reason.size();  ++i){
