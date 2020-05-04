@@ -33,6 +33,12 @@ You can edit the comment body matching regex (if it exists) here. It includes a 
 
 You can `test` the regex for correctness.
 
+Recursive optimisation of each capture group - requiring an external perl script - may be enabled with a checkbox.
+
+Capture groups may be flagged with an inline flag. This must be declared on the same line as the capture group's opening bracket, and begin as a comment with `#FLAG=` and then the flag (without spaces). Flags are all case-sensitive.
+
+*    `NoOpt` disables optimisation for this capture group (**but not for parent capture groups**)
+
 ![Regex Editor](https://user-images.githubusercontent.com/30552567/60394879-c18dcd80-9b22-11e9-97c8-c997013d6d21.png)
 
 ## Comments Overview Tab

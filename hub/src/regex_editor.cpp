@@ -211,6 +211,8 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 	static std::vector<QStringRef> var_names;
 	static std::vector<QStringRef> var_values;
 	static std::vector<int> var_starts;
+	bool on_line_where_group_was_declared = false;
+	bool do_not_optimise_this_group; // Initialised at the start of every group
 	for(;  i < q.size();  ){
 		QChar c = q.at(i);
 		if (c == QChar('\\')){
@@ -321,6 +323,15 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 				(j >= 1  &&  buf.at(j) == QChar('\t')  &&  buf.at(j-1) != QChar('\\'))
 			);
 			++j;
+			
+			if (on_line_where_group_was_declared  and  i != 0  and  q.at(i-1) != QChar('\n')){
+				if (q.at(i+1) == QChar('F')  and  q.at(i+2) == QChar('L')  and  q.at(i+3) == QChar('A')  and  q.at(i+4) == QChar('G')  and  q.at(i+5) == QChar('=')){
+					i += 6;
+					if (q.at(i) == QChar('N')  and  q.at(i+1) == QChar('o')  and  q.at(i+2) == QChar('O')  and  q.at(i+3) == QChar('p')  and  q.at(i+4) == QChar('t'))
+						do_not_optimise_this_group = true;
+				}
+			}
+			
 			while((i < q.size())  &&  (q.at(i) != QChar('\n')))
 				++i;
 			continue;
@@ -337,8 +348,10 @@ bool RegexEditor::to_final_format(const bool optimise,  QString& buf,  int i,  i
 					}
 					++group_start_offset;
 				} else group_start_offset += 1;
+				on_line_where_group_was_declared = true; // To allow capture group flags - such as #DoNotOptimise - to be declared inline with the group declaration, as a comment
+				do_not_optimise_this_group = false;
 				group_start = j;
-			} else if (c == QChar(')')  &&  group_start != 0){
+			} else if (c == QChar(')')  and  group_start != 0  and not do_not_optimise_this_group){
 				const int group_start_actual = group_start + group_start_offset;
 				const QStringRef group_text(&buf,  group_start_actual,  j - group_start_actual);
 				QString group_replacement;
