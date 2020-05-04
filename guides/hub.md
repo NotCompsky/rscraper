@@ -37,7 +37,7 @@ Recursive optimisation of each capture group - requiring an external perl script
 
 Capture groups may be flagged with an inline flag. This must be declared on the same line as the capture group's opening bracket, and begin as a comment with `#FLAG=` and then the flag (without spaces). Flags are all case-sensitive.
 
-*    `NoOpt` disables optimisation for this capture group (**but not for parent capture groups**)
+*    `NoOpt` disables optimisation for this capture group. NOTE: **flags do not apply to parent capture groups**, however they are probably useful/required in most situations - the external script used to optimise capture groups does not optimise child capture groups, so the main reason you might wish to apply the flag to all parents is if the child capture group is simply too large to be passed to the script (10,000s of characters).
 
 ![Regex Editor](https://user-images.githubusercontent.com/30552567/60394879-c18dcd80-9b22-11e9-97c8-c997013d6d21.png)
 
