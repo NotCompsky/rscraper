@@ -8,7 +8,6 @@
 
 #include "rscraper/tagger.hpp"
 
-#include <compsky/asciify/init.hpp>
 #include <compsky/asciify/flags.hpp>
 #include <compsky/mysql/query.hpp>
 
@@ -25,15 +24,16 @@
 MYSQL_RES* RES;
 MYSQL_ROW ROW;
 
-extern "C" char* DST = NULL; // alias for BUF
-
-namespace compsky {
-	namespace asciify {
-		char* BUF;
-		char* ITR;
-		constexpr const size_t BUF_SZ = 4096 * 1024;
-	}
+namespace sql {
+	MYSQL* obj;
+	constexpr const size_t buf_sz = 512;
+	char buf[buf_sz];
 }
+
+char* BUF;
+char* ITR;
+constexpr const size_t BUF_SZ = 4096 * 1024;
+extern "C" char* DST = NULL; // alias for BUF
 
 namespace _f {
 	constexpr static const compsky::asciify::flag::concat::Start cc_start;
@@ -58,6 +58,12 @@ constexpr size_t strlen_constexpr(const char* s){
 	// GCC strlen is constexpr; this is apparently a bug
 	return (*s)  ?  1 + strlen_constexpr(s + 1)  :  0;
 }
+
+
+size_t get_index(const char* const itr,  const char* const buf){
+	return (uintptr_t)itr - (uintptr_t)buf;
+}
+
 
 bool is_number(const char* s){
 	while(*s != 0){
@@ -129,63 +135,10 @@ constexpr
 bool is_valid_username(const char* str){
 	for(auto i = 0;  i < 129;  ++i){
 		switch(*str){
-			case 'a':
-			case 'b':
-			case 'c':
-			case 'd':
-			case 'e':
-			case 'f':
-			case 'g':
-			case 'h':
-			case 'i':
-			case 'j':
-			case 'k':
-			case 'l':
-			case 'm':
-			case 'n':
-			case 'o':
-			case 'p':
-			case 'q':
-			case 'r':
-			case 's':
-			case 't':
-			case 'u':
-			case 'v':
-			case 'w':
-			case 'x':
-			case 'y':
-			case 'z':
-			
-			case 'A':
-			case 'B':
-			case 'C':
-			case 'D':
-			case 'E':
-			case 'F':
-			case 'G':
-			case 'H':
-			case 'I':
-			case 'J':
-			case 'K':
-			case 'L':
-			case 'M':
-			case 'N':
-			case 'O':
-			case 'P':
-			case 'Q':
-			case 'R':
-			case 'S':
-			case 'T':
-			case 'U':
-			case 'V':
-			case 'W':
-			case 'X':
-			case 'Y':
-			case 'Z':
-			
+			case 'a' ... 'z':
+			case 'A' ... 'Z':
 			case '_':
 			case '-':
-				// Yes I know a-z and A-Z are guaranteed to be contiguous
 				break;
 			
 			case 0:  return true;
@@ -244,12 +197,14 @@ bool is_cached(const uint64_t* ids,  const size_t ids_len,  const size_t ids_len
 
 extern "C"
 void init(){
-	compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));
-	if (compsky::asciify::alloc(compsky::asciify::BUF_SZ))
+	compsky::mysql::init(sql::obj, sql::buf, sql::buf_sz, getenv("RSCRAPER_MYSQL_CFG"));
+	BUF = (char*)malloc(BUF_SZ);
+	if (BUF == nullptr)
 		abort();
 	
 	compsky::mysql::query_buffer(
-		&RES,
+		sql::obj,
+		RES,
 		"SELECT "
 			"(SELECT COUNT(*) FROM reason_matched),"
 			"(SELECT COUNT(*) FROM user),"
@@ -274,7 +229,8 @@ void init(){
 	subreddits = users + n_users;
 	
 	compsky::mysql::query(
-		&RES,
+		sql::obj,
+		RES,
 		"(SELECT id FROM reason_matched LIMIT ", n_reasons, ")"
 		" UNION ALL "
 		"(SELECT id FROM user LIMIT ", n_users, ")"
@@ -289,11 +245,11 @@ void init(){
 
 extern "C"
 void exit_mysql(){
-	compsky::mysql::exit_mysql();
+	compsky::mysql::wipe_auth(sql::buf, sql::buf_sz);
 }
 
 size_t generate_user_id_list_string(const char* csv){
-	char* const buf_init = compsky::asciify::ITR;
+	char* const buf_init = ITR;
 	bool current_id_valid = (*csv == '_');
 	printf("%c\n", *csv);
 	++csv; // Skip last character of first prefix (no need to check for 0 - done in switch)
@@ -305,15 +261,15 @@ size_t generate_user_id_list_string(const char* csv){
 				if (current_id_valid){
 					const uint64_t id = str2id(current_id_start, csv);
 					
-					compsky::asciify::asciify(id);
-					compsky::asciify::asciify(',');
+					compsky::asciify::asciify(ITR, id);
+					compsky::asciify::asciify(ITR, ',');
 				}
 				for (auto i = 0;  i < 6;  ++i)
 					// Safely skip the prefix ("id-t2_")
 					if (*(++csv) == 0)
 						// Good input would end only on k = 0 (corresponding to 'case 0')
 						// Otherwise, there was not the expected prefix in after the comma
-						return (uintptr_t)compsky::asciify::ITR - (uintptr_t)buf_init;
+						return get_index(ITR, buf_init);
 				current_id_valid = (*csv == '_');
 				printf("%c\n", *csv);
 				current_id_start = csv + 1; // Start at character after comma
@@ -327,7 +283,7 @@ size_t generate_user_id_list_string(const char* csv){
 extern "C"
 void generate_id_list(const char* tblname,  const char** names,  uint64_t* ls){
 	// NOTE: Maximum length of ls is known when this function is called (it is equal to length of names)
-	compsky::mysql::query(&RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", names, _f::cc_end,  "')");
+	compsky::mysql::query(sql::obj, RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", names, _f::cc_end,  "')");
 	uint64_t id;
 	while(compsky::mysql::assign_next_row(RES, &ROW, &id))
 		*(ls++) = id;
@@ -343,7 +299,7 @@ uint64_t* generate_id_list_string(const char* tblname,  const char** names){
 		exit(1036);
 	uint64_t* const ls_start = (uint64_t*)dummy;
 	uint64_t* ls = ls_start;
-	compsky::mysql::query(&RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", names, _f::cc_end,  "')");
+	compsky::mysql::query(sql::obj, RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", names, _f::cc_end,  "')");
 	uint64_t id;
 	while(compsky::mysql::assign_next_row(RES, &ROW, &id))
 		*(ls++) = id;
@@ -362,7 +318,7 @@ const char* generate_id_list_string(const char* tblname,  const char** names){
 		exit(1036);
 	char* const start = (char* const)dummy;
 	char* itr = start;
-	compsky::mysql::query(&RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", 3, names, max_n_IDs, _f::cc_end,  "')");
+	compsky::mysql::query(sql::obj, RES,  "SELECT id FROM ",  tblname,  " WHERE name IN ('",  _f::cc_start, "','", 3, names, max_n_IDs, _f::cc_end,  "')");
 	char* id;
 	while(compsky::mysql::assign_next_row(RES, &ROW, &id)){
 		memcpy(itr,  id,  strlen(id));
@@ -402,7 +358,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	for (auto i = 0;  i < 5;  ++i){
 		// Safely skip first prefix bar the last character
 		if (unlikely(*(csv++) == 0)){
-			compsky::asciify::ITR = compsky::asciify::BUF + 5; // Just to trigger 'if get_index() == 5'
+			ITR = BUF + 5; // Just to trigger 'if get_index() == 5'
 			goto goto_results;
 		}
 	}
@@ -430,50 +386,50 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	constexpr static const char* stmt_m_2 =
 		/* ) */ " GROUP BY c.author_id, m.name, m.r, m.g, m.b, m.a"; // First ')' is not necessary as it is already copied by 'n_bytes_of_IDs' - because the last trailing comma is recorded by n_bytes_of_IDs as the comma is not stripped before then. This is slightly undesirable only for readability, but the alternative is to decrement BUF_INDX within the generate_user_id_list_string function, which would greatly complicate it.
 
-	compsky::asciify::reset_index();
+	ITR = BUF;
 	
 	if (tagcondition != nullptr){
-		compsky::asciify::asciify(_f::strlen, stmt_t_1, strlen_constexpr(stmt_t_1));
-		char* const start_of_user_IDs = compsky::asciify::ITR;
+		compsky::asciify::asciify(ITR, _f::strlen, stmt_t_1, strlen_constexpr(stmt_t_1));
+		char* const start_of_user_IDs = ITR;
 		const size_t n_bytes_of_IDs = generate_user_id_list_string(csv);
 		if (n_bytes_of_IDs == 0){
 			// No valid IDs were found
 			DST = "{}";
 			return;
 		}
-		--compsky::asciify::ITR; // Remove trailing comma
-		compsky::asciify::asciify(')'); // Close 'WHERE id IN (' condition
-		compsky::asciify::asciify(tagcondition); // Could be empty string, or "AND t.id IN (...)", etc.
-		compsky::asciify::asciify(_f::strlen, stmt_t_2, strlen_constexpr(stmt_t_2));
+		--ITR; // Remove trailing comma
+		compsky::asciify::asciify(ITR, ')'); // Close 'WHERE id IN (' condition
+		compsky::asciify::asciify(ITR, tagcondition); // Could be empty string, or "AND t.id IN (...)", etc.
+		compsky::asciify::asciify(ITR, _f::strlen, stmt_t_2, strlen_constexpr(stmt_t_2));
 		if (reasoncondition != nullptr){
-			compsky::asciify::asciify(" UNION ALL SELECT 0, 0, 0, 0, 0, 0, 0, 0 UNION ALL ");
-			compsky::asciify::asciify(_f::strlen, stmt_m_1, strlen_constexpr(stmt_m_1));
-			compsky::asciify::asciify(_f::strlen, start_of_user_IDs, n_bytes_of_IDs);
+			compsky::asciify::asciify(ITR, " UNION ALL SELECT 0, 0, 0, 0, 0, 0, 0, 0 UNION ALL ");
+			compsky::asciify::asciify(ITR, _f::strlen, stmt_m_1, strlen_constexpr(stmt_m_1));
+			compsky::asciify::asciify(ITR, _f::strlen, start_of_user_IDs, n_bytes_of_IDs);
 			// No need to add closing bracket - copied by the above
-			compsky::asciify::asciify(reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
-			compsky::asciify::asciify(_f::strlen, stmt_m_2, strlen_constexpr(stmt_m_2));
+			compsky::asciify::asciify(ITR, reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
+			compsky::asciify::asciify(ITR, _f::strlen, stmt_m_2, strlen_constexpr(stmt_m_2));
 		}
 	} else { // Realistically, this should be 'reasons != nullptr' - though no effort is made to check that this holds
-		compsky::asciify::asciify(_f::strlen, stmt_m_1, strlen_constexpr(stmt_m_1));
+		compsky::asciify::asciify(ITR, _f::strlen, stmt_m_1, strlen_constexpr(stmt_m_1));
 		const size_t n_bytes_of_IDs = generate_user_id_list_string(csv);
 		if (n_bytes_of_IDs == 0){
 			// No valid IDs were found
 			DST = "{}";
 			return;
 		}
-		--compsky::asciify::ITR; // Remove trailing comma
-		compsky::asciify::asciify(')');
-		compsky::asciify::asciify(reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
-		compsky::asciify::asciify(_f::strlen, stmt_m_2, strlen_constexpr(stmt_m_2));
+		--ITR; // Remove trailing comma
+		compsky::asciify::asciify(ITR, ')');
+		compsky::asciify::asciify(ITR, reasoncondition); // Could be empty string, or "AND t.id IN (...)", etc.
+		compsky::asciify::asciify(ITR, _f::strlen, stmt_m_2, strlen_constexpr(stmt_m_2));
 	}
 	
-	printf("QRY: %.*s\n",  compsky::asciify::get_index(),  compsky::asciify::BUF); // TMP
+	printf("QRY: %.*s\n",  get_index(ITR, BUF),  BUF); // TMP
 	
-	compsky::mysql::query_buffer(&RES, compsky::asciify::BUF, compsky::asciify::get_index());
+	compsky::mysql::query_buffer(sql::obj, RES, BUF, get_index(ITR, BUF));
 	
 	
-	compsky::asciify::reset_index();
-	++compsky::asciify::ITR;
+	ITR = BUF;
+	++ITR;
 	
 	//[ We obtain an (erroneous) prefix of "]," in the following loop
 	// These two characters are later overwritten with "[{"
@@ -492,28 +448,32 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	while (compsky::mysql::assign_next_row(RES, &ROW, &id, &n_cmnts, &div_rgb_by, &r, &g, &b, &a, &tag_or_reason_id)){
 		if (id == 0){
 			// i.e. we are in between the real selects in the union
-			compsky::asciify::asciify("]}"); //[ ",{" is added afterwards, overwriting the "]," that is otherwise placed in this position}
-			position_to_overwrite_with_open_square_brkt = compsky::asciify::ITR;
+			compsky::asciify::asciify(ITR, "]}"); //[ ",{" is added afterwards, overwriting the "]," that is otherwise placed in this position}
+			position_to_overwrite_with_open_square_brkt = ITR;
 			last_id = 0;
 			continue;
 		}
 		
 		const size_t max_new_entry_size = strlen_constexpr("],\"id-t2_abcdefghijklm\":[[\"rgba(255,255,255,1.000)\",\"01234567890123456789 01234567890123456789\"],");
 		
-		if (compsky::asciify::get_index() + max_new_entry_size + 1 > compsky::asciify::BUF_SZ )
+		if (get_index(ITR, BUF) + max_new_entry_size + 1 > BUF_SZ){
+			// Give up; we've provided enough results by now!
 			//{ +1 is to account for the terminating '}' char.
+			mysql_free_result(RES);
 			break;
+		}
 		
 		if (id == last_id){
-			compsky::asciify::asciify(',');
+			compsky::asciify::asciify(ITR, ',');
 		} else {
 			id2str(id, id_str);
-			compsky::asciify::asciify("],\"id-t2_",  id_str,  "\":[");
+			compsky::asciify::asciify(ITR, "],\"id-t2_",  id_str,  "\":[");
 			// The previous line leads to the assertion that first_results_nonempty==(compsky::asciify::BUF[1]==',')
 			last_id = id;
 		}
 		
 		compsky::asciify::asciify(
+			ITR,
 			"[\"rgba(",
 			+(uint8_t)(255.0 * r / (double)div_rgb_by),  ',',
 			+(uint8_t)(255.0 * g / (double)div_rgb_by),  ',',
@@ -533,13 +493,13 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	}
 	goto_results:
 	// TODO: Account for cases ((tagcondition==nullptr), (reasoncondition==nullptr))
-	if (compsky::asciify::get_index() == 5){
+	if (get_index(ITR, BUF) == 5){
 		DST = "[{},{}]";
 	} else {
-		DST = compsky::asciify::BUF + 1;
+		DST = BUF + 1;
 		
 		const bool first_results_nonempty = (DST[1] == ',');   // Begins with ],"id-t2_
-		const bool secnd_results_nonempty = (*(compsky::asciify::ITR-1) == ']'); // Ends   with ]
+		const bool secnd_results_nonempty = (*(ITR-1) == ']'); // Ends   with ]
 		if (!first_results_nonempty){
 			// Only first results set is empty
 			--DST;
@@ -548,22 +508,22 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 			DST[2] = '}';
 			DST[3] = ',';
 			DST[4] = '{';
-			compsky::asciify::asciify(']', '}', ']');
+			compsky::asciify::asciify(ITR, ']', '}', ']');
 		} else {
 			DST[0] = '[';
 			DST[1] = '{';
 			
 			if (secnd_results_nonempty) {
 				// Neither is empty
-				compsky::asciify::asciify(']', '}', ']');
+				compsky::asciify::asciify(ITR, ']', '}', ']');
 			} else {
 				// Only second is empty
-				compsky::asciify::ITR += 2; // Account for position_to_overwrite_with_open_square_brkt
-				compsky::asciify::asciify('}', ']');
+				ITR += 2; // Account for position_to_overwrite_with_open_square_brkt
+				compsky::asciify::asciify(ITR, '}', ']');
 			}
 		}
 		
-		compsky::asciify::asciify('\0');
+		compsky::asciify::asciify(ITR, '\0');
 	}
 }
 
@@ -581,7 +541,8 @@ void subreddits_given_userid(const char* const tagfilter,  const char* const id_
 	}
 	
 	compsky::mysql::query(
-		&RES,
+		sql::obj,
+		RES,
 		"SELECT u2scc.count, r.name, s2t.tag_id "
 		"FROM user u, user2subreddit_cmnt_count u2scc, subreddit2tag s2t, tag t, subreddit r "
 		"WHERE u.id=", id, " "
@@ -595,10 +556,11 @@ void subreddits_given_userid(const char* const tagfilter,  const char* const id_
 	char* count;
 	char* subreddit_name;
 	char* tag_id;
-	compsky::asciify::reset_index();
-	compsky::asciify::asciify('[');
+	ITR = BUF;
+	compsky::asciify::asciify(ITR, '[');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &count, &subreddit_name, &tag_id)){
 		compsky::asciify::asciify(
+			ITR,
 			'[',
 				tag_id, ',',
 				'"', _f::esc, '"', subreddit_name, '"', ',',
@@ -607,10 +569,10 @@ void subreddits_given_userid(const char* const tagfilter,  const char* const id_
 			','
 		);
 	}
-	if(compsky::asciify::get_index() > 1)
-		--compsky::asciify::ITR;
-	compsky::asciify::asciify(']', '\0');
-	DST = compsky::asciify::BUF;
+	if(get_index(ITR, BUF) > 1)
+		--ITR;
+	compsky::asciify::asciify(ITR, ']', '\0');
+	DST = BUF;
 }
 
 
@@ -627,7 +589,8 @@ void comments_given_userid(const char* const reasonfilter,  const char* const id
 	}
 	
 	compsky::mysql::query(
-		&RES,
+		sql::obj,
+		RES,
 		"SELECT m.id, r.name, s.id, c.id, c.created_at "
 		"FROM comment c, subreddit r, submission s, user u, reason_matched m "
 		"WHERE u.id=", id, " "
@@ -646,12 +609,13 @@ void comments_given_userid(const char* const reasonfilter,  const char* const id
 	char submission_id_str[19 + 1];
 	char comment_id_str[19 + 1];
 	char* created_at;
-	compsky::asciify::reset_index();
-	compsky::asciify::asciify('[');
+	ITR = BUF;
+	compsky::asciify::asciify(ITR, '[');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, &subreddit_name, &submission_id, &comment_id, &created_at)){
 		id2str(submission_id, submission_id_str);
 		id2str(comment_id,    comment_id_str);
 		compsky::asciify::asciify(
+			ITR,
 			'[',
 				reason_id, ',',
 				'"', subreddit_name, '"', ',', // No need to escape '"' - it would be an invalid subreddit name
@@ -661,10 +625,10 @@ void comments_given_userid(const char* const reasonfilter,  const char* const id
 			','
 		);
 	}
-	if(compsky::asciify::get_index() > 1)
-		--compsky::asciify::ITR;
-	compsky::asciify::asciify(']', '\0');
-	DST = compsky::asciify::BUF;
+	if(get_index(ITR, BUF) > 1)
+		--ITR;
+	compsky::asciify::asciify(ITR, ']', '\0');
+	DST = BUF;
 }
 
 
@@ -691,7 +655,8 @@ void comments_given_username(const char* const reasonfilter,  const char* const 
 	}
 	
 	compsky::mysql::query(
-		&RES,
+		sql::obj,
+		RES,
 		"SELECT m.id, r.name, s.id, c.id, c.created_at "
 		"FROM comment c, subreddit r, submission s, user u, reason_matched m "
 		"WHERE u.name=\"", name, "\" "
@@ -710,12 +675,13 @@ void comments_given_username(const char* const reasonfilter,  const char* const 
 	char submission_id_str[19 + 1];
 	char comment_id_str[19 + 1];
 	char* created_at;
-	compsky::asciify::reset_index();
-	compsky::asciify::asciify('[');
+	ITR = BUF;
+	compsky::asciify::asciify(ITR, '[');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, &subreddit_name, &submission_id, &comment_id, &created_at)){
 		id2str(submission_id, submission_id_str);
 		id2str(comment_id,    comment_id_str);
 		compsky::asciify::asciify(
+			ITR,
 			'[',
 				reason_id, ',',
 				'"', subreddit_name, ',',
@@ -725,10 +691,10 @@ void comments_given_username(const char* const reasonfilter,  const char* const 
 			','
 		);
 	}
-	if(compsky::asciify::get_index() > 1)
-		--compsky::asciify::ITR;
-	compsky::asciify::asciify(']', '\0');
-	DST = compsky::asciify::BUF;
+	if(get_index(ITR, BUF) > 1)
+		--ITR;
+	compsky::asciify::asciify(ITR, ']', '\0');
+	DST = BUF;
 }
 
 extern "C"
@@ -739,7 +705,8 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 	}
 	
 	compsky::mysql::query(
-		&RES,
+		sql::obj,
+		RES,
 		"SELECT r.name, s.id, c.id, c.created_at "
 		"FROM comment c, subreddit r, submission s, reason_matched m "
 		"WHERE m.id=", reason_id, " "
@@ -756,12 +723,13 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 	char submission_id_str[19 + 1];
 	char comment_id_str[19 + 1];
 	char* created_at;
-	compsky::asciify::reset_index();
-	compsky::asciify::asciify('[');
+	ITR = BUF;
+	compsky::asciify::asciify(ITR, '[');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit_name, &submission_id, &comment_id, &created_at)){
 		id2str(submission_id, submission_id_str);
 		id2str(comment_id,    comment_id_str);
 		compsky::asciify::asciify(
+			ITR,
 			'[',
 				'"', _f::esc, '"', subreddit_name, '"', ',',
 				created_at, ',',
@@ -770,16 +738,17 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 			','
 		);
 	}
-	if(compsky::asciify::get_index() > 1)
-		--compsky::asciify::ITR;
-	compsky::asciify::asciify(']', '\0');
-	DST = compsky::asciify::BUF;
+	if(get_index(ITR, BUF) > 1)
+		--ITR;
+	compsky::asciify::asciify(ITR, ']', '\0');
+	DST = BUF;
 }
 
 extern "C"
 void subreddits_correlation_to_reasons(const char* const reasonfilter){
 	compsky::mysql::query(
-		&RES,
+		sql::obj,
+		RES,
 		"SELECT m.id, r.name, COUNT(c.id)/s2cc.count AS count "
 		"FROM subreddit r, submission s, comment c, reason_matched m, subreddit2cmnt_count s2cc "
 		"WHERE r.id=s.subreddit_id "
@@ -796,10 +765,11 @@ void subreddits_correlation_to_reasons(const char* const reasonfilter){
 	char* reason_id;
 	char* subreddit_name;
 	char* proportion;
-	compsky::asciify::reset_index();
-	compsky::asciify::asciify('[');
+	ITR = BUF;
+	compsky::asciify::asciify(ITR, '[');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, &subreddit_name, &proportion)){
 		compsky::asciify::asciify(
+			ITR,
 			'[',
 				reason_id, ',',
 				'"', _f::esc, '"', subreddit_name, '"', ',',
@@ -808,10 +778,10 @@ void subreddits_correlation_to_reasons(const char* const reasonfilter){
 			','
 		);
 	}
-	if(compsky::asciify::get_index() > 1)
-		--compsky::asciify::ITR;
-	compsky::asciify::asciify(']', '\0');
-	DST = compsky::asciify::BUF;
+	if(get_index(ITR, BUF) > 1)
+		--ITR;
+	compsky::asciify::asciify(ITR, ']', '\0');
+	DST = BUF;
 }
 
 extern "C"
@@ -822,7 +792,8 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 	}
 	
 	compsky::mysql::query(
-		&RES,
+		sql::obj,
+		RES,
 		"SELECT r.name, COUNT(c.id)/s2cc.count AS count "
 		"FROM subreddit r, submission s, comment c, reason_matched m, subreddit2cmnt_count s2cc "
 		"WHERE m.id=", reason_id, " "
@@ -839,10 +810,11 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 	);
 	char* subreddit_name;
 	char* proportion;
-	compsky::asciify::reset_index();
-	compsky::asciify::asciify('[');
+	ITR = BUF;
+	compsky::asciify::asciify(ITR, '[');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit_name, &proportion)){
 		compsky::asciify::asciify(
+			ITR,
 			'[',
 				'"', _f::esc, '"', subreddit_name, '"', ',',
 				proportion,
@@ -850,17 +822,18 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 			','
 		);
 	}
-	if(compsky::asciify::get_index() > 1)
-		--compsky::asciify::ITR;
-	compsky::asciify::asciify(']', '\0');
-	DST = compsky::asciify::BUF;
+	if(get_index(ITR, BUF) > 1)
+		--ITR;
+	compsky::asciify::asciify(ITR, ']', '\0');
+	DST = BUF;
 }
 
 
 extern "C"
 void get_all_reasons(const char* const reasonfilter){
 	compsky::mysql::query(
-		&RES,
+		sql::obj,
+		RES,
 		"SELECT m.name, m.id "
 		"FROM reason_matched m "
 		"WHERE TRUE ",
@@ -868,26 +841,28 @@ void get_all_reasons(const char* const reasonfilter){
 	);
 	char* name;
 	char* reason_id;
-	compsky::asciify::reset_index();
-	compsky::asciify::asciify('{');
+	ITR = BUF;
+	compsky::asciify::asciify(ITR, '{');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &name, &reason_id)){
 		compsky::asciify::asciify(
+			ITR,
 			"\"", reason_id, "\":"
 				"\"", _f::esc, '"', name, "\""
 			","
 		);
 	}
-	if(compsky::asciify::get_index() > 1)
-		--compsky::asciify::ITR;
-	compsky::asciify::asciify('}', '\0');
-	DST = compsky::asciify::BUF;
+	if(get_index(ITR, BUF) > 1)
+		--ITR;
+	compsky::asciify::asciify(ITR, '}', '\0');
+	DST = BUF;
 }
 
 extern "C"
 void get_all_tags(const char* const tagfilter){
 	// TODO: Reduce code duplication (virtually identical to get_all_reasons)
 	compsky::mysql::query(
-		&RES,
+		sql::obj,
+		RES,
 		"SELECT t.name, t.id "
 		"FROM tag t "
 		"WHERE TRUE ",
@@ -895,17 +870,18 @@ void get_all_tags(const char* const tagfilter){
 	);
 	char* name;
 	char* id;
-	compsky::asciify::reset_index();
-	compsky::asciify::asciify('{');
+	ITR = BUF;
+	compsky::asciify::asciify(ITR, '{');
 	while(compsky::mysql::assign_next_row(RES, &ROW, &name, &id)){
 		compsky::asciify::asciify(
+			ITR,
 			"\"", id, "\":"
 				"\"", _f::esc, '"', name, "\""
 			","
 		);
 	}
-	if(compsky::asciify::get_index() > 1)
-		--compsky::asciify::ITR;
-	compsky::asciify::asciify('}', '\0');
-	DST = compsky::asciify::BUF;
+	if(get_index(ITR, BUF) > 1)
+		--ITR;
+	compsky::asciify::asciify(ITR, '}', '\0');
+	DST = BUF;
 }
