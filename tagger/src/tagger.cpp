@@ -528,6 +528,68 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 }
 
 
+template<typename Number1,  typename String,  typename Number2>
+void things_given_x__asciify__isi(Number1 a,  String b,  Number2 c){
+	compsky::asciify::asciify(
+		ITR,
+		a, ',',
+		'"', _f::esc, '"', b, '"', ',',
+		c
+	);
+}
+template<typename String,  typename Number>
+void things_given_x__asciify__si(String b,  Number c){
+	compsky::asciify::asciify(
+		ITR,
+		'"', _f::esc, '"', b, '"', ',',
+		c
+	);
+}
+
+
+void things_given_x__asciify(char* a, char* b, char* c, uint64_t,  const char* const,  float){
+	things_given_x__asciify__isi(a,b,c);
+}
+void things_given_x__asciify(char* a, char* b, char* c, uint64_t,  const char* const,  uint64_t){
+	things_given_x__asciify__isi(a,b,c);
+}
+
+void things_given_x__asciify(char* b, char* c, const char* const,  uint64_t){
+	things_given_x__asciify__si(b,c);
+}
+
+
+template<typename... Args>
+void things_given(Args... output){
+	ITR = BUF;
+	compsky::asciify::asciify(ITR, '[');
+	
+	constexpr const size_t n_output_args = sizeof...(Args);
+	if constexpr(n_output_args == 3){
+		char* a;
+		char* b;
+		char* c;
+		while(compsky::mysql::assign_next_row(RES, &ROW, &a, &b, &c)){
+			compsky::asciify::asciify(
+				ITR,
+				'['
+			);
+			things_given_x__asciify(a, b, c, output...);
+			compsky::asciify::asciify(
+				ITR,
+				']',
+				','
+			);
+		}
+	}
+	
+	if(get_index(ITR, BUF) > 1)
+		--ITR;
+	compsky::asciify::asciify(ITR, ']', '\0');
+	DST = BUF;
+}
+
+
 extern "C"
 void subreddits_given_userid(const char* const tagfilter,  const char* const id_str){
 	// TODO: De-duplication (comments_given_username)
@@ -539,6 +601,11 @@ void subreddits_given_userid(const char* const tagfilter,  const char* const id_
 		DST = http_err::not_in_database;
 		return;
 	}
+	
+	// Dummy variables for template
+	uint64_t count;
+	char* subreddit_name;
+	uint64_t tag_id;
 	
 	compsky::mysql::query(
 		sql::obj,
@@ -553,26 +620,11 @@ void subreddits_given_userid(const char* const tagfilter,  const char* const id_
 		tagfilter,
 		"LIMIT 1000"
 	);
-	char* count;
-	char* subreddit_name;
-	char* tag_id;
-	ITR = BUF;
-	compsky::asciify::asciify(ITR, '[');
-	while(compsky::mysql::assign_next_row(RES, &ROW, &count, &subreddit_name, &tag_id)){
-		compsky::asciify::asciify(
-			ITR,
-			'[',
-				tag_id, ',',
-				'"', _f::esc, '"', subreddit_name, '"', ',',
-				count,
-			']',
-			','
-		);
-	}
-	if(get_index(ITR, BUF) > 1)
-		--ITR;
-	compsky::asciify::asciify(ITR, ']', '\0');
-	DST = BUF;
+	things_given(
+		count,
+		subreddit_name,
+		tag_id
+	);
 }
 
 
@@ -746,6 +798,11 @@ void comments_given_reason(const char* const reasonfilter,  const char* const re
 
 extern "C"
 void subreddits_correlation_to_reasons(const char* const reasonfilter){
+	// Dummy variables for template
+	uint64_t reason_id;
+	char* subreddit_name;
+	float proportion;
+	
 	compsky::mysql::query(
 		sql::obj,
 		RES,
@@ -762,26 +819,11 @@ void subreddits_correlation_to_reasons(const char* const reasonfilter){
 		"ORDER BY count DESC "
 		"LIMIT 1000"
 	);
-	char* reason_id;
-	char* subreddit_name;
-	char* proportion;
-	ITR = BUF;
-	compsky::asciify::asciify(ITR, '[');
-	while(compsky::mysql::assign_next_row(RES, &ROW, &reason_id, &subreddit_name, &proportion)){
-		compsky::asciify::asciify(
-			ITR,
-			'[',
-				reason_id, ',',
-				'"', _f::esc, '"', subreddit_name, '"', ',',
-				proportion,
-			']',
-			','
-		);
-	}
-	if(get_index(ITR, BUF) > 1)
-		--ITR;
-	compsky::asciify::asciify(ITR, ']', '\0');
-	DST = BUF;
+	things_given(
+		reason_id,
+		subreddit_name,
+		proportion
+	);
 }
 
 extern "C"
@@ -790,6 +832,10 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 		DST = http_err::bad_request;
 		return;
 	}
+	
+	// Dummy variables for template
+	char* subreddit_name;
+	float proportion;
 	
 	compsky::mysql::query(
 		sql::obj,
@@ -808,24 +854,10 @@ void subreddits_given_reason(const char* const reasonfilter,  const char* const 
 		"ORDER BY count DESC "
 		"LIMIT 100"
 	);
-	char* subreddit_name;
-	char* proportion;
-	ITR = BUF;
-	compsky::asciify::asciify(ITR, '[');
-	while(compsky::mysql::assign_next_row(RES, &ROW, &subreddit_name, &proportion)){
-		compsky::asciify::asciify(
-			ITR,
-			'[',
-				'"', _f::esc, '"', subreddit_name, '"', ',',
-				proportion,
-			']',
-			','
-		);
-	}
-	if(get_index(ITR, BUF) > 1)
-		--ITR;
-	compsky::asciify::asciify(ITR, ']', '\0');
-	DST = BUF;
+	things_given(
+		subreddit_name,
+		proportion
+	);
 }
 
 
