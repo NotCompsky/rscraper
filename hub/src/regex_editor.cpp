@@ -65,6 +65,7 @@ void RegexEditor::ensure_buf_sized(const size_t buf_sz){
 	void* dummy = malloc(this->buf_sz);
 	if (unlikely(dummy == nullptr))
 		exit(4096);
+	free(this->buf);
 	this->buf = (char*)dummy;
 }
 
@@ -461,8 +462,8 @@ void RegexEditor::save_to_file(){
 	
 	this->ensure_buf_sized(buf_sz);
 	
-	compsky::mysql::exec(_mysql::obj, BUF, "UPDATE longstrings SET data=\"", _f::esc, '"', this->text_editor->toPlainText(), "\" WHERE name='", this->src, "'");
-	compsky::mysql::exec(_mysql::obj, BUF, "UPDATE longstrings SET data=\"", _f::esc, '"', buf, "\" WHERE name='", this->dst, "'");
+	compsky::mysql::exec(_mysql::obj, this->buf, "UPDATE longstrings SET data=\"", _f::esc, '"', this->text_editor->toPlainText(), "\" WHERE name='", this->src, "'");
+	compsky::mysql::exec(_mysql::obj, this->buf, "UPDATE longstrings SET data=\"", _f::esc, '"', buf, "\" WHERE name='", this->dst, "'");
 }
 
 bool RegexEditor::does_user_want_optimisations() const {
