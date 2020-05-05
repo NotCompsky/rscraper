@@ -17,6 +17,8 @@ if(proxygen_root_DIR)
 	if(NOT fizz_DIR)
 		set(fizz_DIR "${proxygen_cmake_DIR}/fizz")
 	endif()
+else()
+	message(WARNING "You might want to define -Dproxygen_root_DIR=/path/to/proxygen/root for ease - defines proxygen_cmake_DIR, wangle_DIR, folly_DIR and fizz_DIR")
 endif()
 
 project(RScraperWangle C CXX)
