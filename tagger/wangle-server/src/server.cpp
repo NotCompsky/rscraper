@@ -155,9 +155,9 @@ namespace _method {
 }
 
 constexpr
-uint64_t str2id(const char* str){
+uint64_t str2id(const char* str,  const char terminater){
 	uint64_t n = 0;
-	while (*str != 0){
+	while (*str != terminater){
 		n *= (10 + 26);
 		if (*str >= '0'  &&  *str <= '9')
 			n += *str - '0';
@@ -410,7 +410,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	}
 	
 	std::string_view subreddits_given_userid(const char* id_str){
-		const uint64_t id = str2id(id_str);
+		const uint64_t id = str2id(id_str, ' ');
 		
 		/*
 		if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
@@ -445,9 +445,61 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		while(this->mysql_assign_next_row(&count, &subreddit_name, &tag_id)){
 			this->asciify(
 				'[',
-					tag_id,
+					tag_id, ',',
 					'"', _f::esc, '"', subreddit_name, '"', ',',
 					count,
+				']',
+				','
+			);
+		}
+		if (this->last_char_in_buf() == ',')
+			// If there was at least one iteration of the loop...
+			--this->itr; // ...wherein a trailing comma was left
+		this->asciify(']');
+		
+		return this->get_buf_as_string_view();
+	}
+	
+	std::string_view reasons_given_userid(const char* id_str){
+		const uint64_t id = str2id(id_str, ' ');
+		
+		/*
+		if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
+			// WARNING: May be annoying if users cache is not updated often.
+			DST = http_err::not_in_database;
+			return;
+		}
+		*/
+		
+		this->mysql_query(
+			"SELECT m.id, r.name, c.created_at, c.submission_id "
+			"FROM reason_matched m "
+			"JOIN comment c ON c.reason_matched=m.id "
+			"JOIN submission s ON s.id=c.submission_id "
+			"JOIN subreddit r ON r.id=s.subreddit_id "
+			"WHERE c.author_id=", id, " ",
+			  _filter::REASONS,
+			"LIMIT 1000"
+		);
+		
+		char* reason_id;
+		char* subreddit_name;
+		char* created_at;
+		char* submission_id;
+		this->reset_buf_index();
+		this->asciify(
+			#include "headers/return_code/OK.c"
+			#include "headers/Content-Type/json.c"
+			"\n"
+		);
+		this->asciify('[');
+		while(this->mysql_assign_next_row(&reason_id, &subreddit_name, &created_at, &submission_id)){
+			this->asciify(
+				'[',
+					reason_id, ',',
+					'"', _f::esc, '"', subreddit_name, '"', ',',
+					created_at, ',',
+					submission_id,
 				']',
 				','
 			);
@@ -740,6 +792,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 										return this->subreddits_given_userid(s);
 									default: return _r::not_found;
 								}
+							case 'm':
+								// /a/u/m/
+								return this->reasons_given_userid(s);
 							default: return _r::not_found;
 						}
 					default: return _r::not_found;
@@ -941,9 +996,20 @@ class RTaggerPipelineFactory : public wangle::PipelineFactory<RTaggerPipeline> {
 		}
 };
 
+int s2n(const char* s){
+	int n = 0;
+	while(*s != 0){
+		n *= 10;
+		n += *s - '0';
+		++s;
+	}
+	return n;
+}
+
 int main(int argc,  char** argv) {
-	_filter::REASONS = (argc > 1) ? argv[1] : _filter::EMPTY;
-	_filter::TAGS    = (argc > 2) ? argv[2] : _filter::EMPTY;
+	const int port_n = s2n(argv[1]);
+	_filter::REASONS = (argc > 2) ? argv[2] : _filter::EMPTY;
+	_filter::TAGS    = (argc > 3) ? argv[3] : _filter::EMPTY;
 	
 	int dummy_argc = 1;
 	folly::Init init(&dummy_argc, &argv);
@@ -958,7 +1024,7 @@ int main(int argc,  char** argv) {
 
 	wangle::ServerBootstrap<RTaggerPipeline> server;
 	server.childPipeline(std::make_shared<RTaggerPipelineFactory>());
-	server.bind(8080);
+	server.bind(port_n);
 	server.waitForStop();
 	
 	mysql_close(_mysql::mysql_obj);
