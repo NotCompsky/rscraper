@@ -19,6 +19,7 @@
 #include "notfound.hpp"
 #ifdef USE_BOOST_REGEX
 # include "regex_editor.hpp"
+# include "regex_tests.hpp"
 #endif
 
 #include <compsky/asciify/flags.hpp>
@@ -85,7 +86,13 @@ ScraperTab::ScraperTab(QWidget* parent) : QWidget(parent) {
   #ifdef USE_BOOST_REGEX
 	QPushButton* edit_cmnt_body_re_btn = new QPushButton("Edit Comment Body Regexp", this);
 	connect(edit_cmnt_body_re_btn, &QPushButton::clicked, this, &ScraperTab::open_cmnt_body_re_editor);
-	l->addWidget(edit_cmnt_body_re_btn, row++, 0);
+	l->addWidget(edit_cmnt_body_re_btn, row, 0);
+	
+	QPushButton* edit_cmnt_body_re_tests_btn = new QPushButton("Tests", this);
+	connect(edit_cmnt_body_re_tests_btn, &QPushButton::clicked, this, &ScraperTab::open_cmnt_body_re_tests);
+	l->addWidget(edit_cmnt_body_re_tests_btn, row, 1);
+	
+	++row;
   #endif
 	
 	l->addWidget(new QLabel("Count comments in subreddits"), row++, 0);
@@ -159,6 +166,11 @@ ScraperTab::ScraperTab(QWidget* parent) : QWidget(parent) {
 #ifdef USE_BOOST_REGEX
 void ScraperTab::open_cmnt_body_re_editor(){
 	RegexEditor* editor = new RegexEditor("cmnt_body_regex.human", "cmnt_body_regex", this);
+	editor->exec();
+}
+
+void ScraperTab::open_cmnt_body_re_tests(){
+	RegexTests* editor = new RegexTests(this);
 	editor->exec();
 }
 #endif

@@ -77,6 +77,8 @@ add_executable(
 	"${SRC_DIR}/regex_editor.cpp"
 	"${SRC_DIR}/regex_editor_highlighter.cpp"
 	"${SRC_DIR}/regex_editor_vars_menu.cpp"
+	
+	"${SRC_DIR}/regex_tests.cpp"
 
 	"${SRC_DIR}/cat_doughnut.cpp"
 	"${SRC_DIR}/cat_pie.cpp"

@@ -27,6 +27,7 @@ class ScraperTab : public QWidget {
 	int add(ScraperTabMemberFnct f_add,  ScraperTabMemberFnct f_rm,  QGridLayout* l,  int row);
 	
 	void open_cmnt_body_re_editor();
+	void open_cmnt_body_re_tests();
 	
 	void add_subreddit_to(const char* tblname,          const bool delete_from);
 	void add_subreddit_to_reason(const char* tblname,   const bool delete_from);
