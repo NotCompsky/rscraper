@@ -26,6 +26,7 @@ class ViewMatchedComments : public QWidget {
   private:
 	void next();
 	void ch_reason();
+	void tag_user();
 	void del_cmnt();
 	void generate_query();
 	void execute_query();

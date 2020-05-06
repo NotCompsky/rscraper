@@ -94,6 +94,7 @@ uint64_t indexof(const std::vector<uint64_t>& ms,  const uint64_t n){
 	for (auto i = ms.size();  i != 0;  )
 		if (ms[--i] == n)
 			return i;
+	throw std::runtime_error("indexof should always return an index");
 }
 
 
@@ -205,6 +206,10 @@ ViewMatchedComments::ViewMatchedComments(QWidget* parent)
 		QPushButton* ch_reason_btn = new QPushButton("Change to");
 		connect(ch_reason_btn, &QPushButton::clicked, this, &ViewMatchedComments::ch_reason);
 		hbox->addWidget(ch_reason_btn);
+		
+		QPushButton* tag_user_btn = new QPushButton("Tag User");
+		connect(tag_user_btn, &QPushButton::clicked, this, &ViewMatchedComments::tag_user);
+		hbox->addWidget(tag_user_btn);
 		
 		this->ch_reason_input = new QLineEdit(this);
 		this->ch_reason_input->setCompleter(reason_name_completer);
@@ -320,13 +325,15 @@ void ViewMatchedComments::execute_query(){
 				cmnt_id_2_result_indx.push_back(_cmnt_id);
 			}
 		}
+		mysql_data_seek(this->res1, 0); // Return to start of results set
+		
+		if (cmnt_id_2_result_indx.size()){
 		
 		this->cmnt_contents_from_remote.reserve(cmnt_id_2_result_indx.size());
 		for (auto i = 0;  i < cmnt_id_2_result_indx.size();  ++i)
 			// Initialise members, otherwise assert fails when setting values via arbitrary indexes
 			this->cmnt_contents_from_remote.append(0);
 		
-		mysql_data_seek(this->res1, 0); // Return to start of results set
 		--this->itr; // Overwrite trailing comma
 		compsky::asciify::asciify(this->itr, "&filter=id,body", '\0');
 		
@@ -350,6 +357,8 @@ void ViewMatchedComments::execute_query(){
 			const char* const id_str = id_ba.data();
 			const uint64_t id = str2id(id_str);
 			this->cmnt_contents_from_remote[indexof(cmnt_id_2_result_indx, id)] = cmnt["body"].toString();
+		}
+		
 		}
 	}
 	goto__init_first_cmnt:
@@ -422,6 +431,17 @@ void ViewMatchedComments::ch_reason(){
 	compsky::mysql::exec(_mysql::obj, BUF,"INSERT IGNORE INTO reason_matched (name) VALUES (\"", _f::esc, '"', s, "\")");
 	
 	compsky::mysql::exec(_mysql::obj, BUF,"UPDATE comment c, reason_matched m SET c.reason_matched=m.id WHERE m.name=\"", _f::esc, '"', s, "\" AND c.id=", this->cmnt_id);
+}
+
+void ViewMatchedComments::tag_user(){
+	const QString s = this->ch_reason_input->text();
+	
+	if (s.isEmpty())
+		return;
+	
+	compsky::mysql::exec(_mysql::obj, BUF,"INSERT INTO usertag (name) SELECT \"", _f::esc, '"', s, "\" FROM usertag WHERE NOT EXISTS (SELECT id FROM usertag WHERE name=\"", _f::esc, '"', s, "\") LIMIT 1");
+	
+	compsky::mysql::exec(_mysql::obj, BUF,"INSERT INTO user2tag SELECT c.author_id, t.id FROM comment c, usertag t WHERE c.id=", this->cmnt_id, " AND t.name=\"", _f::esc, '"', s, "\" ON DUPLICATE KEY UPDATE user=user");
 }
 
 void ViewMatchedComments::del_cmnt(){
