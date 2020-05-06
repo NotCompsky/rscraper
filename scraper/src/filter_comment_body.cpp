@@ -30,6 +30,7 @@ bool contains(A& ls,  B x){
 
 
 unsigned int match(struct cmnt_meta metadata, const char* str, const int str_len){
+	// NOTE: metadata is not passed by const reference as sizeof(metadata) ~= 2*sizeof(void*)
 	if (!boost::regex_search(str,  str + str_len,  what,  *regexpr))
 		return 0;
 	
