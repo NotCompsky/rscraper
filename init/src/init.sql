@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS user2tag (
 	tag BIGINT UNSIGNED NOT NULL,
 	PRIMARY KEY (user, tag),
 	FOREIGN KEY (user) REFERENCES user (id),
-	FOREIGN KEY (tag)  REFERENCES tag  (id)
+	FOREIGN KEY (tag)  REFERENCES usertag  (id)
 );
 
 CREATE TABLE IF NOT EXISTS user2subreddit_cmnt_count (
