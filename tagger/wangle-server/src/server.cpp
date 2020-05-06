@@ -688,7 +688,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			position_to_overwrite_with_open_square_brkt[1] = '{';
 		}
 		}
-		goto_results:
 		
 		// TODO: Account for cases ((_filter::TAGS==nullptr), (_filter::REASONS==nullptr))
 		
