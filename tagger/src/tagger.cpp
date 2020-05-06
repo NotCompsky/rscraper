@@ -375,6 +375,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	constexpr static const char* stmt_t_2 =
 			// ")" // Closing bracket added seperately 
 			" GROUP BY u2scc.user_id, s2t.tag_id, t.r, t.g, t.b, t.a"
+			" ORDER BY c DESC"
 		") A ON t2c.tag_id = A.tag_id "
 		"GROUP BY A.user_id, t2c.category_id";
 
