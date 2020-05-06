@@ -58,7 +58,7 @@ function write_user_flairs(list, id2name){
         for (var tpl of tpls){
             var tagstrtag = document.createElement("div");
             tagstrtag.innerText = id2name[tpl[1]] + " " + tpl[2];
-            tagstrtag.style.background = tpl[0];
+            tagstrtag.style.background = "rgba(" + tpl[0] + ")";
             tagstrtag.style.display = "inline";
             t.appendChild(tagstrtag);
         }

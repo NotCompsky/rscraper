@@ -474,12 +474,12 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 		
 		compsky::asciify::asciify(
 			ITR,
-			"[\"rgba(",
+			"[\"",
 			+(uint8_t)(255.0 * r / (double)div_rgb_by),  ',',
 			+(uint8_t)(255.0 * g / (double)div_rgb_by),  ',',
 			+(uint8_t)(255.0 * b / (double)div_rgb_by),  ',',
 			f, (double)(a / (double)div_rgb_by), 3,
-			")\",",
+			"\",",
 			tag_or_reason_id,
 			',',
 			n_cmnts,
