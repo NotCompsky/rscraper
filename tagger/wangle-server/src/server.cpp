@@ -515,28 +515,15 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	constexpr
 	size_t generate_user_id_list_string(const char* csv){
 		char* const buf_init = this->itr;
-		bool current_id_valid = (*csv == '_');
-		++csv; // Skip last character of first prefix (no need to check for 0 - done in switch)
 		const char* current_id_start = csv;
 		while (true){
 			switch(*csv){
 				case 0: // Don't expect a 0-terminated string
 				case ' ': // This is the expected terminator
 				case ',':
-					if (current_id_valid){
-						const uint64_t id = str2id(current_id_start, csv);
-						
-						this->asciify(id);
-						this->asciify(',');
-					}
-					for (auto i = 0;  i < 6;  ++i)
-						// Safely skip the prefix ("id-t2_")
-						++csv;
-						if (*csv == ' '  ||  *csv == 0)
-							// Good input would end only on k = 0 (corresponding to 'case 0')
-							// Otherwise, there was not the expected prefix in after the comma
-							return (uintptr_t)this->itr - (uintptr_t)buf_init;
-					current_id_valid = (*csv == '_');
+					const uint64_t id = str2id(current_id_start, csv);
+					this->asciify(id);
+					this->asciify(',');
 					current_id_start = csv + 1; // Start at character after comma
 					break;
 			}
@@ -562,7 +549,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		There is no effort to account for the case where both tags and reasons are null. There is no use case for such a configuration.
 		*/
 		/*
-		The input id-t2_IDSTR,id-t2_IDSTR2,id-t2_IDSTR3, ... maps to {"IDSTR":"#0123456", ... }
+		The input IDSTR,IDSTR2,IDSTR3, ... maps to {"IDSTR":"#0123456", ... }
 		
 		id_t2_ cancels out 0123456 on all values seperated by commas
 		
@@ -573,14 +560,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		So strlen(output)  =  2 + n_commas(csv)*6 + strlen(output)
 		*/
 		
-		// Convert id-t2_ABCDEF,id-t2_abcdefg,id-t2_12345  to  colour hex codes
+		// Convert ABCDEF,abcdefg,12345  to  colour hex codes
 		// The former is longer than the latter, so can reuse the same string as the final output
 		// SQL statement might still be longer though, so have to create new string for it
-		
-		for (auto i = 0;  i < 5;  ++i)
-			// Safely skip first prefix bar the last character
-			if (unlikely(*(csv++) == 0))
-				return _r::bad_request;
 		
 		constexpr static const char* const ok_begin =
 			#include "headers/return_code/OK.c"
@@ -674,7 +656,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 				continue;
 			}
 			
-			const size_t max_new_entry_size = std::char_traits<char>::length("],\"id-t2_abcdefghijklm\":[[\"rgba(255,255,255,1.000)\",\"01234567890123456789 01234567890123456789\"],");
+			const size_t max_new_entry_size = std::char_traits<char>::length("],\"abcdefghijklm\":[[\"rgba(255,255,255,1.000)\",\"01234567890123456789 01234567890123456789\"],");
 			
 			if (this->buf_indx() + max_new_entry_size + 1  >  this->buf_sz)
 				//{ +1 is to account for the terminating '}' char.
@@ -683,7 +665,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			if (id == last_id){
 				this->asciify(',');
 			} else {
-				this->asciify("],\"id-t2_",  _f::alphanum,  id,  "\":[");
+				this->asciify("],\"",  _f::alphanum,  id,  "\":[");
 				// The previous line leads to the assertion that first_results_nonempty==(compsky::asciify::BUF[1]==',')
 				last_id = id;
 			}
@@ -715,7 +697,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		char* DST = this->buf + std::char_traits<char>::length(ok_begin) + 1;
 		
-		const bool first_results_nonempty = (DST[1] == ',');   // Begins with ],"id-t2_
+		const bool first_results_nonempty = (DST[1] == ',');   // Begins with ],"
 		const bool secnd_results_nonempty = (*(this->itr-1) == ']'); // Ends   with ]
 		if (!first_results_nonempty){
 			// Only first results set is empty

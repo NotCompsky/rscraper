@@ -12,7 +12,7 @@ for (var t of document.getElementsByClassName("author")){
     if (s[0] == 'm'){
         s = t.classList[3];
     }
-    userIds.push(s);
+    userIds.push(s.substring(6)); // Skip id-t2_ prefix
 }
 
 var tags;
@@ -43,7 +43,7 @@ function write_user_flairs(list, id2name){
         if (s[0] === 'm'){
             s = t.classList[3];
         }
-        var tpls = list[s];
+        var tpls = list[s.substring(6)]; // Skip "id-t2_"
         // NOTE: Thread starter has additional (non-ID) tag in 2nd index.
         // TODO: Account for this
         if (tpls === undefined){
