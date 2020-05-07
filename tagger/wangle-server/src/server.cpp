@@ -58,6 +58,12 @@ namespace _r {
 		"Your IP address has been temporarily banned"
 	;
 	
+	constexpr static const std::string_view img_not_found =
+		#include "headers/return_code/NOT_FOUND.c"
+		"\n"
+		"Image not Found"
+	;
+	
 	constexpr
 	std::string_view return_static(const char* s){
 		switch(*(s++)){
@@ -823,6 +829,12 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 								switch(*(s++)){
 									case '/':
 										return this->return_api(s);
+									default: return _r::not_found;
+								}
+							case 'i':
+								switch(*(s++)){
+									case '/':
+										return _r::img_not_found;
 									default: return _r::not_found;
 								}
 							case 'f':
