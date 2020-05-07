@@ -12,7 +12,10 @@ for (var t of document.getElementsByClassName("author")){
     if (s[0] == 'm'){
         s = t.classList[3];
     }
-    userIds.push(s.substring(6)); // Skip id-t2_ prefix
+	const user_id = s.substring(6); // Skip id-t2_ prefix
+	if (!userIds.includes(user_id)){
+		userIds.push(user_id);
+	}
 }
 
 var tags;
