@@ -292,7 +292,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	
 	void mysql_query_using_buf(){
 		this->mysql_mutex.lock();
-		printf("qry: %*.s\n",  (int)this->buf_indx(),  this->buf);
 		compsky::mysql::query_buffer(_mysql::mysql_obj, this->res, this->buf, this->buf_indx());
 		this->mysql_mutex.unlock();
 	}
@@ -301,7 +300,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	void mysql_query(Args... args){
 		this->reset_buf_index();
 		this->asciify(args...);
-		*this->itr = 0;
 		this->mysql_query_using_buf();
 	}
 	
@@ -423,7 +421,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		*/
 		
 		this->mysql_query(
-			"SELECT u2scc.count, r.name, s2t.tag_id "
+			"SELECT u2scc.count, r.name, GROUP_CONCAT(s2t.tag_id) "
 			"FROM user u, user2subreddit_cmnt_count u2scc, subreddit2tag s2t, tag t, subreddit r "
 			"WHERE u.id=", id, " "
 			  "AND u2scc.user_id=u.id "
@@ -431,12 +429,13 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			  "AND s2t.subreddit_id=u2scc.subreddit_id "
 			  "AND t.id=s2t.tag_id ", // for tagfilter - hopefully optimised out if it is just a condition on t.id
 			  _filter::TAGS,
+			"GROUP BY r.id "
 			"LIMIT 1000"
 		);
 		
 		char* count;
 		char* subreddit_name;
-		char* tag_id;
+		char* tag_ids;
 		this->reset_buf_index();
 		this->asciify(
 			#include "headers/return_code/OK.c"
@@ -444,10 +443,10 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			"\n"
 		);
 		this->asciify('[');
-		while(this->mysql_assign_next_row(&count, &subreddit_name, &tag_id)){
+		while(this->mysql_assign_next_row(&count, &subreddit_name, &tag_ids)){
 			this->asciify(
 				'[',
-					tag_id, ',',
+					'"', tag_ids, '"', ',',
 					'"', _f::esc, '"', subreddit_name, '"', ',',
 					count,
 				']',
@@ -475,7 +474,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		*/
 		
 		this->mysql_query(
-			"SELECT m.id, r.name, c.created_at, c.submission_id "
+			"SELECT m.id, r.name, c.created_at, c.submission_id, c.id "
 			"FROM reason_matched m "
 			"JOIN comment c ON c.reason_matched=m.id "
 			"JOIN submission s ON s.id=c.submission_id "
@@ -488,7 +487,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		char* reason_id;
 		char* subreddit_name;
 		char* created_at;
-		char* submission_id;
+		uint64_t submission_id;
+		uint64_t comment_id;
 		this->reset_buf_index();
 		this->asciify(
 			#include "headers/return_code/OK.c"
@@ -496,13 +496,13 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			"\n"
 		);
 		this->asciify('[');
-		while(this->mysql_assign_next_row(&reason_id, &subreddit_name, &created_at, &submission_id)){
+		while(this->mysql_assign_next_row(&reason_id, &subreddit_name, &created_at, &submission_id, &comment_id)){
 			this->asciify(
 				'[',
 					reason_id, ',',
 					'"', _f::esc, '"', subreddit_name, '"', ',',
 					created_at, ',',
-					submission_id,
+					'"', _f::alphanum, submission_id, "/_/", _f::alphanum, comment_id, '"',
 				']',
 				','
 			);
@@ -782,7 +782,11 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 								}
 							case 'm':
 								// /a/u/m/
-								return this->reasons_given_userid(s);
+								switch(*(s++)){
+									case '/':
+										return this->reasons_given_userid(s);
+									default: return _r::not_found;
+								}
 							default: return _r::not_found;
 						}
 					default: return _r::not_found;
