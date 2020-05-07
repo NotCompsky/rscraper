@@ -6,7 +6,7 @@
  */
 
 
-var userIds = [];
+const userIds = [];
 for (var t of document.getElementsByClassName("author")){
     var s = t.classList[2];
     if (s[0] == 'm'){
@@ -46,20 +46,20 @@ function write_user_flairs(list, id2name){
         if (s[0] === 'm'){
             s = t.classList[3];
         }
-        var tpls = list[s.substring(6)]; // Skip "id-t2_"
+		const tpls = list[s.substring(6)]; // Skip "id-t2_"
         // NOTE: Thread starter has additional (non-ID) tag in 2nd index.
         // TODO: Account for this
         if (tpls === undefined){
             continue;
         }
         
-		var linktag = document.createElement("a");
+		const linktag = document.createElement("a");
 		linktag.href = items.user_info_url + s.substr(6); // Skip "id-t2_"
 		linktag.innerText = "[Summary]";
 		t.appendChild(linktag);
 		
         for (var tpl of tpls){
-            var tagstrtag = document.createElement("div");
+			const tagstrtag = document.createElement("div");
             tagstrtag.innerText = id2name[tpl[1]] + " " + tpl[2];
             tagstrtag.style.background = "rgba(" + tpl[0] + ")";
             tagstrtag.style.display = "inline";
