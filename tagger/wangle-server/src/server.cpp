@@ -524,6 +524,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 					const uint64_t id = str2id(current_id_start, csv);
 					this->asciify(id);
 					this->asciify(',');
+					if (*csv == ' '  ||  *csv == 0)
+						return (uintptr_t)this->itr - (uintptr_t)buf_init;
 					current_id_start = csv + 1; // Start at character after comma
 					break;
 			}
