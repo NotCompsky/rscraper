@@ -422,13 +422,11 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		this->mysql_query(
 			"SELECT u2scc.count, r.name, GROUP_CONCAT(s2t.tag_id) "
-			"FROM user u, user2subreddit_cmnt_count u2scc, subreddit2tag s2t, tag t, subreddit r "
-			"WHERE u.id=", id, " "
-			  "AND u2scc.user_id=u.id "
-			  "AND r.id=u2scc.subreddit_id "
-			  "AND s2t.subreddit_id=u2scc.subreddit_id "
-			  "AND t.id=s2t.tag_id ", // for tagfilter - hopefully optimised out if it is just a condition on t.id
-			  _filter::TAGS,
+			"FROM user2subreddit_cmnt_count u2scc "
+			"JOIN subreddit r ON r.id=u2scc.subreddit_id "
+			"JOIN subreddit2tag s2t ON s2t.subreddit_id=r.id "
+			"WHERE user_id=", id, ' ',
+			_filter::TAGS,
 			"GROUP BY r.id "
 			"LIMIT 1000"
 		);
