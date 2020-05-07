@@ -288,12 +288,11 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	template<typename... Args>
 	void asciify(Args... args){
 		compsky::asciify::asciify(this->itr,  args...);
-		
-		*this->itr = 0;
 	};
 	
 	void mysql_query_using_buf(){
 		this->mysql_mutex.lock();
+		printf("qry: %*.s\n",  (int)this->buf_indx(),  this->buf);
 		compsky::mysql::query_buffer(_mysql::mysql_obj, this->res, this->buf, this->buf_indx());
 		this->mysql_mutex.unlock();
 	}
@@ -302,6 +301,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	void mysql_query(Args... args){
 		this->reset_buf_index();
 		this->asciify(args...);
+		*this->itr = 0;
 		this->mysql_query_using_buf();
 	}
 	
@@ -357,6 +357,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			// If there was at least one iteration of the loop...
 			--this->itr; // ...wherein a trailing comma was left
 		this->asciify(']');
+		*this->itr = 0;
 		
 		return this->get_buf_as_string_view();
 	}
@@ -405,6 +406,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			// If there was at least one iteration of the loop...
 			--this->itr; // ...wherein a trailing comma was left
 		this->asciify(']');
+		*this->itr = 0;
 		
 		return this->get_buf_as_string_view();
 	}
@@ -456,6 +458,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			// If there was at least one iteration of the loop...
 			--this->itr; // ...wherein a trailing comma was left
 		this->asciify(']');
+		*this->itr = 0;
 		
 		return this->get_buf_as_string_view();
 	}
@@ -508,6 +511,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			// If there was at least one iteration of the loop...
 			--this->itr; // ...wherein a trailing comma was left
 		this->asciify(']');
+		*this->itr = 0;
 		
 		return this->get_buf_as_string_view();
 	}
@@ -630,6 +634,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			this->asciify(_f::strlen, stmt_m_2, std::char_traits<char>::length(stmt_m_2));
 		}
 		
+		*this->itr = 0;
 		this->mysql_query_using_buf();
 		
 		this->reset_buf_index();
@@ -722,7 +727,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 				this->asciify('}', ']');
 			}
 		}
-		
+		*this->itr = 0;
 		return this->get_buf_as_string_view();
 	}
 	
