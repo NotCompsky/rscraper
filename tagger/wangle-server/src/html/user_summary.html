@@ -15,10 +15,17 @@
 			"const user_id = window.location.pathname.substr(3);" // 3 == strlen("/u/")
 			"populate_table('/a/u/m/' + user_id,  '#cmnt-tbl tbody',  format_table);"
 			"populate_table('/a/u/r/' + user_id,  '#sub-tbl tbody',   format_sub_table);"
+			"populate_str('/a/u/t/' + user_id,    '#u2t-str',         id2name_usertag);"
 		"</script>"
 		"<h1>"
 			"User Summary"
 		"</h1>"
+		
+		"<h2>"
+			"User Tags"
+		"</h2>"
+		"<p id=\"u2t-str\"></p>"
+		
 		"<h2>"
 			"Subreddits"
 		"</h2>"

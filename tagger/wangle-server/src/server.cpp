@@ -25,6 +25,7 @@ namespace _filter {
 	static char* EMPTY = "";
 	static char* REASONS;
 	static char* TAGS;
+	static char* USERTAGS;
 }
 
 namespace _mysql {
@@ -100,6 +101,7 @@ namespace _r {
 	
 	static char* reasons_json;
 	static char* tags_json;
+	static char* usertags_json;
 	
 	void init_json(const char* const tbl_name,  const char* const tbl_alias,  char*& dst,  const char* const qry_filter){
 		MYSQL_RES* mysql_res;
@@ -531,6 +533,39 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		return this->get_buf_as_string_view();
 	}
 	
+	std::string_view usertags_given_userid(const char* id_str){
+		const uint64_t id = str2id(id_str, ' ');
+		
+		this->mysql_query(
+			"SELECT tag "
+			"FROM user2tag "
+			"WHERE user=", id, ' ',
+			  _filter::USERTAGS
+		);
+		
+		char* usertag_id;
+		this->reset_buf_index();
+		this->asciify(
+			#include "headers/return_code/OK.c"
+			#include "headers/Content-Type/json.c"
+			"\n"
+		);
+		this->asciify('[');
+		while(this->mysql_assign_next_row(&usertag_id)){
+			this->asciify(
+				usertag_id,
+				','
+			);
+		}
+		if (this->last_char_in_buf() == ',')
+			// If there was at least one iteration of the loop...
+			--this->itr; // ...wherein a trailing comma was left
+		this->asciify(']');
+		*this->itr = 0;
+		
+		return this->get_buf_as_string_view();
+	}
+	
 	constexpr
 	size_t generate_user_id_list_string(const char* csv){
 		char* const buf_init = this->itr;
@@ -787,6 +822,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 				}
 			case 'u':
 				switch(*(s++)){
+					case '2':
+						// /a/u2t.json
+						return _r::usertags_json;
 					case '/':
 						switch(*(s++)){
 							case 'r':
@@ -800,6 +838,13 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 								switch(*(s++)){
 									case '/':
 										return this->reasons_given_userid(s);
+									default: return _r::not_found;
+								}
+							case 't':
+								// /a/u/t/
+								switch(*(s++)){
+									case '/':
+										return this->usertags_given_userid(s);
 									default: return _r::not_found;
 								}
 							default: return _r::not_found;
@@ -1025,6 +1070,7 @@ int main(int argc,  char** argv) {
 	const int port_n = s2n(argv[1]);
 	_filter::REASONS = (argc > 2) ? argv[2] : _filter::EMPTY;
 	_filter::TAGS    = (argc > 3) ? argv[3] : _filter::EMPTY;
+	_filter::USERTAGS= (argc > 4) ? argv[4] : _filter::EMPTY;
 	
 	int dummy_argc = 1;
 	folly::Init init(&dummy_argc, &argv);
@@ -1036,6 +1082,7 @@ int main(int argc,  char** argv) {
 	compsky::mysql::login_from_auth(_mysql::mysql_obj, _mysql::auth);
 	_r::init_json("reason_matched", "m", _r::reasons_json, _filter::REASONS);
 	_r::init_json("tag",            "t", _r::tags_json,    _filter::TAGS);
+	_r::init_json("usertag",       "ut", _r::usertags_json,_filter::USERTAGS);
 
 	wangle::ServerBootstrap<RTaggerPipeline> server;
 	server.childPipeline(std::make_shared<RTaggerPipelineFactory>());
