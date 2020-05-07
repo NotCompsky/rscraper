@@ -34,6 +34,8 @@ namespace _mysql {
 	constexpr static const size_t buf_sz = 512; // TODO: Alloc file size
 }
 
+std::vector<std::string> banned_client_addrs;
+
 namespace _r {
 	constexpr static const std::string_view not_found =
 		#include "headers/return_code/NOT_FOUND.c"
@@ -41,10 +43,19 @@ namespace _r {
 		"Not Found"
 	;
 	
+	/*
 	constexpr static const std::string_view bad_request =
 		#include "headers/return_code/BAD_REQUEST.c"
 		"\n"
 		"Bad Request"
+	;
+	*/
+	constexpr static const std::string_view bad_request = not_found;
+	
+	constexpr static const std::string_view banned_client =
+		#include "headers/return_code/UNAUTHORISED.c"
+		"\n"
+		"Your IP address has been temporarily banned"
 	;
 	
 	constexpr
@@ -576,7 +587,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 
 		constexpr static const char* const stmt_t_1 = 
 			"SELECT A.user_id, SUM(A.c), SUM(A.c) AS distinctname"
-				", SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), A.tag_id "
+				", SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), GROUP_CONCAT(A.tag_id ORDER BY A.c DESC SEPARATOR '\\0') " // LIMIT within GROUP_CONCAT not supported until MariaDB 10.3.3, otherwise I'd use "LIMIT 1"
 			"FROM tag2category t2c "
 			"JOIN ( "
 				"SELECT u2scc.user_id, s2t.tag_id, SUM(u2scc.count) AS c, t.r, t.g, t.b, t.a "
@@ -964,9 +975,11 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 				this->asciify(*msg_itr);
 			}
 			*this->itr = 0;
-			std::cout << ctx->getPipeline()->getTransportInfo()->remoteAddr->getHostStr() << '\t' << this->buf << std::endl;
-			
-			const std::string_view v = this->determine_response(msg);
+			const std::string client_addr = ctx->getPipeline()->getTransportInfo()->remoteAddr->getHostStr();
+			std::cout << client_addr << '\t' << this->buf << std::endl;
+			const std::string_view v = likely(std::find(banned_client_addrs.begin(), banned_client_addrs.end(), client_addr) == banned_client_addrs.end()) ? this->determine_response(msg) : _r::banned_client;
+			if (unlikely(v == _r::not_found))
+				banned_client_addrs.push_back(client_addr);
 			write(ctx, v);
 			close(ctx);
 		}
