@@ -15,7 +15,7 @@
 			"function format_usertags(){"
 				"column_id2name('/a/u2t.json', '#u2t-str');"
 			"}"
-			"const user_id = window.location.pathname.substr(3);" // 3 == strlen("/u/")
+			"const user_id = window.location.pathname.substr(4);" // 4 == strlen("/u/#")
 			"populate_table('/a/u/m/' + user_id,  '#cmnt-tbl tbody',  format_table);"
 			"populate_table('/a/u/r/' + user_id,  '#sub-tbl tbody',   format_sub_table);"
 			"populate_str('/a/u/t/' + user_id,    '#u2t-str',         format_usertags);"

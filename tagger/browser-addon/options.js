@@ -26,7 +26,7 @@ function restore_options() {
     flairs_url: "https://104.197.15.19:8080/api/flairs/slurs/",
     reasons_url: "https://104.197.15.19:8080/api/reasons.json",
     tags_url: "https://104.197.15.19:8080/api/tags.json",
-	user_info_url: "https://104.197.15.19:8080/u/"
+	user_info_url: "https://104.197.15.19:8080/u/#"
   }, function(items) {
     document.getElementById("flairs_url").value = items.flairs_url;
     document.getElementById("reasons_url").value = items.reasons_url;

@@ -39,7 +39,7 @@ function process_from_flairs(d){
 
 function write_user_flairs(list, id2name){
 	chrome.storage.sync.get({
-		user_info_url: "https://104.197.15.19:8080/u/"
+		user_info_url: "https://104.197.15.19:8080/u/#"
 	}, function(items) {
 	for (var t of document.getElementsByClassName("author")){
         var s = t.classList[2];
