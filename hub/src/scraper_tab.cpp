@@ -198,7 +198,11 @@ void ScraperTab::add_subreddit_to(const char* tblname,  const bool delete_from){
 	}
 	
 	const int rc = dialog->exec();
-	const char* patternstr = dialog->get_pattern_str();
+	char opening_char;
+	char closing_char;
+	char escape_char;
+	const char* patternstr;
+	dialog->interpret(patternstr, opening_char, closing_char, escape_char);
 	const bool is_pattern = !(patternstr[0] == '=');
 	const QString qstr = dialog->name_edit->text();
 	
@@ -217,9 +221,9 @@ void ScraperTab::add_subreddit_to(const char* tblname,  const bool delete_from){
 		tblname,
 		(delete_from) ? " a, subreddit b WHERE a.id=b.id AND b.name" : " SELECT id FROM subreddit WHERE name",
 		patternstr,
-		'"',
-		_f::esc, '"', qstr,
-		'"'
+		opening_char,
+		_f::esc, escape_char, qstr,
+		closing_char
 	);
 }
 
@@ -245,7 +249,11 @@ void ScraperTab::add_subreddit_to_reason(const char* tblname,  const bool delete
 	subreddit_dialog->name_edit->setCompleter(subreddit_name_completer);
 	
 	rc = subreddit_dialog->exec();
-	const char* patternstr = subreddit_dialog->get_pattern_str();
+	char opening_char;
+	char closing_char;
+	char escape_char;
+	const char* patternstr;
+	subreddit_dialog->interpret(patternstr, opening_char, closing_char, escape_char);
 	const bool is_pattern = !(patternstr[0] == '=');
 	const QString qstr_subreddit = subreddit_dialog->name_edit->text();
 	
@@ -266,9 +274,9 @@ void ScraperTab::add_subreddit_to_reason(const char* tblname,  const bool delete
 		qstr_reason,
 		"\" AND b.name",
 		patternstr,
-		'"',
-		_f::esc, '"', qstr_subreddit,
-		'"'
+		opening_char,
+		_f::esc, escape_char, qstr_subreddit,
+		closing_char
 	);
 }
 

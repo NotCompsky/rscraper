@@ -42,7 +42,11 @@ void AddSub2TagBtn::add_subreddit(){
 		}
 		
 		const int rc = namedialog->exec();
-		const char* patternstr = namedialog->get_pattern_str();
+		char opening_char;
+		char closing_char;
+		char escape_char;
+		const char* patternstr;
+		namedialog->interpret(patternstr, opening_char, closing_char, escape_char);
 		const bool is_pattern = !(patternstr[0] == '=');
 		const QString qstr = namedialog->name_edit->text();
 		
@@ -64,7 +68,7 @@ void AddSub2TagBtn::add_subreddit(){
 			this->tag_id,
 			(this->delete_from) ? " AND s.name" : " FROM subreddit WHERE name",
 			patternstr,
-			'"',  qstr,  '"'
+			opening_char,  qstr,  closing_char
 		);
 	}
 }

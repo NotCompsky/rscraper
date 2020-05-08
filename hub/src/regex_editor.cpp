@@ -148,7 +148,8 @@ RegexEditor::RegexEditor(const char* srcvar,  const char* dstvar,  QWidget* pare
 void RegexEditor::find_text(){
 	SQLNameDialog* dialog = new SQLNameDialog("Find"); // TODO: Have PatternNameDialog, perhaps which SQLNameDialog inherits. SQLNameDialog also needs a case-insensitive option.
 	const int rc = dialog->exec();
-	const char* patternstr = dialog->get_pattern_str();
+	const char* patternstr;
+	dialog->interpret(patternstr);
 	const bool is_pattern = !(patternstr[0] == '=');
 	QString qstr = dialog->name_edit->text();
 	

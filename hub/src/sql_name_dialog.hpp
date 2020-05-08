@@ -16,10 +16,11 @@
 class SQLNameDialog : public QDialog {
   public:
 	explicit SQLNameDialog(QString title,  QString str = "",  QWidget* parent = 0);
-	const char* get_pattern_str();
+	void interpret(const char*& pattern,  char& opening,  char& closing,  char& escape);
+	void interpret(const char*& pattern);
 	QLineEdit* name_edit;
   private:
-	QRadioButton* pattern_btns[3];
+	QRadioButton* pattern_btns[4];
 };
 
 
