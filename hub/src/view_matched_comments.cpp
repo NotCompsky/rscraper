@@ -13,7 +13,7 @@
 
 #define ASCIIFY_TIME
 #include <compsky/asciify/asciify.hpp>
-#include "safe_mysql.hpp"
+#include <compsky/mysql/query.hpp>
 
 #include <boost/regex.hpp>
 #include <ctime> // for localtime, time_t
@@ -301,8 +301,7 @@ void ViewMatchedComments::generate_query(){
 }
 
 void ViewMatchedComments::execute_query(){
-	if (unlikely(not safe_mysql::query(_mysql::obj, this->res1, this->buf, this->query_text->toPlainText())))
-		return;
+	compsky::mysql::query(_mysql::obj, this->res1, this->buf, this->query_text->toPlainText());
 	// TODO: Improve performance of the above, by removing the unnecessary write.
 	this->query_indx = 0;
 	this->cached_cmnt_indx = 0;
