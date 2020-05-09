@@ -31,7 +31,7 @@ jobs:
           command: 'apt install -y cmake'
       - run:
           name: libcompsky - Generate build files
-          command: 'mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. -DMYSQL_UNDER_DIR=/usr/include/mysql -DMYSQL_UNDER_DIR_OVERRIDE=1  &&  make'
+          command: 'mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. -DMYSQL_UNDER_DIR=/usr/include/mysql -DMYSQL_UNDER_DIR_OVERRIDE=1  &&  make  &&  sudo make install'
 
       - run:
           name: Install Curl and WGet
