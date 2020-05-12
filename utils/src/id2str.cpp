@@ -45,6 +45,10 @@ uint64_t str2id(const char* str){
 			n += *str - 'a' + 10;
 		++str;
 	}
+#ifdef TESTS
+	if (n < 9186871453714)
+		fprintf(stderr, "Warning: %lu is unlikely to be a valid ID\n", n);
+#endif
 	return n;
 }
 
