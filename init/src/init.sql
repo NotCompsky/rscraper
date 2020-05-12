@@ -45,12 +45,15 @@ CREATE TABLE IF NOT EXISTS comment (
     content VARBINARY(40000) NOT NULL,
     created_at BIGINT UNSIGNED NOT NULL,
     reason_matched INT UNSIGNED NOT NULL,
+	FOREIGN KEY (reason_matched) REFERENCES reason_matched (id),
     PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS subreddit2tag (
     subreddit_id BIGINT UNSIGNED NOT NULL,
     tag_id BIGINT UNSIGNED NOT NULL,
+	FOREIGN KEY (subreddit_id) REFERENCES subreddit (id),
+	FOREIGN KEY (tag_id) REFERENCES tag (id),
     PRIMARY KEY `subreddit2tag` (`subreddit_id`, `tag_id`)
 );
 
@@ -95,13 +98,8 @@ CREATE TABLE IF NOT EXISTS user2subreddit_cmnt_count (
     user_id BIGINT UNSIGNED NOT NULL,
     subreddit_id BIGINT UNSIGNED NOT NULL,
     count INT UNSIGNED NOT NULL,
+	FOREIGN KEY (subreddit_id) REFERENCES subreddit (id),
     PRIMARY KEY `user2subreddit` (`user_id`, `subreddit_id`)
-);
-
-CREATE TABLE IF NOT EXISTS tag2category (
-    tag_id BIGINT UNSIGNED NOT NULL,
-    category_id INT UNSIGNED NOT NULL,
-    PRIMARY KEY `tag2category` (`tag_id`, `category_id`)
 );
 
 CREATE TABLE IF NOT EXISTS category (
@@ -109,6 +107,14 @@ CREATE TABLE IF NOT EXISTS category (
     name VARBINARY(32),
     UNIQUE KEY (name),
     PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS tag2category (
+	tag_id BIGINT UNSIGNED NOT NULL,
+	category_id INT UNSIGNED NOT NULL,
+	FOREIGN KEY (tag_id) REFERENCES tag (id),
+	FOREIGN KEY (category_id) REFERENCES category (id),
+	PRIMARY KEY `tag2category` (`tag_id`, `category_id`)
 );
 
 CREATE TABLE IF NOT EXISTS moderator (
