@@ -28,8 +28,8 @@ RmTagBtn::RmTagBtn(const uint64_t id,  QWidget* parent) : QPushButton("Delete", 
 
 void RmTagBtn::rm_tag(){
 	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM subreddit2tag WHERE tag_id=", this->tag_id);
-	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM tag WHERE id=", this->tag_id);
 	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM tag2category WHERE tag_id=", this->tag_id);
+	compsky::mysql::exec(_mysql::obj, BUF, "DELETE FROM tag WHERE id=", this->tag_id);
 	
 	ClTagsTab* cat_tab = reinterpret_cast<ClTagsTab*>(this->parent());
 	const int indx = cat_tab->l->indexOf(this);
