@@ -100,3 +100,25 @@
 		"}"
 	"});"
 "}"
+
+"function getCellValue(tr, idx){"
+	"return tr.children[idx].getAttribute('value') || tr.children[idx].innerText || tr.children[idx].textContent"
+"}"
+
+"const comparer = (idx, asc) => (a, b) => ("
+	"(v1, v2) => "
+	"v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)"
+")(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));"
+
+"function init_tbls(){"
+	"$(\"th\").each(function(i,el){el.addEventListener(\"click\", function(){"
+		"const tbl = el.closest(\"table\");"
+		"Array.from(tbl.querySelectorAll('tr:nth-child(n+2)'))"
+			".sort(comparer(Array.from(el.parentNode.children).indexOf(el), this.asc = !this.asc))"
+			".forEach(tr => tbl.appendChild(tr) );"
+	"})})"
+"}"
+
+"window.addEventListener(\"load\", function(){"
+	"init_tbls();"
+"}, false);"
