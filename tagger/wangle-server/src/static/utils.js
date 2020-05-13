@@ -135,8 +135,8 @@
 
 "function init_tbls(){"
 	"$(\"th\").each(function(i,el){el.addEventListener(\"click\", function(){"
-		"const tbl = el.closest(\"table\");"
-		"Array.from(tbl.querySelectorAll('tr:nth-child(n+2)'))"
+		"const tbl = el.parentNode.parentNode.parentNode.getElementsByTagName(\"tbody\")[0];" // th < tr < thead < table
+		"Array.from(tbl.querySelectorAll('tr:nth-child(n+1)'))"
 			".sort(comparer(Array.from(el.parentNode.children).indexOf(el), this.asc = !this.asc))"
 			".forEach(tr => tbl.appendChild(tr) );"
 	"})})"

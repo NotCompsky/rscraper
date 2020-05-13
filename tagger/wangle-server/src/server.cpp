@@ -494,12 +494,12 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		this->asciify(']');
 		*this->itr = 0;
 		
-		this->add_buf_to_cache(reasons_or_tags_given_userid::subreddits_given_reason, reason_id);
+		this->add_buf_to_cache(reasons_or_tags_given_userid::subreddits_given_reason, reason_id, (reason_id)?1:100);
 		
 		return this->get_buf_as_string_view();
 	}
 	
-	void add_buf_to_cache(const unsigned int which_cached_fn,  const uint64_t user_id){
+	void add_buf_to_cache(const unsigned int which_cached_fn,  const uint64_t user_id,  const unsigned int n_requests = 1){
 		using namespace reasons_or_tags_given_userid;
 		
 		unsigned int min_n_requests = UINT_MAX;
@@ -516,7 +516,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		memcpy(cache + (indx * max_buf_len),  this->buf,  sz);
 		// We could alternatively re-use this->buf, and instead malloc a new buffer for this->buf - but I prefer to avoid memory fragmentation.
 		cached_IDs[indx].which_cached_fn = which_cached_fn;
-		cached_IDs[indx].n_requests = 1;
+		cached_IDs[indx].n_requests = n_requests;
 		cached_IDs[indx].user_id = user_id;
 		cached_IDs[indx].sz = sz;
 	}
