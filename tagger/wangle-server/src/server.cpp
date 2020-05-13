@@ -22,10 +22,9 @@ namespace _f {
 }
 
 namespace _filter {
-	static char* EMPTY = "";
-	static char* REASONS;
-	static char* TAGS;
-	static char* USERTAGS;
+	static const char* REASONS = nullptr;
+	static const char* TAGS = nullptr;
+	static const char* USERTAGS = nullptr;
 }
 
 namespace _mysql {
@@ -75,6 +74,15 @@ namespace _r {
 		) + 195
 	);
 	
+	constexpr static const std::string_view EMPTY_JSON_LIST = 
+		#include "headers/return_code/OK.c" // To encourage browsers to cache it.
+		#include "headers/Content-Type/json.c"
+		#include "headers/Cache-Control/1day.c"
+		"Content-Length: 2\n"
+		"\n"
+		"[]"
+	;
+	
 	constexpr
 	std::string_view return_static(const char* s){
 		switch(*(s++)){
@@ -109,12 +117,17 @@ namespace _r {
 	static char buf[4096];
 	char* itr = nullptr;
 	
-	static char* reasons_json;
-	static char* tags_json;
-	static char* usertags_json;
-	static char* tag2category_json;
+	static const char* reasons_json;
+	static const char* tags_json;
+	static const char* usertags_json;
+	static const char* tag2category_json;
 	
-	void init_json(const char* const qry,  char*& dst,  const char* const qry_filter){
+	void init_json(const char* const qry,  const char*& dst,  const char* const qry_filter){
+		if (qry_filter == nullptr){
+			dst = "[]";
+			return;
+		
+		}
 		MYSQL_RES* mysql_res;
 		MYSQL_ROW mysql_row;
 		
@@ -151,8 +164,8 @@ namespace _r {
 		sz += 1;
 		sz += 1;
 		
-		dst = (char*)malloc(sz);
-		char* itr = dst;
+		char* itr = (char*)malloc(sz);
+		dst = const_cast<char*>(itr);
 		if(unlikely(itr == nullptr))
 			exit(4096);
 		
@@ -342,6 +355,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	}
 	
 	std::string_view comments_given_reason(const char* const reason_id_str){
+		if (_filter::REASONS == nullptr)
+			return _r::EMPTY_JSON_LIST;
+		
 		const uint64_t reason_id = a_to_uint64__space_terminated(reason_id_str);
 		
 		if (reason_id == 0)
@@ -390,6 +406,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	}
 	
 	std::string_view subreddits_given_reason(const char* reason_id_str){
+		if (_filter::REASONS == nullptr)
+			return _r::EMPTY_JSON_LIST;
+		
 		const uint64_t reason_id = a_to_uint64__space_terminated(reason_id_str);
 		
 		if (reason_id == 0)
@@ -439,6 +458,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	}
 	
 	std::string_view subreddits_given_userid(const char* id_str){
+		if (_filter::TAGS == nullptr)
+			return _r::EMPTY_JSON_LIST;
+		
 		const uint64_t id = str2id(id_str, ' ');
 		
 		/*
@@ -490,6 +512,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	}
 	
 	std::string_view reasons_given_userid(const char* id_str){
+		if (_filter::REASONS == nullptr)
+			return _r::EMPTY_JSON_LIST;
+		
 		const uint64_t id = str2id(id_str, ' ');
 		
 		/*
@@ -544,6 +569,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	}
 	
 	std::string_view usertags_given_userid(const char* id_str){
+		if (_filter::USERTAGS == nullptr)
+			return _r::EMPTY_JSON_LIST;
+		
 		const uint64_t id = str2id(id_str, ' ');
 		
 		this->mysql_query(
@@ -714,6 +742,10 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		size_t id_str_len;
 		char* position_to_overwrite_with_open_square_brkt = nullptr;
 		constexpr static const compsky::asciify::flag::guarantee::BetweenZeroAndOneInclusive f;
+		if (_filter::TAGS == nullptr){
+			this->asciify("]}}"); // Why two '}'? I am not sure, but it works.
+			position_to_overwrite_with_open_square_brkt = this->itr;
+		}
 		while (this->mysql_assign_next_row(&id, &n_cmnts, &div_rgb_by, &r, &g, &b, &a, &tag_or_reason_id)){
 			if (id == 0){
 				// i.e. we are in between the real selects in the union
@@ -763,7 +795,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		char* DST = this->buf + std::char_traits<char>::length(ok_begin) + 1;
 		
-		const bool first_results_nonempty = (DST[1] == ',');   // Begins with ],"
+		const bool first_results_nonempty = (_filter::TAGS == nullptr) or (DST[1] == ',');   // Begins with ],"
 		const bool secnd_results_nonempty = (*(this->itr-1) == ']'); // Ends   with ]
 		if (!first_results_nonempty){
 			// Only first results set is empty
@@ -1079,14 +1111,50 @@ int s2n(const char* s){
 	return n;
 }
 
-int main(int argc,  char** argv) {
-	const int port_n = s2n(argv[1]);
-	_filter::REASONS = (argc > 2) ? argv[2] : _filter::EMPTY;
-	_filter::TAGS    = (argc > 3) ? argv[3] : _filter::EMPTY;
-	_filter::USERTAGS= (argc > 4) ? argv[4] : _filter::EMPTY;
+int main(int argc,  char** argv){
+	char** dummy_argv = argv;
+	int port_n = 0;
+	while (*(++argv)){
+		const char* const arg = *argv;
+		if (arg[1] != 0)
+			goto help;
+		switch(*arg){
+			case 'm':
+				_filter::REASONS = *(++argv);
+				break;
+			case 't':
+				_filter::TAGS = *(++argv);
+				break;
+			case 'u':
+				_filter::USERTAGS = *(++argv);
+				break;
+			case 'p':
+				port_n = s2n(*(++argv));
+				break;
+			default:
+				goto help;
+		}
+	}
 	
-	int dummy_argc = 1;
-	folly::Init init(&dummy_argc, &argv);
+	if (port_n == 0  ||  (_filter::REASONS == nullptr  and  _filter::TAGS == nullptr  and  _filter::USERTAGS == nullptr)){
+		help:
+		fprintf(
+			stderr,
+			"USAGE: ./server [OPTIONS]\n"
+			"OPTIONS\n"
+			"	p [PORT NUMBER]\n"
+			"		REQUIRED\n"
+			"	m [FILTER reason_matched]\n"
+			"		Use empty filter to serve all reason_matched\n"
+			"		Omit this option to avoid reason_matched entirely.\n"
+			"	t [FILTER tag] as above\n"
+			"	u [FILTER usertag] as above\n"
+		);
+		return 1;
+	}
+	
+	int dummy_argc = 0;
+	folly::Init init(&dummy_argc, &dummy_argv);
 	
 	if (mysql_library_init(0, NULL, NULL))
 		throw compsky::mysql::except::SQLLibraryInit();
