@@ -1164,7 +1164,7 @@ int main(int argc,  char** argv){
 	_r::init_json("SELECT m.id, m.name FROM reason_matched m", _r::reasons_json, _filter::REASONS);
 	_r::init_json("SELECT t.id, t.name FROM tag t",            _r::tags_json,    _filter::TAGS);
 	_r::init_json("SELECT ut.id, ut.name FROM usertag ut",     _r::usertags_json,_filter::USERTAGS);
-	_r::init_json("SELECT t2c.tag_id, t2c.category_id FROM tag2category t2c", _r::tag2category_json, _filter::TAGS);
+	_r::init_json("SELECT t2c.tag_id, t2c.category_id FROM tag2category t2c JOIN tag t ON t.id=t2c.tag_id", _r::tag2category_json, _filter::TAGS);
 
 	wangle::ServerBootstrap<RTaggerPipeline> server;
 	server.childPipeline(std::make_shared<RTaggerPipelineFactory>());
