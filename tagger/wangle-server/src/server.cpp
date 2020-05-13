@@ -59,11 +59,21 @@ namespace _r {
 		"Your IP address has been temporarily banned"
 	;
 	
-	constexpr static const std::string_view img_not_found =
-		#include "headers/return_code/NOT_FOUND.c"
+	constexpr static const std::string_view img_not_found(
+		#include "headers/return_code/OK.c" // To encourage browsers to cache it.
+		#include "headers/Content-Type/png.c"
+		#include "headers/Cache-Control/1day.c"
+		"Content-Length: 195\n"
 		"\n"
-		"Image not Found"
-	;
+		#include "i/404.txt"
+		, std::char_traits<char>::length(
+			#include "headers/return_code/OK.c"
+			#include "headers/Content-Type/png.c"
+			#include "headers/Cache-Control/1day.c"
+			"Content-Length: 195\n"
+			"\n"
+		) + 195
+	);
 	
 	constexpr
 	std::string_view return_static(const char* s){
@@ -102,8 +112,9 @@ namespace _r {
 	static char* reasons_json;
 	static char* tags_json;
 	static char* usertags_json;
+	static char* tag2category_json;
 	
-	void init_json(const char* const tbl_name,  const char* const tbl_alias,  char*& dst,  const char* const qry_filter){
+	void init_json(const char* const qry,  char*& dst,  const char* const qry_filter){
 		MYSQL_RES* mysql_res;
 		MYSQL_ROW mysql_row;
 		
@@ -111,9 +122,8 @@ namespace _r {
 			_mysql::mysql_obj,
 			mysql_res,
 			buf,
-			"SELECT ", tbl_alias, ".name, ", tbl_alias, ".id "
-			"FROM ", tbl_name, ' ', tbl_alias, ' ',
-			"WHERE TRUE ",
+			qry,
+			" WHERE TRUE ",
 			  qry_filter
 		);
 		
@@ -131,7 +141,7 @@ namespace _r {
 		
 		sz += std::char_traits<char>::length(_headers);
 		sz += 1;
-		while(compsky::mysql::assign_next_row__no_free(mysql_res, &mysql_row, &name, &id)){
+		while(compsky::mysql::assign_next_row__no_free(mysql_res, &mysql_row, &id, &name)){
 			sz +=
 				1 + strlen(id) + 1 + 1 +
 					1 + 2*strlen(name) + 1 +
@@ -149,7 +159,7 @@ namespace _r {
 		compsky::asciify::asciify(itr, _headers);
 		compsky::asciify::asciify(itr, '{');
 		mysql_data_seek(mysql_res, 0); // Reset to first result
-		while(compsky::mysql::assign_next_row(mysql_res, &mysql_row, &name, &id)){
+		while(compsky::mysql::assign_next_row(mysql_res, &mysql_row, &id, &name)){
 			compsky::asciify::asciify(
 				itr,
 				'"', id, '"', ':',
@@ -815,6 +825,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 				}
 			case 't':
 				switch(*(s++)){
+					case '2':
+						// /a/t2c.json
+						return _r::tag2category_json;
 					case '.':
 						// m.json
 						return _r::tags_json;
@@ -1080,9 +1093,10 @@ int main(int argc,  char** argv) {
 	
 	compsky::mysql::init_auth(_mysql::buf, _mysql::buf_sz, _mysql::auth, getenv("RSCRAPER_MYSQL_CFG"));
 	compsky::mysql::login_from_auth(_mysql::mysql_obj, _mysql::auth);
-	_r::init_json("reason_matched", "m", _r::reasons_json, _filter::REASONS);
-	_r::init_json("tag",            "t", _r::tags_json,    _filter::TAGS);
-	_r::init_json("usertag",       "ut", _r::usertags_json,_filter::USERTAGS);
+	_r::init_json("SELECT m.id, m.name FROM reason_matched m", _r::reasons_json, _filter::REASONS);
+	_r::init_json("SELECT t.id, t.name FROM tag t",            _r::tags_json,    _filter::TAGS);
+	_r::init_json("SELECT ut.id, ut.name FROM usertag ut",     _r::usertags_json,_filter::USERTAGS);
+	_r::init_json("SELECT t2c.tag_id, t2c.category_id FROM tag2category t2c", _r::tag2category_json, _filter::TAGS);
 
 	wangle::ServerBootstrap<RTaggerPipeline> server;
 	server.childPipeline(std::make_shared<RTaggerPipelineFactory>());
