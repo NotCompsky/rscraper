@@ -1147,8 +1147,11 @@ int main(int argc,  char** argv){
 			"	m [FILTER reason_matched]\n"
 			"		Use empty filter to serve all reason_matched\n"
 			"		Omit this option to avoid reason_matched entirely.\n"
-			"	t [FILTER tag] as above\n"
+			"		Must be a string of format \"AND m.id IN (...)\"\n"
+			"	t [FILTER tag]\n"
+			"		As for reason_matched, but like \"AND t.id IN (...)\"\n"
 			"	u [FILTER usertag] as above\n"
+			"		As for reason_matched, but like \"AND ut.id IN (...)\"\n"
 		);
 		return 1;
 	}
