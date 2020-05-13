@@ -1119,6 +1119,25 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 											"\n"
 											#include "html/user_summary.html"
 										;
+#ifndef NULL_USERTAGS
+									case 't':
+										switch(*(s++)){
+											case '/':
+												switch(*(s++)){
+													case ' ':
+														// /m/
+														return
+															#include "headers/return_code/OK.c"
+															#include "headers/Content-Type/html.c"
+															#include "headers/Cache-Control/1day.c"
+															"\n"
+															#include "html/tagged_users.html"
+														;
+													default: return _r::not_found;
+												}
+											default: return _r::not_found;
+										}
+#endif
 									default: return _r::not_found;
 								}
 							default: return _r::not_found;
