@@ -4,33 +4,42 @@
 #include "components/jquery.html"
 #include "components/utils.js.html"
 		"<script>"
+			"const user_id = window.location.hash.substr(1);"
+#ifndef NULL_REASONS
 			"function format_table(){"
 				"column_id2name('/a/m.json', '#cmnt-tbl tbody',  0);"
 				"column_to_permalink('#cmnt-tbl tbody',  1,  3);"
 				"column_from_timestamp('#cmnt-tbl tbody',  2);"
 			"}"
+			"populate_table('/a/u/m/' + user_id, '#cmnt-tbl tbody', format_table);"
+#endif
+#ifndef NULL_TAGS
 			"function format_sub_table(){"
 				"add_col('#sub-tbl tbody');"
 				"get_category_from_tag('/a/t2c.json', '#sub-tbl tbody', 0, 3);"
 				"column_id2name('/a/t.json', '#sub-tbl tbody',  0);"
 			"}"
+			"populate_table('/a/u/r/' + user_id, '#sub-tbl tbody', format_sub_table);"
+#endif
+#ifndef NULL_USERTAGS
 			"function format_usertags(){"
 				"column_id2name('/a/u2t.json', '#u2t-str');"
 			"}"
-			"const user_id = window.location.hash.substr(1);"
-			"populate_table('/a/u/m/' + user_id,  '#cmnt-tbl tbody',  format_table);"
-			"populate_table('/a/u/r/' + user_id,  '#sub-tbl tbody',   format_sub_table);"
-			"populate_str('/a/u/t/' + user_id,    '#u2t-str',         format_usertags);"
+			"populate_str('/a/u/t/' + user_id, '#u2t-str', format_usertags);"
+#endif
 		"</script>"
 		"<h1>"
 			"User Summary"
 		"</h1>"
-		
+
+#ifndef NULL_USERTAGS
 		"<h2>"
 			"User Tags"
 		"</h2>"
 		"<p id=\"u2t-str\"></p>"
-		
+#endif
+
+#ifndef NULL_TAGS
 		"<h2>"
 			"Subreddits"
 		"</h2>"
@@ -53,6 +62,9 @@
 			"</thead>"
 			"<tbody></tbody>"
 		"</table>"
+#endif
+
+#ifndef NULL_REASONS
 		"<h2>"
 			"Comments"
 		"</h2>"
@@ -75,5 +87,7 @@
 			"</thead>"
 			"<tbody></tbody>"
 		"</table>"
+#endif
+
 	"</body>"
 "</html>"

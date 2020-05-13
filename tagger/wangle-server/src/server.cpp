@@ -22,8 +22,17 @@ namespace _f {
 }
 
 namespace _filter {
+#ifdef NULL_REASONS
+	constexpr
+#endif
 	static const char* REASONS = nullptr;
+#ifdef NULL_TAGS
+	constexpr
+#endif
 	static const char* TAGS = nullptr;
+#ifdef NULL_USERTAGS
+	constexpr
+#endif
 	static const char* USERTAGS = nullptr;
 }
 
@@ -1167,15 +1176,21 @@ int main(int argc,  char** argv){
 		if (arg[1] != 0)
 			goto help;
 		switch(*arg){
+#ifndef NULL_REASONS
 			case 'm':
 				_filter::REASONS = *(++argv);
 				break;
+#endif
+#ifndef NULL_TAGS
 			case 't':
 				_filter::TAGS = *(++argv);
 				break;
+#endif
+#ifndef NULL_USERTAGS
 			case 'u':
 				_filter::USERTAGS = *(++argv);
 				break;
+#endif
 			case 'p':
 				port_n = s2n(*(++argv));
 				break;
@@ -1188,18 +1203,22 @@ int main(int argc,  char** argv){
 		help:
 		fprintf(
 			stderr,
-			"USAGE: ./server [OPTIONS]\n"
-			"OPTIONS\n"
-			"	p [PORT NUMBER]\n"
-			"		REQUIRED\n"
-			"	m [FILTER reason_matched]\n"
-			"		Use empty filter to serve all reason_matched\n"
-			"		Omit this option to avoid reason_matched entirely.\n"
-			"		Must be a string of format \"m.id IN (1,3,9)\", \"m.id IN (SELECT id FROM tag)\", etc.\n"
-			"	t [FILTER tag]\n"
-			"		As for reason_matched, but \"tag_id IN (...)\"\n"
-			"	u [FILTER usertag] as above\n"
-			"		As for reason_matched, but \"ut.id IN (...)\"\n"
+			"USAGE: ./server p [PORT_NUMBER] [[FILTER_OPTIONS]]\n"
+			"FILTER_OPTIONS\n"
+			"	At least one pair must be selected.\n"
+			"	Each pair may be omitted entirely, in which case the associated feature is disabled, or left blank, in which case no filtering is carried out on that feature.\n"
+#ifndef NULL_REASONS
+			"	m \"m.id IN (...)\"\n"
+			"		Filter reason_matched\n"
+#endif
+#ifndef NULL_TAGS
+			"	t \"tag_id IN (...)\"\n"
+			"		Filter tag\n"
+#endif
+#ifndef NULL_USERTAGS
+			"	u \"ut.id IN (...)\"\n"
+			"		Filter usertag\n"
+#endif
 		);
 		return 1;
 	}
