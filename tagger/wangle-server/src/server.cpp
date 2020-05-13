@@ -34,6 +34,33 @@ namespace _mysql {
 	constexpr static const size_t buf_sz = 512; // TODO: Alloc file size
 }
 
+namespace reasons_or_tags_given_userid {
+	constexpr static const size_t max_buf_len = 1  +  100 * (1 + 20 + 1 + 2*64 + 1 + 20 + 1 + 2*20 + 3 + 2*20 + 1 + 1 + 1)  +  1  +  1; // == 25803
+	constexpr const int n_cached = 2;
+	static char cache[n_cached * max_buf_len];
+	struct ID {
+		bool is_reason;
+		uint64_t user_id;
+		size_t sz;
+	};
+	static ID cached_IDs[n_cached] = {}; // Initialise to zero
+	static int last_cached = -1;
+	
+	int from_cache(const bool is_reason,  const uint64_t user_id){
+		int i = 0;
+		while (i < n_cached){
+			const ID id = cached_IDs[i];
+			++i;
+			if ((id.is_reason == is_reason) and (id.user_id == user_id)){
+				printf("From cache at %d\n", (i-1));
+				printf("sz %lu\n%s\n", id.sz, cache + ((i-1) * max_buf_len));
+				return i;
+			}
+		}
+		return 0;
+	}
+}
+
 std::vector<std::string> banned_client_addrs;
 
 namespace _r {
@@ -457,11 +484,25 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		return this->get_buf_as_string_view();
 	}
 	
+	void add_buf_to_cache(const bool is_reason,  const uint64_t user_id){
+		using namespace reasons_or_tags_given_userid;
+		if (++last_cached == n_cached)
+			last_cached = -1;
+		const size_t sz = (uintptr_t)this->itr - (uintptr_t)this->buf;
+		memcpy(cache + (last_cached * max_buf_len),  this->buf,  sz);
+		cached_IDs[last_cached].is_reason = is_reason;
+		cached_IDs[last_cached].user_id = user_id;
+		cached_IDs[last_cached].sz = sz;
+	}
+	
 	std::string_view subreddits_given_userid(const char* id_str){
 		if (_filter::TAGS == nullptr)
 			return _r::EMPTY_JSON_LIST;
 		
 		const uint64_t id = str2id(id_str, ' ');
+		
+		if (const int indx = reasons_or_tags_given_userid::from_cache(false, id))
+			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx].sz);
 		
 		/*
 		if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
@@ -508,6 +549,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		this->asciify(']');
 		*this->itr = 0;
 		
+		this->add_buf_to_cache(false, id);
+		
 		return this->get_buf_as_string_view();
 	}
 	
@@ -516,6 +559,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			return _r::EMPTY_JSON_LIST;
 		
 		const uint64_t id = str2id(id_str, ' ');
+		
+		if (const int indx = reasons_or_tags_given_userid::from_cache(true, id))
+			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx].sz);
 		
 		/*
 		if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
@@ -564,6 +610,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			--this->itr; // ...wherein a trailing comma was left
 		this->asciify(']');
 		*this->itr = 0;
+		
+		this->add_buf_to_cache(false, id);
 		
 		return this->get_buf_as_string_view();
 	}
@@ -1147,11 +1195,11 @@ int main(int argc,  char** argv){
 			"	m [FILTER reason_matched]\n"
 			"		Use empty filter to serve all reason_matched\n"
 			"		Omit this option to avoid reason_matched entirely.\n"
-			"		Must be a string of format \"AND m.id IN (...)\"\n"
+			"		Must be a string of format \"m.id IN (1,3,9)\", \"m.id IN (SELECT id FROM tag)\", etc.\n"
 			"	t [FILTER tag]\n"
-			"		As for reason_matched, but like \"AND t.id IN (...)\"\n"
+			"		As for reason_matched, but \"tag_id IN (...)\"\n"
 			"	u [FILTER usertag] as above\n"
-			"		As for reason_matched, but like \"AND ut.id IN (...)\"\n"
+			"		As for reason_matched, but \"ut.id IN (...)\"\n"
 		);
 		return 1;
 	}
@@ -1165,9 +1213,9 @@ int main(int argc,  char** argv){
 	compsky::mysql::init_auth(_mysql::buf, _mysql::buf_sz, _mysql::auth, getenv("RSCRAPER_MYSQL_CFG"));
 	compsky::mysql::login_from_auth(_mysql::mysql_obj, _mysql::auth);
 	_r::init_json("SELECT m.id, m.name FROM reason_matched m", _r::reasons_json, _filter::REASONS);
-	_r::init_json("SELECT t.id, t.name FROM tag t",            _r::tags_json,    _filter::TAGS);
+	_r::init_json("SELECT t.id, t.name FROM tag t JOIN tag2category t2c ON t2c.tag_id=t.id",            _r::tags_json,    _filter::TAGS);
 	_r::init_json("SELECT ut.id, ut.name FROM usertag ut",     _r::usertags_json,_filter::USERTAGS);
-	_r::init_json("SELECT t2c.tag_id, t2c.category_id FROM tag2category t2c JOIN tag t ON t.id=t2c.tag_id", _r::tag2category_json, _filter::TAGS);
+	_r::init_json("SELECT t2c.tag_id, t2c.category_id FROM tag2category t2c", _r::tag2category_json, _filter::TAGS);
 
 	wangle::ServerBootstrap<RTaggerPipeline> server;
 	server.childPipeline(std::make_shared<RTaggerPipelineFactory>());
