@@ -12,6 +12,11 @@
 #include <cstring> // for malloc
 
 
+#ifndef n_cached
+# error "Please define -Dn_cached=<NUMBER_OF_ITEMS_TO_CACHE>"
+#endif
+
+
 typedef wangle::Pipeline<folly::IOBufQueue&,  const char*> RTaggerPipeline;
 
 namespace _f {
@@ -46,7 +51,6 @@ namespace _mysql {
 namespace reasons_or_tags_given_userid {
 	// WARNING: This is only for functions whose results are guaranteed to be shorter than the max_buf_len.
 	constexpr static const size_t max_buf_len = 1  +  100 * (1 + 20 + 1 + 2*64 + 1 + 20 + 1 + 2*20 + 3 + 2*20 + 1 + 1 + 1)  +  1  +  1; // == 25803
-	constexpr const int n_cached = 2;
 	static char cache[n_cached * max_buf_len];
 	enum {
 		subreddits_given_userid,
