@@ -395,13 +395,10 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		const uint64_t reason_id = a_to_uint64__space_terminated(reason_id_str);
 		
-		if (reason_id == 0)
-			return _r::bad_request;
-		
 		this->mysql_query(
 			"SELECT r.name, s.id, c.id, c.created_at "
 			"FROM comment c, subreddit r, submission s, reason_matched m "
-			"WHERE m.id=", reason_id, " "
+			"WHERE m.id", (reason_id)?' ':'!', '=', reason_id, " "
 			  "AND s.id=c.submission_id "
 			  "AND r.id=s.subreddit_id "
 			  "AND m.id=c.reason_matched ",
@@ -446,13 +443,10 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		const uint64_t reason_id = a_to_uint64__space_terminated(reason_id_str);
 		
-		if (reason_id == 0)
-			return _r::bad_request;
-		
 		this->mysql_query(
 			"SELECT r.name, COUNT(c.id)/s2cc.count AS count "
 			"FROM subreddit r, submission s, comment c, reason_matched m, subreddit2cmnt_count s2cc "
-			"WHERE m.id=", reason_id, " "
+			"WHERE m.id", (reason_id)?' ':'!', '=', reason_id, " "
 			  "AND r.id=s.subreddit_id "
 			  "AND s.id=c.submission_id "
 			  "AND c.reason_matched=m.id "
@@ -909,6 +903,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 							case 'c':
 								switch(*(s++)){
 									case '/':
+										// /a/m/c/
 										return this->comments_given_reason(s);
 									default: return _r::not_found;
 								}
