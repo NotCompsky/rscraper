@@ -44,24 +44,32 @@ namespace _mysql {
 }
 
 namespace reasons_or_tags_given_userid {
+	// WARNING: This is only for functions whose results are guaranteed to be shorter than the max_buf_len.
 	constexpr static const size_t max_buf_len = 1  +  100 * (1 + 20 + 1 + 2*64 + 1 + 20 + 1 + 2*20 + 3 + 2*20 + 1 + 1 + 1)  +  1  +  1; // == 25803
 	constexpr const int n_cached = 2;
 	static char cache[n_cached * max_buf_len];
+	enum {
+		subreddits_given_userid,
+		reasons_given_userid,
+		subreddits_given_reason,
+		n_fns
+	};
 	struct ID {
 		unsigned int n_requests;
-		bool is_reason;
+		unsigned int which_cached_fn;
 		uint64_t user_id;
 		size_t sz;
 	};
 	static ID cached_IDs[n_cached] = {}; // Initialise to zero
 	
-	int from_cache(const bool is_reason,  const uint64_t user_id){
+	int from_cache(const unsigned int which_cached_fn,  const uint64_t user_id){
 		int i = 0;
 		while (i < n_cached){
 			ID& id = cached_IDs[i];
 			++i;
-			if ((id.is_reason == is_reason) and (id.user_id == user_id)){
+			if ((id.which_cached_fn == which_cached_fn) and (id.user_id == user_id)){
 				++id.n_requests;
+				printf("From cache [%d], accessed %u times\n", i, id.n_requests);
 				return i;
 			}
 		}
@@ -443,6 +451,9 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		const uint64_t reason_id = a_to_uint64__space_terminated(reason_id_str);
 		
+		if (const int indx = reasons_or_tags_given_userid::from_cache(reasons_or_tags_given_userid::subreddits_given_reason, reason_id))
+			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx - 1].sz);
+		
 		this->mysql_query(
 			"SELECT r.name, COUNT(c.id)/s2cc.count AS count "
 			"FROM subreddit r, submission s, comment c, reason_matched m, subreddit2cmnt_count s2cc "
@@ -483,10 +494,12 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		this->asciify(']');
 		*this->itr = 0;
 		
+		this->add_buf_to_cache(reasons_or_tags_given_userid::subreddits_given_reason, reason_id);
+		
 		return this->get_buf_as_string_view();
 	}
 	
-	void add_buf_to_cache(const bool is_reason,  const uint64_t user_id){
+	void add_buf_to_cache(const unsigned int which_cached_fn,  const uint64_t user_id){
 		using namespace reasons_or_tags_given_userid;
 		
 		unsigned int min_n_requests = UINT_MAX;
@@ -502,7 +515,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		const size_t sz = this->buf_indx();
 		memcpy(cache + (indx * max_buf_len),  this->buf,  sz);
 		// We could alternatively re-use this->buf, and instead malloc a new buffer for this->buf - but I prefer to avoid memory fragmentation.
-		cached_IDs[indx].is_reason = is_reason;
+		cached_IDs[indx].which_cached_fn = which_cached_fn;
 		cached_IDs[indx].n_requests = 1;
 		cached_IDs[indx].user_id = user_id;
 		cached_IDs[indx].sz = sz;
@@ -514,7 +527,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		const uint64_t id = str2id(id_str, ' ');
 		
-		if (const int indx = reasons_or_tags_given_userid::from_cache(false, id))
+		if (const int indx = reasons_or_tags_given_userid::from_cache(reasons_or_tags_given_userid::subreddits_given_userid, id))
 			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx - 1].sz);
 		
 		/*
@@ -562,7 +575,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		this->asciify(']');
 		*this->itr = 0;
 		
-		this->add_buf_to_cache(false, id);
+		this->add_buf_to_cache(reasons_or_tags_given_userid::subreddits_given_userid, id);
 		
 		return this->get_buf_as_string_view();
 	}
@@ -573,7 +586,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		const uint64_t id = str2id(id_str, ' ');
 		
-		if (const int indx = reasons_or_tags_given_userid::from_cache(true, id))
+		if (const int indx = reasons_or_tags_given_userid::from_cache(reasons_or_tags_given_userid::reasons_given_userid, id))
 			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx - 1].sz);
 		
 		/*
@@ -624,7 +637,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		this->asciify(']');
 		*this->itr = 0;
 		
-		this->add_buf_to_cache(false, id);
+		this->add_buf_to_cache(reasons_or_tags_given_userid::reasons_given_userid, id);
 		
 		return this->get_buf_as_string_view();
 	}
