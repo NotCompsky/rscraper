@@ -48,19 +48,20 @@ namespace reasons_or_tags_given_userid {
 	constexpr const int n_cached = 2;
 	static char cache[n_cached * max_buf_len];
 	struct ID {
+		unsigned int n_requests;
 		bool is_reason;
 		uint64_t user_id;
 		size_t sz;
 	};
 	static ID cached_IDs[n_cached] = {}; // Initialise to zero
-	static int last_cached = -1;
 	
 	int from_cache(const bool is_reason,  const uint64_t user_id){
 		int i = 0;
 		while (i < n_cached){
-			const ID id = cached_IDs[i];
+			ID& id = cached_IDs[i];
 			++i;
 			if ((id.is_reason == is_reason) and (id.user_id == user_id)){
+				++id.n_requests;
 				return i;
 			}
 		}
@@ -493,14 +494,24 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	
 	void add_buf_to_cache(const bool is_reason,  const uint64_t user_id){
 		using namespace reasons_or_tags_given_userid;
-		if (++last_cached == n_cached)
-			last_cached = 0;
+		
+		unsigned int min_n_requests = UINT_MAX;
+		unsigned int indx = 0; // In case all IDs have n_requesets at UINT_MAX - which is extremely unlikely
+		for (unsigned int i = 0;  i < n_cached;  ++i){
+			const ID& id = cached_IDs[i];
+			if (id.n_requests >= min_n_requests)
+				continue;
+			indx = i;
+			min_n_requests = id.n_requests;
+		}
+		
 		const size_t sz = this->buf_indx();
-		memcpy(cache + (last_cached * max_buf_len),  this->buf,  sz);
+		memcpy(cache + (indx * max_buf_len),  this->buf,  sz);
 		// We could alternatively re-use this->buf, and instead malloc a new buffer for this->buf - but I prefer to avoid memory fragmentation.
-		cached_IDs[last_cached].is_reason = is_reason;
-		cached_IDs[last_cached].user_id = user_id;
-		cached_IDs[last_cached].sz = sz;
+		cached_IDs[indx].is_reason = is_reason;
+		cached_IDs[indx].n_requests = 1;
+		cached_IDs[indx].user_id = user_id;
+		cached_IDs[indx].sz = sz;
 	}
 	
 	std::string_view subreddits_given_userid(const char* id_str){
@@ -1039,6 +1050,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 										}
 									default: return _r::not_found;
 								}
+#ifndef NULL_REASONS
 							case 'm':
 								switch(*(s++)){
 									case '/':
@@ -1090,6 +1102,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 										}
 									default: return _r::not_found;
 								}
+#endif
 							case 's':
 								switch(*(s++)){
 									case '/':
