@@ -61,8 +61,6 @@ namespace reasons_or_tags_given_userid {
 			const ID id = cached_IDs[i];
 			++i;
 			if ((id.is_reason == is_reason) and (id.user_id == user_id)){
-				printf("From cache at %d\n", (i-1));
-				printf("sz %lu\n%s\n", id.sz, cache + ((i-1) * max_buf_len));
 				return i;
 			}
 		}
@@ -496,9 +494,10 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	void add_buf_to_cache(const bool is_reason,  const uint64_t user_id){
 		using namespace reasons_or_tags_given_userid;
 		if (++last_cached == n_cached)
-			last_cached = -1;
-		const size_t sz = (uintptr_t)this->itr - (uintptr_t)this->buf;
+			last_cached = 0;
+		const size_t sz = this->buf_indx();
 		memcpy(cache + (last_cached * max_buf_len),  this->buf,  sz);
+		// We could alternatively re-use this->buf, and instead malloc a new buffer for this->buf - but I prefer to avoid memory fragmentation.
 		cached_IDs[last_cached].is_reason = is_reason;
 		cached_IDs[last_cached].user_id = user_id;
 		cached_IDs[last_cached].sz = sz;
@@ -511,7 +510,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		const uint64_t id = str2id(id_str, ' ');
 		
 		if (const int indx = reasons_or_tags_given_userid::from_cache(false, id))
-			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx].sz);
+			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx - 1].sz);
 		
 		/*
 		if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
@@ -570,7 +569,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		const uint64_t id = str2id(id_str, ' ');
 		
 		if (const int indx = reasons_or_tags_given_userid::from_cache(true, id))
-			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx].sz);
+			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx - 1].sz);
 		
 		/*
 		if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
