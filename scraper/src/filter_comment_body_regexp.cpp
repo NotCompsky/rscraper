@@ -28,8 +28,15 @@ It cannot end in a literal newline. If such is desired, use [\n]
 #include <stdio.h> // for fprintf
 
 
-extern MYSQL_RES* RES1;
-extern MYSQL_ROW ROW1;
+namespace _mysql {
+	extern MYSQL* obj;
+	extern MYSQL_RES* res1;
+	extern MYSQL_ROW row1;
+}
+
+
+extern char* ITR;
+extern char* BUF; // Global large buffer
 
 
 namespace filter_comment_body {
@@ -44,13 +51,13 @@ std::vector<std::vector<uint64_t>> SUBREDDIT_BLACKLISTS;
 
 
 void populate_reason2name(){
-	compsky::mysql::query_buffer(&RES1, "SELECT r.id, r.name, IFNULL(w.subreddit,0), IFNULL(b.subreddit,0) FROM reason_matched r LEFT JOIN reason_subreddit_blacklist b ON r.id=b.reason LEFT JOIN reason_subreddit_whitelist w ON r.id=w.reason ORDER BY r.id DESC");
+	compsky::mysql::query_buffer(_mysql::obj, _mysql::res1, "SELECT r.id, r.name, IFNULL(w.subreddit,0), IFNULL(b.subreddit,0) FROM reason_matched r LEFT JOIN reason_subreddit_blacklist b ON r.id=b.reason LEFT JOIN reason_subreddit_whitelist w ON r.id=w.reason ORDER BY r.id DESC");
 	int reason_id;
 	char* name;
 	uint64_t subreddit_wl, subreddit_bl;
 	constexpr static const compsky::mysql::flag::SizeOfAssigned f;
 	size_t name_sz;
-	if(compsky::mysql::assign_next_row(RES1, &ROW1, &reason_id, f, &name_sz, &name, &subreddit_wl, &subreddit_bl)){
+	if(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &reason_id, f, &name_sz, &name, &subreddit_wl, &subreddit_bl)){
 		// Initialise the vectors
 		reason_name2id.reserve(reason_id);
 		SUBREDDIT_WHITELISTS.reserve(reason_id);
@@ -73,7 +80,7 @@ void populate_reason2name(){
 			SUBREDDIT_WHITELISTS[reason_id].push_back(subreddit_wl);
 		if (subreddit_bl != 0)
 			SUBREDDIT_BLACKLISTS[reason_id].push_back(subreddit_bl);
-	} while(compsky::mysql::assign_next_row(RES1, &ROW1, &reason_id, f, &name_sz, &name, &subreddit_wl, &subreddit_bl));
+	} while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &reason_id, f, &name_sz, &name, &subreddit_wl, &subreddit_bl));
 }
 
 void init(){
@@ -81,26 +88,26 @@ void init(){
 	
 	filter_comment_body::init_regexp_from_file(reason_name2id, groupindx2reason, record_contents);
 	
-	constexpr static const compsky::asciify::flag::ChangeBuffer chbuf;
 	constexpr static const compsky::asciify::flag::Escape esc;
 	
-	compsky::asciify::asciify(chbuf, compsky::asciify::BUF, "INSERT IGNORE INTO reason_matched (id,name) VALUES");
+	ITR = BUF;
+	compsky::asciify::asciify(ITR, "INSERT IGNORE INTO reason_matched (id,name) VALUES");
 	
 	for (size_t i = 0;  i < reason_name2id.size();  ++i){
 		if (reason_name2id[i] == nullptr)
 			// The entry was deleted from the reason_matched table, leaving a discontinuity in the id field
 			continue;
-		compsky::asciify::asciify("(", i, ",\"", esc, '"', reason_name2id[i], "\"),");
+		compsky::asciify::asciify(ITR, "(", i, ",\"", esc, '"', reason_name2id[i], "\"),");
 	}
-	compsky::mysql::exec_buffer(compsky::asciify::BUF,  compsky::asciify::get_index() - 1); // Ignore trailing comma
+	compsky::mysql::exec_buffer(_mysql::obj,  BUF,  (uintptr_t)ITR - (uintptr_t)BUF - 1); // Ignore trailing comma
 	
-	compsky::mysql::query_buffer(&RES1,  "SELECT id, subreddit, reason, body FROM regex_test__cmnt_body");
+	compsky::mysql::query_buffer(_mysql::obj, _mysql::res1,  "SELECT id, subreddit, reason, body FROM regex_test__cmnt_body");
 	unsigned int id;
 	uint64_t subreddit;
 	unsigned int expected_reason;
 	char* body;
 	unsigned int n_failures = 0;
-	while(compsky::mysql::assign_next_row(RES1, &ROW1, &id, &subreddit, &expected_reason, &body)){
+	while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &id, &subreddit, &expected_reason, &body)){
 		struct cmnt_meta metadata = {
 			"author_name IGNORED",
 			"subreddit_name IGNORED",
@@ -115,12 +122,12 @@ void init(){
 	if (n_failures != 0){
 		for (size_t i = 1;  i < groupindx2reason.size();  ++i){
 			// Ignore first index - it is the entire match, not a regex group.
-			printf("groupindx2reason[%d]\t%d\n\tCorresponding to group\t%s\n", i, groupindx2reason[i], (groupindx2reason[i] < reason_name2id.size()) ? reason_name2id[groupindx2reason[i]] : "(index beyond reason_name2id)");
+			printf("groupindx2reason[%lu]\t%d\n\tCorresponding to group\t%s\n", i, groupindx2reason[i], (groupindx2reason[i] < reason_name2id.size()) ? reason_name2id[groupindx2reason[i]] : "(index beyond reason_name2id)");
 		}
 		// Somewhat duplicated code from init_regexp_from_file.cpp // Possible TODO: Deduplicate
-		compsky::mysql::query_buffer(&RES1,  "SELECT data FROM longstrings WHERE name='cmnt_body_regex'");
+		compsky::mysql::query_buffer(_mysql::obj, _mysql::res1,  "SELECT data FROM longstrings WHERE name='cmnt_body_regex'");
 		char* regexpr_str;
-		while(compsky::mysql::assign_next_row(RES1, &ROW1, &regexpr_str)){
+		while(compsky::mysql::assign_next_row(_mysql::res1, &_mysql::row1, &regexpr_str)){
 			compsky::regex::convert_named_groups(regexpr_str,  regexpr_str,  reason_name2id,  groupindx2reason,  record_contents);
 			printf("Using regexp:\n\t%s\n", regexpr_str);
 		}
