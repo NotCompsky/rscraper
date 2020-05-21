@@ -7,13 +7,14 @@
 
 #ifdef USE_BOOST_REGEX
 
-#include "regex_editor.hpp"
-#include "mysql_declarations.hpp"
-#include "regex_editor_highlighter.hpp"
-#include "msgbox.hpp"
-#include "sql_name_dialog.hpp"
-#include "regex_editor_vars_menu.hpp"
-#include "3rdparty/codeeditor.hpp"
+#include "editor.hpp"
+#include "highlighter.hpp"
+#include "vars_menu.hpp"
+
+#include "../mysql_declarations.hpp"
+#include "../msgbox.hpp"
+#include "../sql_name_dialog.hpp"
+#include "../3rdparty/codeeditor.hpp"
 
 #include <compsky/mysql/query.hpp>
 #include <compsky/regex/named_groups.hpp>

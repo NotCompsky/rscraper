@@ -18,7 +18,7 @@
 #include "name_dialog.hpp"
 #include "notfound.hpp"
 #ifdef USE_BOOST_REGEX
-# include "regex_editor.hpp"
+# include "regex_editor/editor.hpp"
 # include "regex_tests.hpp"
 #endif
 

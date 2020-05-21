@@ -5,9 +5,10 @@
  *     This copyright notice must be included at the beginning of any copied/modified file originating from this project, or at the beginning of any section of code that originates from this project.
  */
 
-#include "regex_editor_vars_menu.hpp"
-#include "mysql_declarations.hpp"
-#include "name_dialog.hpp"
+#include "vars_menu.hpp"
+
+#include "../mysql_declarations.hpp"
+#include "../name_dialog.hpp"
 
 #include <compsky/mysql/query.hpp>
 /*
