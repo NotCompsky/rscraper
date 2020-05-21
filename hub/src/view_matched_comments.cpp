@@ -74,20 +74,20 @@ constexpr const char* tag_a2 =
 	"  AND m.id=c.reason_matched\n";
 
 constexpr const char* reason_a1 = 
-	"SELECT r.name AS subreddit_name, s.id AS submission_id, c.id, c.created_at, c.content, u.name, m.name\n"
-	"FROM subreddit r, submission s, comment c, user u, reason_matched m\n"
+	"SELECT IFNULL(r.name, '!Unknown!') AS subreddit_name, IFNULL(s.id,0) AS submission_id, c.id, c.created_at, c.content, IFNULL(u.name, CONCAT('id=', c.author_id)), m.name\n"
+	"FROM reason_matched m\n"
+	"JOIN comment c ON c.reason_matched=m.id\n"
+	"LEFT JOIN submission s ON s.id=c.submission_id\n"
+	"LEFT JOIN subreddit r ON r.id=s.subreddit_id\n"
+	"LEFT JOIN user u ON u.id=c.author_id\n"
 	"WHERE ";
 constexpr const char* reason_b1 = 
 	"m.name=\"";
 
 constexpr const char* reason_b2 = 
-	"\"\n"
-	"  AND ";
+	"\"\n";
 constexpr const char* reason_a2 = 
-	"c.reason_matched=m.id\n"
-	"  AND s.id=c.submission_id\n"
-	"  AND r.id=s.subreddit_id\n"
-	"  AND u.id=c.author_id\n";
+	"";
 
 
 uint64_t indexof(const std::vector<uint64_t>& ms,  const uint64_t n){
@@ -465,7 +465,12 @@ void ViewMatchedComments::view_matches(){
 	
 	boost::match_results<const char*> what;
 	
-	const char* str = this->cmnt_body;
+	const char* str;
+	if (this->is_content_from_remote){
+		QString s = this->textarea->toPlainText();
+		QByteArray ba = s.toLocal8Bit();
+		str = ba.data();
+	} else str = this->cmnt_body;
 	
 	if (!boost::regex_search(str,  str + this->cmnt_body_sz,  what,  *filter_comment_body::regexpr))
 		report += "No matches";
