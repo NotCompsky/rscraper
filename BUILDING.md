@@ -12,7 +12,8 @@ In addition to those required for installing.
 
 *   libcurl-dev
 *   libmysqlclient-dev
-*   rapidjson
+*   rapidjson (for scraper)
+*   annoylib (for annoying utils) (i.e. for listing 'most similar' (subreddit|subreddit|submission) with Approximate Nearest Neighbours)
 
 #### Ubuntu, Raspbian, and other Debian-derived
 
