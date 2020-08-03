@@ -14,11 +14,9 @@
 #include <cstring> // for memcpy, strlen
 #include <stdlib.h> // for abort
 
-#ifndef DEBUG
-# define printf(...)
-#else
+
 # include <stdio.h> // for printf // TMP
-#endif
+
 
 
 MYSQL_RES* RES;
@@ -365,7 +363,7 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 
 	constexpr static const char* stmt_t_1 = 
 		"SELECT A.user_id, SUM(A.c), SUM(A.c) AS distinctname"
-			", SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), A.tag_id "
+			", SUM(A.r*A.c), SUM(A.g*A.c), SUM(A.b*A.c), SUM(A.a*A.c), GROUP_CONCAT(A.tag_id ORDER BY A.c LIMIT 1) "
 		"FROM tag2category t2c "
 		"JOIN ( "
 			"SELECT u2scc.user_id, s2t.tag_id, SUM(u2scc.count) AS c, t.r, t.g, t.b, t.a "
@@ -375,7 +373,6 @@ void csv2cls(const char* csv,  const char* tagcondition,  const char* reasoncond
 	constexpr static const char* stmt_t_2 =
 			// ")" // Closing bracket added seperately 
 			" GROUP BY u2scc.user_id, s2t.tag_id, t.r, t.g, t.b, t.a"
-			" ORDER BY c DESC"
 		") A ON t2c.tag_id = A.tag_id "
 		"GROUP BY A.user_id, t2c.category_id";
 
