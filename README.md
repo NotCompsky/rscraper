@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="tagger/browser-addon/icons/64.png"/>
+	<img align="center" src="tagger/browser-addon/icons/64.png"/>
 	<h1 align="center">rscraper</h1>
 </p>
 
@@ -13,8 +13,8 @@
 	<a href="https://api.codacy.com/project/badge/Grade/9ee8e250c8f842559559e7a509e80971"><img src="https://www.codacy.com/app/NotCompsky/rscraper?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=NotCompsky/rscraper&amp;utm_campaign=Badge_Grade"></a>
 </p>
 
+<h3 align="center">Docker Images</h3>
 <p align="center">
-	<b>Docker Images</b>
 	<a href="https://hub.docker.com/repository/docker/notcompsky/rscrape-cmnts/tags"><img src="https://img.shields.io/docker/image-size/notcompsky/rscrape-cmnts?label=scraper"/></a>
 	<a href="https://hub.docker.com/repository/docker/notcompsky/rtagger-server/tags"><img src="https://img.shields.io/docker/image-size/notcompsky/rtagger-server?label=server"/></a>
 </p>
