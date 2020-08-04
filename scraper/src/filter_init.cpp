@@ -17,13 +17,16 @@
 
 extern MYSQL_RES* RES1;
 extern MYSQL_ROW ROW1;
+namespace _mysql {
+	extern MYSQL* obj;
+}
 
 
 namespace filter {
 	void init(const char* tblname,  uint64_t** list){
 		size_t n_subreddits;
 		
-		compsky::mysql::query(&RES1, "SELECT count(*) FROM ", tblname);
+		compsky::mysql::query(_mysql::obj,  RES1, "SELECT count(*) FROM ", tblname);
 		
 		while(compsky::mysql::assign_next_row(RES1, &ROW1, &n_subreddits));
 		
@@ -34,7 +37,7 @@ namespace filter {
 		
 		*list = dummy;
 		
-		compsky::mysql::query(&RES1, "SELECT id FROM ", tblname);
+		compsky::mysql::query(_mysql::obj,  RES1, "SELECT id FROM ", tblname);
 		
 		uint64_t subreddit_id;
 		while(compsky::mysql::assign_next_row(RES1, &ROW1, &subreddit_id)){

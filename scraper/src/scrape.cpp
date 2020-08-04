@@ -35,7 +35,9 @@ char BUF[81000];
 char* ITR = BUF;
 
 namespace _mysql {
-	MYSQL* conn;
+	MYSQL* obj;
+	MYSQL_RES* res1;
+	MYSQL_ROW row1;
 	constexpr static const size_t buf_sz = 512;
 	char buf[buf_sz];
 	char* auth[6];
@@ -76,11 +78,11 @@ bool contains(uint64_t* list,  uint64_t item){
 
 template<typename... Args>
 void exec(Args... args){
-	compsky::mysql::exec(_mysql::conn, BUF, args...);
+	compsky::mysql::exec(_mysql::obj, BUF, args...);
 }
 template<typename... Args>
 void exec_buffer(Args... args){
-	compsky::mysql::exec_buffer(_mysql::conn, args...);
+	compsky::mysql::exec_buffer(_mysql::obj, args...);
 }
 
 
@@ -220,7 +222,7 @@ void process_all_comments_live(){
 
 int main(){
 	compsky::mysql::init_auth(_mysql::buf, _mysql::buf_sz, _mysql::auth, getenv("RSCRAPER_MYSQL_CFG"));
-	compsky::mysql::login_from_auth(_mysql::conn, _mysql::auth);
+	compsky::mysql::login_from_auth(_mysql::obj, _mysql::auth);
 	filter_comment_body::init();
 	mycu::init();         // Init CURL
 	myrcu::init(getenv("RSCRAPER_REDDIT_CFG")); // Init OAuth

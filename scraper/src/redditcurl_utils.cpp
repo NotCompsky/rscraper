@@ -29,6 +29,10 @@ extern "C" {
 }
 
 
+extern char* BUF;
+extern char* ITR;
+
+
 namespace myrcu {
 
 
@@ -57,7 +61,7 @@ char BASIC_AUTH_HEADER[512] = "Authorization: Basic ";
 CURL* LOGIN_CURL;
 struct curl_slist* LOGIN_HEADERS;
 
-char* LOGIN_POSTDATA;
+char LOGIN_POSTDATA[1000];
 char* USER_AGENT;
 char* PROXY_URL;
 
@@ -95,7 +99,7 @@ void init_login(const char* fp){
 	char* KEY_AND_SECRET;
 	
 	FILE* f = fopen(fp, "rb");
-	fread(compsky::asciify::BUF, 1, 9999, f);
+	fread(LOGIN_POSTDATA, 1, 9999, f);
 	
 	/*
 	reddit config file must have format:
@@ -108,14 +112,13 @@ void init_login(const char* fp){
 	
 	int n_lines = 0;
 	char* itr;
-	REDDIT_AUTH[0] = compsky::asciify::BUF + 10;
+	REDDIT_AUTH[0] = LOGIN_POSTDATA + 10;
 	for (itr = REDDIT_AUTH[0];  n_lines < 5;  ++itr)
 		if (*itr == '\n'){
 			*itr = 0;
 			itr += 11; // To skip "ABCD: "
 			REDDIT_AUTH[++n_lines] = itr;
 		}
-	compsky::asciify::BUF = itr + 1; // To avoid overwriting the authorisation strings
 
 	USR = REDDIT_AUTH[0];
 	PWD = REDDIT_AUTH[1];
@@ -142,10 +145,7 @@ void init_login(const char* fp){
 	curl_easy_setopt(LOGIN_CURL, CURLOPT_HTTPHEADER, LOGIN_HEADERS);
 	curl_easy_setopt(LOGIN_CURL, CURLOPT_TIMEOUT, 20);
 	
-	constexpr static const compsky::asciify::flag::ChangeBuffer chbf;
-	LOGIN_POSTDATA = compsky::asciify::BUF;
-	compsky::asciify::asciify(chbf, compsky::asciify::BUF, "grant_type=password&password=", PWD, "&username=", USR, '\0');
-	compsky::asciify::BUF = compsky::asciify::ITR; // Permanently shift BUF, so that this login data is not overwritten
+	compsky::asciify::asciify(ITR, "grant_type=password&password=", PWD, "&username=", USR, '\0');
 	
 	curl_easy_setopt(LOGIN_CURL, CURLOPT_POSTFIELDS, LOGIN_POSTDATA);
 	
