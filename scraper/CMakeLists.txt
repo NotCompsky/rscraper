@@ -1,83 +1,69 @@
 cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
 
 
+option(ENABLE_STATIC "Produce statically-linked executable" OFF)
+option(BUILD_INIT_PROGRAM "Build rscraper-init-scraper" ON)
+option(BUILD_SCRAPER "Build rscrape-cmnts" ON)
+
+
 FIND_PACKAGE(Boost COMPONENTS regex)
 FIND_PACKAGE(CURL)
 
-
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	# e.g. cmake .. -DCMAKE_BUILD_TYPE=Debug
-	set(MY_DEFINITIONS "DEBUG")
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
-	endif()
+if(ENABLE_STATIC)
+	set(CURL_NAMES curl.a)
+	set(MYSQL_CLIENT_NAMES mariadbclient.a libmariadbclient.a mariadb/mariadbclient.a mariadb/libmariadbclient.a mysqlclient.a libmysqlclient.a mysql/mysqlclient.a mysql/libmysqlclient.a)
 else()
-	set(CMAKE_BUILD_TYPE "Release")
+	set(CURL_NAMES curl)
+	set(MYSQL_CLIENT_NAMES mariadbclient mysqlclient)
+endif()
+find_library(CURL_LIB NAMES ${CURL_NAMES})
+find_library(MYSQL_CLIENT NAMES ${MYSQL_CLIENT_NAMES})
+
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
 	set(MY_DEFINITIONS "QT_NO_DEBUG" "QT_NO_DEBUG_OUTPUT")
-endif()
-message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-
-
-if(IS_DIRECTORY "C:/Program Files (x86)/CURL")
-	include_directories("C:/Program Files (x86)/CURL/include")
-endif()
-
-
-if(WIN32)
-	include_directories("${MYSQL_INCLUDE_DIR}")
-	link_directories("${MYSQL_LIBRARIES}")
-endif()
-
-message(STATUS "COMPSKY_INCLUDE_DIRS: ${COMPSKY_INCLUDE_DIRS}")
-include_directories("C:/Program Files/Compsky/include") # Should have been defined by COMPSKY_INCLUDE_DIRS
-link_directories("C:/Program Files/Compsky/bin")
-
-
-if("${MY_TARGETS} " STREQUAL " ")
-	set(MY_TARGETS "rscrape-cmnts" "rscraper-init-scraper")
 endif()
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(ID2STR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../utils/src")
+set(SHARED_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../shared-src")
 
 include_directories("${ID2STR_DIR}")
+include_directories("${SHARED_SRC_DIR}")
 
 if(NOT Boost_FOUND)
-	message(WARNING "boost::regex not found, so there will be no regex matching in the examples")
+	message(WARNING "boost::regex not found, so there will be no regex matching")
 endif()
 
-# Rename example files
 set(SRC_FILES "${SRC_DIR}/filter_comment_body_regexp.cpp" "${SRC_DIR}/filter_comment_body.cpp" "${SRC_DIR}/filter_subreddit.cpp" "${SRC_DIR}/filter_user.cpp" "${SRC_DIR}/filter_init.cpp" "${SRC_DIR}/curl_utils.cpp" "${SRC_DIR}/redditcurl_utils.cpp")
 
 set(BASE64_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/src/base64.c")
+set(MY_TARGETS)
 
-if("rscraper-init-scraper" IN_LIST MY_TARGETS)
+if(BUILD_INIT_PROGRAM)
 	add_executable(rscraper-init-scraper "${SRC_DIR}/init.cpp")
 	target_include_directories(rscraper-init-scraper PRIVATE ${COMPSKY_INCLUDE_DIRS})
+	target_link_libraries(rscraper-init-scraper "${MYSQL_CLIENT}")
+	list(APPEND MY_TARGETS "rscraper-init-scraper")
 endif()
 
-if("rscrape-cmnts" IN_LIST MY_TARGETS)
-	add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${SRC_FILES} "${ID2STR_DIR}/id2str.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/../shared-src/init_regexp_from_file")
+if(BUILD_SCRAPER)
+	add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${SRC_FILES} "${ID2STR_DIR}/id2str.cpp" "${SHARED_SRC_DIR}/init_regexp_from_file")
 	set_property(TARGET rscrape-cmnts PROPERTY CXX_STANDARD 17)
-	target_link_libraries(rscrape-cmnts curl)
-	target_link_libraries(rscrape-cmnts compsky_mysql)
-	target_link_libraries(rscrape-cmnts compsky_asciify)
+	target_link_libraries(rscrape-cmnts "${CURL_LIB}" "${MYSQL_CLIENT}")
 	#target_link_libraries(rscrape-cmnts stdc++fs)
 	if(Boost_FOUND)
 		target_link_libraries(rscrape-cmnts ${Boost_REGEX_LIBRARY})
 		target_compile_definitions(rscrape-cmnts PRIVATE USE_BOOST_REGEX)
 	endif()
-	if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND NOT ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-		target_compile_definitions(rscrape-cmnts PUBLIC CURL_STATICLIB)
-		target_link_libraries(rscrape-cmnts ssh2 gnutls idn2 nettle hogweed gcrypt gpg-error unistring iconv ssl crypto z ws2_32 crypt32 wldap32 gmp pthread)
-	endif()
+	list(APPEND MY_TARGETS "rscrape-cmnts")
 endif()
 
 foreach(tgt ${MY_TARGETS})
 	target_compile_definitions("${tgt}" PRIVATE "${MY_DEFINITIONS}")
 endforeach(tgt)
 
-
+include(GNUInstallDirs)
 install(
 	TARGETS ${MY_TARGETS}
 	RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"

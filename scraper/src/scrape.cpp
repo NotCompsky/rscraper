@@ -16,8 +16,7 @@
 #include "filter_subreddit.hpp" // for filter_subreddit::*
 #include "filter_user.hpp" // for filter_user::*
 
-#include <compsky/asciify/init.hpp>
-#include <compsky/asciify/base.hpp>
+#include <compsky/asciify/asciify.hpp>
 #include <compsky/mysql/query.hpp>
 
 #include <cstring> // for malloc, memcpy
@@ -32,15 +31,14 @@
 MYSQL_RES* RES1;
 MYSQL_ROW ROW1;
 
-namespace compsky {
-	namespace asciify {
-		char* BUF;
-		char* ITR;
-	}
-}
+char BUF[81000];
+char* ITR = BUF;
 
-namespace _f {
-	constexpr static const compsky::asciify::flag::ChangeBufferTmpCountFrom chbuftmpcntfrom;
+namespace _mysql {
+	MYSQL* conn;
+	constexpr static const size_t buf_sz = 512;
+	char buf[buf_sz];
+	char* auth[6];
 }
 
 
@@ -76,15 +74,25 @@ bool contains(uint64_t* list,  uint64_t item){
 }
 
 
+template<typename... Args>
+void exec(Args... args){
+	compsky::mysql::exec(_mysql::conn, BUF, args...);
+}
+template<typename... Args>
+void exec_buffer(Args... args){
+	compsky::mysql::exec_buffer(_mysql::conn, args...);
+}
+
+
 void count_user_subreddit_cmnt(const uint64_t user_id,  const uint64_t subreddit_id, const char* subreddit_name){
-	compsky::asciify::asciify(_f::chbuftmpcntfrom,  SQL__INSERT_INTO_USER2SUBCNT,  &SQL__INSERT_INTO_USER2SUBCNT_INDX,  "(1,",  user_id,  ',',  subreddit_id,  "),");
-	compsky::asciify::asciify(_f::chbuftmpcntfrom,  SQL__INSERT_INTO_SUBREDDIT,  &SQL__INSERT_INTO_SUBREDDIT_INDX,  "(",  subreddit_id,  ",\"",  subreddit_name,  "\"),");
+	compsky::asciify::asciify(SQL__INSERT_INTO_USER2SUBCNT,  &SQL__INSERT_INTO_USER2SUBCNT_INDX,  "(1,",  user_id,  ',',  subreddit_id,  "),");
+	compsky::asciify::asciify(SQL__INSERT_INTO_SUBREDDIT,  &SQL__INSERT_INTO_SUBREDDIT_INDX,  "(",  subreddit_id,  ",\"",  subreddit_name,  "\"),");
 }
 
 void process_this_comment(const rapidjson::Value& cmnt,  const uint64_t author_id,  const char* author_name,  const uint64_t cmnt_id,  const uint64_t subreddit_id,  const unsigned int reason_matched,  const bool is_submission_nsfw,  const bool to_record_contents){
 	const time_t created_at = cmnt["data"]["created_utc"].GetFloat(); // It's delivered in float format
 	
-	compsky::mysql::exec("INSERT IGNORE INTO user (id, name) VALUES (",  author_id,  ",'",  author_name,  "')");
+	exec("INSERT IGNORE INTO user (id, name) VALUES (",  author_id,  ",'",  author_name,  "')");
 	
 	uint64_t parent_id = str2id(cmnt["data"]["parent_id"].GetString() + 3);
 	uint64_t submission_id;
@@ -97,20 +105,20 @@ void process_this_comment(const rapidjson::Value& cmnt,  const uint64_t author_i
 		submission_id = str2id(cmnt["data"]["link_id"].GetString() + 3);
 	}
 	
-	const char* cmnt_content = (to_record_contents)  ?  cmnt_content = cmnt["data"]["body"].GetString()  :  "";
+	const char* cmnt_content = (to_record_contents)  ?  cmnt["data"]["body"].GetString()  :  "";
 	
 	
 	constexpr static const compsky::asciify::flag::concat::Start a;
 	constexpr static const compsky::asciify::flag::concat::End b;
 	constexpr static const compsky::asciify::flag::Escape esc;
 	
-	compsky::mysql::exec("INSERT IGNORE INTO comment (id, parent_id, author_id, submission_id, created_at, reason_matched, content) values(",  a, ',',  cmnt_id,  parent_id,  author_id,  submission_id,  created_at,  reason_matched,  b,  ",\"",  esc,  '"',  cmnt_content,  "\")");
+	exec("INSERT IGNORE INTO comment (id, parent_id, author_id, submission_id, created_at, reason_matched, content) values(",  a, ',',  cmnt_id,  parent_id,  author_id,  submission_id,  created_at,  reason_matched,  b,  ",\"",  esc,  '"',  cmnt_content,  "\")");
 	
 	
 	/*
 	Checks if a submission entry exists, and if not, creates one (but is based only on the information visible from a comment entry)
 	*/
-	compsky::asciify::asciify(_f::chbuftmpcntfrom,  SQL__INSERT_SUBMISSION_FROM_CMNT,  &SQL__INSERT_SUBMISSION_FROM_CMNT_INDX,  "(",  submission_id,  ',',  subreddit_id,  ',',  '0' + is_submission_nsfw,  "),");
+	compsky::asciify::asciify(SQL__INSERT_SUBMISSION_FROM_CMNT,  &SQL__INSERT_SUBMISSION_FROM_CMNT_INDX,  "(",  submission_id,  ',',  subreddit_id,  ',',  '0' + is_submission_nsfw,  "),");
 }
 
 void process_live_cmnt(const rapidjson::Value& cmnt,  const uint64_t cmnt_id){
@@ -173,7 +181,7 @@ uint64_t process_live_replies(rapidjson::Value& replies,  const uint64_t last_pr
 	
 	if (SQL__INSERT_SUBMISSION_FROM_CMNT_INDX != strlen_constexpr(SQL__INSERT_SUBMISSION_FROM_CMNT_STR)){
 		SQL__INSERT_SUBMISSION_FROM_CMNT[--SQL__INSERT_SUBMISSION_FROM_CMNT_INDX] = 0; // Overwrite trailing comma
-		compsky::mysql::exec_buffer(SQL__INSERT_SUBMISSION_FROM_CMNT, SQL__INSERT_SUBMISSION_FROM_CMNT_INDX);
+		exec_buffer(SQL__INSERT_SUBMISSION_FROM_CMNT, SQL__INSERT_SUBMISSION_FROM_CMNT_INDX);
 	}
 	
 	if (SQL__INSERT_INTO_USER2SUBCNT_INDX != strlen_constexpr(SQL__INSERT_INTO_USER2SUBCNT_STR)){
@@ -181,12 +189,12 @@ uint64_t process_live_replies(rapidjson::Value& replies,  const uint64_t last_pr
 		constexpr const char* b = " ON DUPLICATE KEY UPDATE count = count + 1";
 		memcpy(SQL__INSERT_INTO_USER2SUBCNT + SQL__INSERT_INTO_USER2SUBCNT_INDX,  b,  strlen_constexpr(b));
 		SQL__INSERT_INTO_USER2SUBCNT_INDX += strlen_constexpr(b);
-		compsky::mysql::exec_buffer(SQL__INSERT_INTO_USER2SUBCNT, SQL__INSERT_INTO_USER2SUBCNT_INDX);
+		exec_buffer(SQL__INSERT_INTO_USER2SUBCNT, SQL__INSERT_INTO_USER2SUBCNT_INDX);
 	}
 	
 	if (SQL__INSERT_INTO_SUBREDDIT_INDX != strlen_constexpr(SQL__INSERT_INTO_SUBREDDIT_STR)){
 		SQL__INSERT_INTO_SUBREDDIT[--SQL__INSERT_INTO_SUBREDDIT_INDX] = 0;
-		compsky::mysql::exec_buffer(SQL__INSERT_INTO_SUBREDDIT, SQL__INSERT_INTO_SUBREDDIT_INDX);
+		exec_buffer(SQL__INSERT_INTO_SUBREDDIT, SQL__INSERT_INTO_SUBREDDIT_INDX);
 	}
 	
 	return str2id(replies["data"]["children"][0]["data"]["id"].GetString());
@@ -211,11 +219,8 @@ void process_all_comments_live(){
 }
 
 int main(){
-	if (compsky::asciify::alloc(81000))
-		 // Max size of Reddit comments is 40000 characters, iirc.
-		exit(myerr::OUT_OF_MEMORY);
-	
-	compsky::mysql::init(getenv("RSCRAPER_MYSQL_CFG"));  // Init SQL
+	compsky::mysql::init_auth(_mysql::buf, _mysql::buf_sz, _mysql::auth, getenv("RSCRAPER_MYSQL_CFG"));
+	compsky::mysql::login_from_auth(_mysql::conn, _mysql::auth);
 	filter_comment_body::init();
 	mycu::init();         // Init CURL
 	myrcu::init(getenv("RSCRAPER_REDDIT_CFG")); // Init OAuth
@@ -225,5 +230,5 @@ int main(){
 	
 	process_all_comments_live();
 	
-	compsky::mysql::exit_mysql();
+	compsky::mysql::wipe_auth(_mysql::buf, _mysql::buf_sz);
 }
