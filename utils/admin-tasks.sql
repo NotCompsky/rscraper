@@ -1,3 +1,20 @@
+# List gaps in the collected comments (probably related to times the scraper was not functioning - depending on how frequently comments are recorded)
+SET @min_gap=4096*16*2; # Roughly 2 days
+SELECT
+	FROM_UNIXTIME(C.expected * @min_gap) AS begins,
+	IF(C.got-1 > C.expected,  FROM_UNIXTIME((C.got*@min_gap)-1),  0) AS ends
+FROM (
+	SELECT
+		@rownum:=@rownum+1 AS expected,
+		IF(@rownum=n, 0, @rownum:=n) AS got
+	FROM (SELECT @rownum:=0) A
+	JOIN (SELECT DISTINCT created_at DIV @min_gap AS n FROM comment) B
+	ORDER BY B.n
+) C
+WHERE C.got != 0
+
+
+
 # Table of subreddits to reasons comments were matched
 
 SELECT r.name, m.name, COUNT(c.id) AS count
