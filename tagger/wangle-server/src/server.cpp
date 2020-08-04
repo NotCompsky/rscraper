@@ -1,30 +1,24 @@
-#include "FrameDecoder.h"
-#include "CStringCodec.h"
-
-#include <compsky/mysql/query.hpp>
-#include <compsky/asciify/asciify.hpp>
-
-#include <folly/init/Init.h>
-#include <wangle/bootstrap/ServerBootstrap.h>
-#include <wangle/channel/AsyncSocketHandler.h>
-
-#include <mutex>
-#include <cstring> // for malloc
-
-
 #ifndef n_cached
 # error "Please define -Dn_cached=<NUMBER_OF_ITEMS_TO_CACHE>"
 #endif
 
+#define max_cache_item_size (1 + 20 + 1 + 2*64 + 1 + 20 + 1 + 2*20 + 3 + 2*20 + 1 + 1 + 1)
 
-typedef wangle::Pipeline<folly::IOBufQueue&,  const char*> RTaggerPipeline;
+#include <compsky/mysql/query.hpp>
+#include <compsky/asciify/asciify.hpp>
+#include <compsky/deasciify/a2n.hpp>
 
-namespace _f {
-	constexpr static const compsky::asciify::flag::Escape esc;
-	constexpr static const compsky::asciify::flag::AlphaNumeric alphanum;
-	constexpr static const compsky::asciify::flag::StrLen strlen;
-	//constexpr static const compsky::asciify::flag::MaxBufferSize max_sz;
-}
+#include <folly/init/Init.h>
+#include <compsky/wangle/compsky_handler.hpp>
+#include <compsky/wangle/compsky_pipeline_factory.hpp>
+#include <compsky/wangle/jsonify.hpp>
+#include <compsky/wangle/cache.hpp>
+
+#include <wangle/bootstrap/ServerBootstrap.h>
+
+#include <mutex>
+#include <cstring> // for malloc
+
 
 namespace _filter {
 #ifdef NULL_REASONS
@@ -48,119 +42,18 @@ namespace _mysql {
 	constexpr static const size_t buf_sz = 512; // TODO: Alloc file size
 }
 
-namespace reasons_or_tags_given_userid {
-	// WARNING: This is only for functions whose results are guaranteed to be shorter than the max_buf_len.
-	constexpr static const size_t max_buf_len = 1  +  100 * (1 + 20 + 1 + 2*64 + 1 + 20 + 1 + 2*20 + 3 + 2*20 + 1 + 1 + 1)  +  1  +  1; // == 25803
-	static char cache[n_cached * max_buf_len];
+namespace cached_stuff {
 	enum {
 		subreddits_given_userid,
 		reasons_given_userid,
 		subreddits_given_reason,
 		n_fns
 	};
-	struct ID {
-		unsigned int n_requests;
-		unsigned int which_cached_fn;
-		uint64_t user_id;
-		size_t sz;
-	};
-	static ID cached_IDs[n_cached] = {}; // Initialise to zero
-	
-	int from_cache(const unsigned int which_cached_fn,  const uint64_t user_id){
-		int i = 0;
-		while (i < n_cached){
-			ID& id = cached_IDs[i];
-			++i;
-			if ((id.which_cached_fn == which_cached_fn) and (id.user_id == user_id)){
-				++id.n_requests;
-				printf("From cache [%d], accessed %u times\n", i, id.n_requests);
-				return i;
-			}
-		}
-		return 0;
-	}
 }
 
 std::vector<std::string> banned_client_addrs;
 
 namespace _r {
-	constexpr static const std::string_view not_found =
-		#include "headers/return_code/NOT_FOUND.c"
-		"\n"
-		"Not Found"
-	;
-	
-	/*
-	constexpr static const std::string_view bad_request =
-		#include "headers/return_code/BAD_REQUEST.c"
-		"\n"
-		"Bad Request"
-	;
-	*/
-	constexpr static const std::string_view bad_request = not_found;
-	
-	constexpr static const std::string_view banned_client =
-		#include "headers/return_code/UNAUTHORISED.c"
-		"\n"
-		"Your IP address has been temporarily banned"
-	;
-	
-	constexpr static const std::string_view img_not_found(
-		#include "headers/return_code/OK.c" // To encourage browsers to cache it.
-		#include "headers/Content-Type/png.c"
-		#include "headers/Cache-Control/1day.c"
-		"Content-Length: 195\n"
-		"\n"
-		#include "i/404.txt"
-		, std::char_traits<char>::length(
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/png.c"
-			#include "headers/Cache-Control/1day.c"
-			"Content-Length: 195\n"
-			"\n"
-		) + 195
-	);
-	
-	constexpr static const std::string_view EMPTY_JSON_LIST = 
-		#include "headers/return_code/OK.c" // To encourage browsers to cache it.
-		#include "headers/Content-Type/json.c"
-		#include "headers/Cache-Control/1day.c"
-		"Content-Length: 2\n"
-		"\n"
-		"[]"
-	;
-	
-	constexpr
-	std::string_view return_static(const char* s){
-		switch(*(s++)){
-			case 'u':
-				switch(*(s++)){
-					case '.':
-						switch(*(s++)){
-							case 'j':
-								switch(*(s++)){
-									case 's':
-										switch(*(s++)){
-											case ' ':
-												return
-													#include "headers/return_code/OK.c"
-													#include "headers/Content-Type/javascript.c"
-													#include "headers/Cache-Control/1day.c"
-													"\n"
-													#include "static/utils.js"
-												;
-											default: return not_found;
-										}
-									default: return not_found;
-								}
-							default: return not_found;
-						}
-					default: return not_found;
-				}
-			default: return not_found;
-		}
-	}
-	
 	static char buf[4096];
 	char* itr = nullptr;
 	
@@ -188,9 +81,9 @@ namespace _r {
 		);
 		
 		constexpr static const char* const _headers =
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			#include "headers/Cache-Control/1day.c"
+			HEADER__RETURN_CODE__OK
+			HEADER__CONTENT_TYPE__JSON
+			"Cache-Control: max-age=86400\n"
 			"\n"
 		;
 		
@@ -235,14 +128,6 @@ namespace _r {
 	}
 }
 
-namespace _method {
-	enum {
-		GET,
-		POST,
-		UNKNOWN
-	};
-}
-
 constexpr
 uint64_t str2id(const char* str,  const char terminater){
 	uint64_t n = 0;
@@ -283,101 +168,18 @@ uint64_t a_to_uint64__space_terminated(const char* s){
 	return n;
 }
 
-constexpr
-unsigned int which_method(const char*& s){
-	switch(*(s++)){
-		case 'G':
-			switch(*(s++)){
-				case 'E':
-					switch(*(s++)){
-						case 'T':
-							switch(*(s++)){
-								case ' ':
-									return _method::GET;
-								default: return _method::UNKNOWN;
-							}
-						default: return _method::UNKNOWN;
-					}
-				default: return _method::UNKNOWN;
-			}
-		default: return _method::UNKNOWN;
-	}
-}
+constexpr size_t handler_buf_sz = 2 * 1024 * 1024;
 
-/*
-std::string_view if_http_string(const char* s,  const char* const return_string){
-	switch(*(s++)){
-		case 'H':
-			switch(*(s++)){
-				case 'T':
-					switch(*(s++)){
-						case 'T':
-							switch(*(s++)){
-								case 'P':
-									switch(*(s++)){
-										case '/':
-											switch(*(s++)){
-												case '1':
-													switch(*(s++)){
-														case '.':
-															switch(*(s++)){
-																case '1':
-																	switch(*(s++)){
-																		case '\r':
-																		case '\n':
-																			return return_string;
-																		default: return _r::not_found;
-																	}
-																default: return _r::not_found;
-															}
-														default: return _r::not_found;
-													}
-												default: return _r::not_found;
-											}
-										default: return _r::not_found;
-									}
-								default: return _r::not_found;
-							}
-						default: return _r::not_found;
-					}
-				default: return _r::not_found;
-			}
-		default: return _r::not_found;
+class RTaggerHandler : public CompskyHandler<handler_buf_sz,  RTaggerHandler> {
+ public:
+	constexpr
+	std::string_view determine_response(const char* str){
+		--str;
+		#include "auto-generated/auto__server-determine-response.hpp"
+		return _r::not_found;
 	}
-}
-*/
-
-class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::string_view> {
-  private:
-	constexpr static const size_t buf_sz = 2 * 1024 * 1024;
-	char* buf;
-	char* itr;
-	size_t remaining_buf_sz;
-	
+ private:
 	static std::mutex mysql_mutex;
-	MYSQL_RES* res;
-	MYSQL_ROW row;
-	
-	constexpr
-	uintptr_t buf_indx(){
-		return (uintptr_t)this->itr - (uintptr_t)this->buf;
-	}
-	
-	constexpr
-	void reset_buf_index(){
-		this->itr = this->buf;
-		this->remaining_buf_sz = this->buf_sz;
-	}
-	
-	inline
-	char last_char_in_buf(){
-		return *(this->itr - 1);
-	}
-	
-	template<typename... Args>
-	void asciify(Args... args){
-		compsky::asciify::asciify(this->itr,  args...);
-	};
 	
 	void mysql_query_using_buf(){
 		this->mysql_mutex.lock();
@@ -395,10 +197,6 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	template<typename... Args>
 	bool mysql_assign_next_row(Args... args){
 		return compsky::mysql::assign_next_row(this->res, &this->row, args...);
-	}
-	
-	std::string_view get_buf_as_string_view(){
-		return std::string_view(this->buf, this->buf_indx());
 	}
 	
 	std::string_view comments_given_reason(const char* const reason_id_str){
@@ -424,11 +222,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		uint64_t comment_id;
 		char* created_at;
 		this->reset_buf_index();
-		this->asciify(
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			"\n"
-		);
+		this->begin_json_response();
 		this->asciify('[');
 		while(this->mysql_assign_next_row(&subreddit_name, &submission_id, &comment_id, &created_at)){
 			this->asciify(
@@ -455,8 +249,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		const uint64_t reason_id = a_to_uint64__space_terminated(reason_id_str);
 		
-		if (const int indx = reasons_or_tags_given_userid::from_cache(reasons_or_tags_given_userid::subreddits_given_reason, reason_id))
-			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx - 1].sz);
+		if (const int indx = cached_stuff::from_cache(cached_stuff::subreddits_given_reason, reason_id))
+			return std::string_view(cached_stuff::cache + ((indx - 1) * cached_stuff::max_buf_len), cached_stuff::cached_IDs[indx - 1].sz);
 		
 		this->mysql_query(
 			"SELECT r.name, COUNT(c.id)/s2cc.count AS count "
@@ -477,34 +271,22 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		char* subreddit_name;
 		char* proportion;
 		this->reset_buf_index();
-		this->asciify(
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			"\n"
+		this->begin_json_response();
+		this->init_json_rows(
+			this->itr,
+			_r::flag::arr,
+			_r::flag::quote_no_escape, // subreddit_name
+			_r::flag::no_quote // proportion,
 		);
-		this->asciify('[');
-		while(this->mysql_assign_next_row(&subreddit_name, &proportion)){
-			this->asciify(
-				'[',
-					'"', _f::esc, '"', subreddit_name, '"', ',',
-					proportion,
-				']',
-				','
-			);
-		}
-		if (this->last_char_in_buf() == ',')
-			// If there was at least one iteration of the loop...
-			--this->itr; // ...wherein a trailing comma was left
-		this->asciify(']');
 		*this->itr = 0;
 		
-		this->add_buf_to_cache(reasons_or_tags_given_userid::subreddits_given_reason, reason_id, (reason_id)?1:100);
+		this->add_buf_to_cache(cached_stuff::subreddits_given_reason, reason_id, (reason_id)?1:100);
 		
 		return this->get_buf_as_string_view();
 	}
 	
 	void add_buf_to_cache(const unsigned int which_cached_fn,  const uint64_t user_id,  const unsigned int n_requests = 1){
-		using namespace reasons_or_tags_given_userid;
+		using namespace cached_stuff;
 		
 		unsigned int min_n_requests = UINT_MAX;
 		unsigned int indx = 0; // In case all IDs have n_requesets at UINT_MAX - which is extremely unlikely
@@ -531,8 +313,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		const uint64_t id = str2id(id_str, ' ');
 		
-		if (const int indx = reasons_or_tags_given_userid::from_cache(reasons_or_tags_given_userid::subreddits_given_userid, id))
-			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx - 1].sz);
+		if (const int indx = cached_stuff::from_cache(cached_stuff::subreddits_given_userid, id))
+			return std::string_view(cached_stuff::cache + ((indx - 1) * cached_stuff::max_buf_len), cached_stuff::cached_IDs[indx - 1].sz);
 		
 		/*
 		if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
@@ -557,29 +339,17 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		char* subreddit_name;
 		char* tag_ids;
 		this->reset_buf_index();
-		this->asciify(
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			"\n"
+		this->begin_json_response();
+		this->init_json_rows(
+			this->itr,
+			_r::flag::arr,
+			_r::flag::no_quote, // count,
+			_r::flag::quote_and_escape, // subreddit_name,
+			_r::flag::quote_no_escape // tag_ids
 		);
-		this->asciify('[');
-		while(this->mysql_assign_next_row(&count, &subreddit_name, &tag_ids)){
-			this->asciify(
-				'[',
-					'"', tag_ids, '"', ',',
-					'"', _f::esc, '"', subreddit_name, '"', ',',
-					count,
-				']',
-				','
-			);
-		}
-		if (this->last_char_in_buf() == ',')
-			// If there was at least one iteration of the loop...
-			--this->itr; // ...wherein a trailing comma was left
-		this->asciify(']');
 		*this->itr = 0;
 		
-		this->add_buf_to_cache(reasons_or_tags_given_userid::subreddits_given_userid, id);
+		this->add_buf_to_cache(cached_stuff::subreddits_given_userid, id);
 		
 		return this->get_buf_as_string_view();
 	}
@@ -590,8 +360,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		const uint64_t id = str2id(id_str, ' ');
 		
-		if (const int indx = reasons_or_tags_given_userid::from_cache(reasons_or_tags_given_userid::reasons_given_userid, id))
-			return std::string_view(reasons_or_tags_given_userid::cache + ((indx - 1) * reasons_or_tags_given_userid::max_buf_len), reasons_or_tags_given_userid::cached_IDs[indx - 1].sz);
+		if (const int indx = cached_stuff::from_cache(cached_stuff::reasons_given_userid, id))
+			return std::string_view(cached_stuff::cache + ((indx - 1) * cached_stuff::max_buf_len), cached_stuff::cached_IDs[indx - 1].sz);
 		
 		/*
 		if (unlikely(!is_cached(users, n_users, n_users_log2, id))){
@@ -618,11 +388,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		uint64_t submission_id;
 		uint64_t comment_id;
 		this->reset_buf_index();
-		this->asciify(
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			"\n"
-		);
+		this->begin_json_response();
 		this->asciify('[');
 		while(this->mysql_assign_next_row(&reason_id, &subreddit_name, &created_at, &submission_id, &comment_id)){
 			this->asciify(
@@ -641,7 +407,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		this->asciify(']');
 		*this->itr = 0;
 		
-		this->add_buf_to_cache(reasons_or_tags_given_userid::reasons_given_userid, id);
+		this->add_buf_to_cache(cached_stuff::reasons_given_userid, id);
 		
 		return this->get_buf_as_string_view();
 	}
@@ -661,22 +427,12 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		
 		char* usertag_id;
 		this->reset_buf_index();
-		this->asciify(
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
-			"\n"
+		this->begin_json_response();
+		this->init_json_rows(
+			this->itr,
+			_r::flag::arr,
+			_r::flag::quote_and_escape // usertag_id,
 		);
-		this->asciify('[');
-		while(this->mysql_assign_next_row(&usertag_id)){
-			this->asciify(
-				usertag_id,
-				','
-			);
-		}
-		if (this->last_char_in_buf() == ',')
-			// If there was at least one iteration of the loop...
-			--this->itr; // ...wherein a trailing comma was left
-		this->asciify(']');
 		*this->itr = 0;
 		
 		return this->get_buf_as_string_view();
@@ -705,8 +461,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 	
 	std::string_view flairs_given_users__empty(){
 		return
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
+			HEADER__RETURN_CODE__OK
+			HEADER__CONTENT_TYPE__JSON
 			"\n"
 			"[{},{}]"
 		;
@@ -737,8 +493,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		// SQL statement might still be longer though, so have to create new string for it
 		
 		constexpr static const char* const ok_begin =
-			#include "headers/return_code/OK.c"
-			#include "headers/Content-Type/json.c"
+			HEADER__RETURN_CODE__OK
+			HEADER__CONTENT_TYPE__JSON
 			"\n"
 		;
 
@@ -835,7 +591,7 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 			
 			const size_t max_new_entry_size = std::char_traits<char>::length("],\"abcdefghijklm\":[[\"rgba(255,255,255,1.000)\",\"01234567890123456789 01234567890123456789\"],");
 			
-			if (this->buf_indx() + max_new_entry_size + 1  >  this->buf_sz)
+			if (this->buf_indx() + max_new_entry_size + 1  >  handler_buf_sz)
 				//{ +1 is to account for the terminating '}' char.
 				break;
 			
@@ -900,316 +656,8 @@ class RTaggerHandler : public wangle::HandlerAdapter<const char*,  const std::st
 		*this->itr = 0;
 		return this->get_buf_as_string_view();
 	}
-	
-	constexpr
-	std::string_view return_api(const char* s){
-		switch(*(s++)){
-			case 'f':
-				switch(*(s++)){
-					case '/':
-						return flairs_given_users(s);
-					default: return _r::not_found;
-				}
-			case 'm':
-				switch(*(s++)){
-					case '.':
-						// m.json
-						return _r::reasons_json;
-					case '/':
-						switch(*(s++)){
-							case 'c':
-								switch(*(s++)){
-									case '/':
-										// /a/m/c/
-										return this->comments_given_reason(s);
-									default: return _r::not_found;
-								}
-							case 'r':
-								switch(*(s++)){
-									case '/':
-										return this->subreddits_given_reason(s);
-									default: return _r::not_found;
-								}
-							default: return _r::not_found;
-						}
-					default: return _r::not_found;
-				}
-			case 't':
-				switch(*(s++)){
-					case '2':
-						// /a/t2c.json
-						return _r::tag2category_json;
-					case '.':
-						// m.json
-						return _r::tags_json;
-					default: return _r::not_found;
-				}
-			case 'u':
-				switch(*(s++)){
-					case '2':
-						// /a/u2t.json
-						return _r::usertags_json;
-					case '/':
-						switch(*(s++)){
-							case 'r':
-								switch(*(s++)){
-									case '/':
-										return this->subreddits_given_userid(s);
-									default: return _r::not_found;
-								}
-							case 'm':
-								// /a/u/m/
-								switch(*(s++)){
-									case '/':
-										return this->reasons_given_userid(s);
-									default: return _r::not_found;
-								}
-							case 't':
-								// /a/u/t/
-								switch(*(s++)){
-									case '/':
-										return this->usertags_given_userid(s);
-									default: return _r::not_found;
-								}
-							default: return _r::not_found;
-						}
-					default: return _r::not_found;
-				}
-			default: return _r::not_found;
-		}
-	}
-	
-	constexpr
-	std::string_view determine_response(const char* s){
-		switch(which_method(s)){
-			case _method::GET:
-				switch(*(s++)){
-					case '/':
-						switch(*(s++)){
-							case ' ':
-								return
-									#include "headers/return_code/OK.c"
-									#include "headers/Content-Type/html.c"
-									#include "headers/Cache-Control/1day.c"
-									"\n"
-									#include "html/root.html"
-								;
-							case 'a':
-								switch(*(s++)){
-									case '/':
-										return this->return_api(s);
-									default: return _r::not_found;
-								}
-							case 'i':
-								switch(*(s++)){
-									case '/':
-										return _r::img_not_found;
-									default: return _r::not_found;
-								}
-							case 'f':
-								switch(*(s++)){
-									case 'a':
-										switch(*(s++)){
-											case 'v':
-												// /favicon.ico
-												return std::string_view(
-													#include "headers/return_code/OK.c"
-													#include "headers/Content-Type/ico.c"
-													#include "headers/Cache-Control/1day.c"
-													"Content-Length: 198\n"
-													"\n"
-													#include "favicon.txt"
-													, std::char_traits<char>::length(
-														#include "headers/return_code/OK.c"
-														#include "headers/Content-Type/ico.c"
-														#include "headers/Cache-Control/1day.c"
-														"Content-Length: 198\n"
-														"\n"
-													) + 198
-												);
-											default: return _r::not_found;
-										}
-									case '/':
-										switch(*(s++)){
-											case ' ':
-												// /flairs
-												return
-													#include "headers/return_code/OK.c"
-													#include "headers/Content-Type/html.c"
-													#include "headers/Cache-Control/1day.c"
-													"\n"
-													#include "html/flairs.html"
-												;
-											case 'r':
-												// /regions
-												return
-													#include "headers/return_code/OK.c"
-													#include "headers/Content-Type/html.c"
-													#include "headers/Cache-Control/1day.c"
-													"\n"
-													#include "html/flairs_regions.html"
-												;
-											case 's':
-												// /slurs
-												return
-													#include "headers/return_code/OK.c"
-													#include "headers/Content-Type/html.c"
-													#include "headers/Cache-Control/1day.c"
-													"\n"
-													#include "html/flairs_slurs.html"
-												;
-											default: return _r::not_found;
-										}
-									default: return _r::not_found;
-								}
-#ifndef NULL_REASONS
-							case 'm':
-								switch(*(s++)){
-									case '/':
-										switch(*(s++)){
-											case ' ':
-												// /m/
-												return
-													#include "headers/return_code/OK.c"
-													#include "headers/Content-Type/html.c"
-													#include "headers/Cache-Control/1day.c"
-													"\n"
-													#include "html/reason.html"
-												;
-											case 'c':
-												switch(*(s++)){
-													case '/':
-														switch(*(s++)){
-															case ' ':
-																// /m/c/
-																return
-																	#include "headers/return_code/OK.c"
-																	#include "headers/Content-Type/html.c"
-																	#include "headers/Cache-Control/1day.c"
-																	"\n"
-																	#include "html/comments_given_reason.html"
-																;
-															default: return _r::not_found;
-														}
-													default: return _r::not_found;
-												}
-											case 'r':
-												switch(*(s++)){
-													case '/':
-														switch(*(s++)){
-															case ' ':
-																// /m/r/
-																return
-																	#include "headers/return_code/OK.c"
-																	#include "headers/Content-Type/html.c"
-																	#include "headers/Cache-Control/1day.c"
-																	"\n"
-																	#include "html/subreddits_given_reason.html"
-																;
-															default: return _r::not_found;
-														}
-													default: return _r::not_found;
-												}
-											default: return _r::not_found;
-										}
-									default: return _r::not_found;
-								}
-#endif
-							case 's':
-								switch(*(s++)){
-									case '/':
-										return _r::return_static(s);
-									default: return _r::not_found;
-								}
-							case 'u':
-								switch(*(s++)){
-									case '/':
-										return
-											#include "headers/return_code/OK.c"
-											#include "headers/Content-Type/html.c"
-											#include "headers/Cache-Control/1day.c"
-											"\n"
-											#include "html/user_summary.html"
-										;
-#ifndef NULL_USERTAGS
-									case 't':
-										switch(*(s++)){
-											case '/':
-												switch(*(s++)){
-													case ' ':
-														// /m/
-														return
-															#include "headers/return_code/OK.c"
-															#include "headers/Content-Type/html.c"
-															#include "headers/Cache-Control/1day.c"
-															"\n"
-															#include "html/tagged_users.html"
-														;
-													default: return _r::not_found;
-												}
-											default: return _r::not_found;
-										}
-#endif
-									default: return _r::not_found;
-								}
-							default: return _r::not_found;
-						}
-					default: return _r::not_found;
-				}
-			default: return _r::not_found;
-		}
-	}
-  public:
-	RTaggerHandler()
-	{
-		this->buf = (char*)malloc(this->buf_sz);
-		if(unlikely(this->buf == nullptr))
-			// TODO: Replace with compsky::asciify::alloc
-			exit(4096);
-	}
-	
-	~RTaggerHandler(){
-	}
-	
-		void read(Context* ctx,  const char* const msg) override {
-			this->reset_buf_index();
-			for(const char* msg_itr = msg;  *msg_itr != 0  &&  *msg_itr != '\n';  ++msg_itr){
-				this->asciify(*msg_itr);
-			}
-			*this->itr = 0;
-			const std::string client_addr = ctx->getPipeline()->getTransportInfo()->remoteAddr->getHostStr();
-			std::cout << client_addr << '\t' << this->buf << std::endl;
-			const std::string_view v = likely(std::find(banned_client_addrs.begin(), banned_client_addrs.end(), client_addr) == banned_client_addrs.end()) ? this->determine_response(msg) : _r::banned_client;
-			if (unlikely(v == _r::not_found))
-				banned_client_addrs.push_back(client_addr);
-			write(ctx, v);
-			close(ctx);
-		}
 };
 std::mutex RTaggerHandler::mysql_mutex;
-
-class RTaggerPipelineFactory : public wangle::PipelineFactory<RTaggerPipeline> {
-	public:
-		RTaggerPipeline::Ptr newPipeline(std::shared_ptr<folly::AsyncTransportWrapper> sock) override {
-			auto pipeline = RTaggerPipeline::create();
-			pipeline->addBack(wangle::AsyncSocketHandler(sock));
-			pipeline->addBack(wangle::FrameDecoder());
-			pipeline->addBack(wangle::CStringCodec());
-			pipeline->addBack(RTaggerHandler());
-			pipeline->finalize();
-			return pipeline;
-		}
-};
-
-int s2n(const char* s){
-	int n = 0;
-	while(*s != 0){
-		n *= 10;
-		n += *s - '0';
-		++s;
-	}
-	return n;
-}
 
 int main(int argc,  char** argv){
 	char** dummy_argv = argv;
@@ -1235,7 +683,7 @@ int main(int argc,  char** argv){
 				break;
 #endif
 			case 'p':
-				port_n = s2n(*(++argv));
+				port_n = a2n<int>(*(++argv));
 				break;
 			default:
 				goto help;
@@ -1279,8 +727,8 @@ int main(int argc,  char** argv){
 	_r::init_json("SELECT ut.id, ut.name FROM usertag ut",     _r::usertags_json,_filter::USERTAGS);
 	_r::init_json("SELECT t2c.tag_id, t2c.category_id FROM tag2category t2c", _r::tag2category_json, _filter::TAGS);
 
-	wangle::ServerBootstrap<RTaggerPipeline> server;
-	server.childPipeline(std::make_shared<RTaggerPipelineFactory>());
+	wangle::ServerBootstrap<CompskyPipeline> server;
+	server.childPipeline(std::make_shared<CompskyPipelineFactory<handler_buf_sz, RTaggerHandler>>());
 	server.bind(port_n);
 	server.waitForStop();
 	

@@ -1,0 +1,136 @@
+GET /s/u.js >
+	return
+		HEADER__RETURN_CODE__OK
+		HEADER__CONTENT_TYPE__JS
+		"Cache-Control: max-age=86400\\n"
+		"\\n"
+		#include "../static/utils.js"
+
+GET /a/f/>
+	return flairs_given_users(++str)
+GET /a/m.json>
+	return _r::reasons_json
+GET /a/m/c/>
+	return this->comments_given_reason(++str)
+GET /a/m/r/>
+	return this->subreddits_given_reason(++str)
+GET /a/t2c.json>
+	return _r::tag2category_json
+GET /a/t.json>
+	return _r::tags_json
+GET /a/u2t.json>
+	return _r::usertags_json
+GET /a/u/r/>
+	return this->subreddits_given_userid(++str)
+GET /a/u/m/>
+	return this->reasons_given_userid(++str)
+GET /a/u/t/>
+	return this->usertags_given_userid(++str)
+
+GET / >
+	return
+		HEADER__RETURN_CODE__OK
+		HEADER__CONTENT_TYPE__HTML
+		"Cache-Control: max-age=86400\\n"
+		"\\n"
+		#include "../html/root.html"
+
+GET /i/>
+	return _r::server_error
+
+GET /favicon.ico>
+	return std::string_view(
+		HEADER__RETURN_CODE__OK
+		HEADER__CONTENT_TYPE__ICO
+		"Cache-Control: max-age=86400\\n"
+		"Content-Length: 198\\n"
+		"\\n"
+		#include "../favicon.txt"
+		, std::char_traits<char>::length(
+			HEADER__RETURN_CODE__OK
+			HEADER__CONTENT_TYPE__ICO
+			"Cache-Control: max-age=86400\\n"
+			"Content-Length: 198\\n"
+			"\\n"
+		) + 198
+	)
+
+GET /f/ >
+	return
+		HEADER__RETURN_CODE__OK
+		HEADER__CONTENT_TYPE__HTML
+		"Cache-Control: max-age=86400\\n"
+		"\\n"
+		#include "../html/flairs.html"
+
+GET /f/regions >
+	return
+		HEADER__RETURN_CODE__OK
+		HEADER__CONTENT_TYPE__HTML
+		"Cache-Control: max-age=86400\\n"
+		"\\n"
+		#include "../html/flairs_regions.html"
+
+GET /f/slurs >
+	return
+		HEADER__RETURN_CODE__OK
+		HEADER__CONTENT_TYPE__HTML
+		"Cache-Control: max-age=86400\\n"
+		"\\n"
+		#include "../html/flairs_slurs.html"
+
+GET /m/ >
+	return
+		#ifdef NULL_REASONS
+			""
+		#else
+			HEADER__RETURN_CODE__OK
+			HEADER__CONTENT_TYPE__HTML
+			"Cache-Control: max-age=86400\\n"
+			"\\n"
+			#include "../html/reason.html"
+		#endif
+
+GET /m/c/ >
+	return
+		#ifdef NULL_REASONS
+			""
+		#else
+			HEADER__RETURN_CODE__OK
+			HEADER__CONTENT_TYPE__HTML
+			"Cache-Control: max-age=86400\\n"
+			"\\n"
+			#include "../html/comments_given_reason.html"
+		#endif
+
+GET /m/r/ >
+	return
+		#ifdef NULL_REASONS
+			""
+		#else
+			HEADER__RETURN_CODE__OK
+			HEADER__CONTENT_TYPE__HTML
+			"Cache-Control: max-age=86400\\n"
+			"\\n"
+			#include "../html/subreddits_given_reason.html"
+		#endif
+
+GET /u/ >
+	return
+		HEADER__RETURN_CODE__OK
+		HEADER__CONTENT_TYPE__HTML
+		"Cache-Control: max-age=86400\\n"
+		"\\n"
+		#include "../html/user_summary.html"
+
+GET /ut/ >
+	return
+		#ifdef NULL_USERTAGS
+			""
+		#else
+			HEADER__RETURN_CODE__OK
+			HEADER__CONTENT_TYPE__HTML
+			"Cache-Control: max-age=86400\\n"
+			"\\n"
+			#include "../html/tagged_users.html"
+		#endif
