@@ -32,14 +32,12 @@ set(3RDPARTY_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/src")
 include_directories("${ID2STR_DIR}")
 include_directories("${SHARED_SRC_DIR}")
 include_directories("${3RDPARTY_SRC_DIR}")
+include_directories(/usr/local/include) # CMake subprojects don't understand the concept of system include directories...
 
 if(NOT Boost_FOUND)
 	message(WARNING "boost::regex not found, so there will be no regex matching")
 endif()
 
-set(SRC_FILES "${SRC_DIR}/filter_comment_body_regexp.cpp" "${SRC_DIR}/filter_comment_body.cpp" "${SRC_DIR}/filter_subreddit.cpp" "${SRC_DIR}/filter_user.cpp" "${SRC_DIR}/filter_init.cpp" "${SRC_DIR}/curl_utils.cpp" "${SRC_DIR}/redditcurl_utils.cpp")
-
-set(BASE64_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/src/base64.c")
 set(MY_TARGETS)
 
 if(BUILD_INIT_PROGRAM)
@@ -50,7 +48,20 @@ if(BUILD_INIT_PROGRAM)
 endif()
 
 if(BUILD_SCRAPER)
-	add_executable(rscrape-cmnts "${SRC_DIR}/scrape.cpp" "${BASE64_SRC}" ${SRC_FILES} "${ID2STR_DIR}/id2str.cpp" "${SHARED_SRC_DIR}/init_regexp_from_file")
+	add_executable(
+		rscrape-cmnts
+		"${SRC_DIR}/scrape.cpp"
+		"${SRC_DIR}/filter_comment_body_regexp.cpp"
+		"${SRC_DIR}/filter_comment_body.cpp"
+		"${SRC_DIR}/filter_subreddit.cpp"
+		"${SRC_DIR}/filter_user.cpp"
+		"${SRC_DIR}/filter_init.cpp"
+		"${SRC_DIR}/curl_utils.cpp"
+		"${SRC_DIR}/redditcurl_utils.cpp"
+		"${ID2STR_DIR}/id2str.cpp"
+		"${SHARED_SRC_DIR}/init_regexp_from_file"
+		"${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/src/base64.c"
+	)
 	set_property(TARGET rscrape-cmnts PROPERTY CXX_STANDARD 17)
 	target_link_libraries(rscrape-cmnts "${CURL_LIB}" "${MYSQL_CLIENT}")
 	#target_link_libraries(rscrape-cmnts stdc++fs)
