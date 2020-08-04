@@ -8,7 +8,7 @@ matrix:
       env: BADGE=linux # To allow OS-wise badges - see https://github.com/travis-ci/travis-ci/issues/9579
 
 before_install:
-  - if [ $TRAVIS_OS_NAME == linux ]; then  sudo apt update  &&  sudo apt install -y mariadb-client default-libmysqlclient-dev qt5-default libqt5widgets5;  fi # libcompsky direct dependencies
+  - if [ $TRAVIS_OS_NAME == linux ]; then  sudo apt update  &&  sudo apt install -y mariadb-client-10.1 mariadb-client-core-10.1 default-libmysqlclient-dev qt5-default libqt5widgets5;  fi # libcompsky direct dependencies
   - git clone https://github.com/NotCompsky/libcompsky
   - mkdir libcompsky/build  &&  cd libcompsky/build  &&  cmake .. &&  sudo make install  &&  cd ../..  # Build libcompsky
   - if [ $TRAVIS_OS_NAME == linux ]; then  sudo apt install curl wget golang libcurl4-openssl-dev default-libmysqlclient-dev rapidjson-dev libboost-regex-dev pandoc qt5-default libqt5widgets5 libqt5charts5 libqt5charts5-dev;  fi # rscraper direct dependencies
