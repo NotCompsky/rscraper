@@ -22,7 +22,7 @@ RUN git clone --depth 1 https://github.com/NotCompsky/libcompsky \
 		.. \
 	&& make install \
 	\
-	&& git clone --depth 1 --recurse-modules https://github.com/notcompsky/rscraper \
+	&& git clone --depth 1 --recurse-submodules https://github.com/notcompsky/rscraper \
 	&& mkdir rscraper/build \
 	&& cd rscraper/build \
 	&& LD_LIBRARY_PATH="/usr/local/lib64:$LD_LIBRARY_PATH" cmake \
