@@ -6,12 +6,17 @@
 <p align="center">
 	<a href="LICENSE"><img src="https://img.shields.io/github/license/NotCompsky/rscraper"/></a>
 	<a href="https://github.com/NotCompsky/rscraper/releases"><img src="https://img.shields.io/github/v/release/NotCompsky/rscraper"/></a>
-	<a href="https://hub.docker.com/repository/docker/notcompsky/rtagger-server/tags"><img src="https://img.shields.io/docker/image-size/notcompsky/rtagger-server?label=Docker%20image"/></a>
 	<a href="https://circleci.com/gh/NotCompsky/rscraper"><img src="https://circleci.com/gh/NotCompsky/rscraper.svg?style=shield"/></a>
 	<a href="https://github.com/NotCompsky/rscraper/graphs/commit-activity"><img src="https://img.shields.io/github/commit-activity/w/NotCompsky/rscraper"/>
 	<a href="https://github.com/NotCompsky/rscraper/graphs/contributors"><img src="https://img.shields.io/github/contributors/NotCompsky/rscraper"></a>
 	<a href="https://discord.gg/DnD7RJA"><img src="https://img.shields.io/discord/736649679575580814?label=Discord"></a>
 	<a href="https://api.codacy.com/project/badge/Grade/9ee8e250c8f842559559e7a509e80971"><img src="https://www.codacy.com/app/NotCompsky/rscraper?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=NotCompsky/rscraper&amp;utm_campaign=Badge_Grade"></a>
+</p>
+
+<p align="center">
+	<h3>Docker Images</h3>
+	<a href="https://hub.docker.com/repository/docker/notcompsky/rtagger-scraper/tags"><img src="https://img.shields.io/docker/image-size/notcompsky/rtagger-scraper?label=scraper"/></a>
+	<a href="https://hub.docker.com/repository/docker/notcompsky/rtagger-server/tags"><img src="https://img.shields.io/docker/image-size/notcompsky/rtagger-server?label=server"/></a>
 </p>
 
 ## Description
