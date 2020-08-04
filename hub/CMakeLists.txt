@@ -1,7 +1,13 @@
 cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR) # CONTRIBUTIONS WELCOME: Tests of previous/future versions which work or not
 
 find_package(Qt5 COMPONENTS Widgets Charts)
+find_package(Exig)
 
+
+if(NOT Exig_FOUND)
+	message(WARNING "Skipping rscraper-hub, as exig was not found")
+	return()
+endif()
 
 if(NOT Qt5_FOUND)
 	message(WARNING "Skipping rscraper-gui, as Qt5::Widgets and/or Qt5::Charts was not found")
@@ -20,14 +26,25 @@ elseif(NOT Qt5Charts_FOUND)
 	return()
 endif()
 
-find_package(Compsky REQUIRED asciify mysql)
+find_package(Compsky REQUIRED)
+
+
+if(ENABLE_STATIC)
+	set(MYSQL_CLIENT_NAMES mariadbclient.a libmariadbclient.a mariadb/mariadbclient.a mariadb/libmariadbclient.a mysqlclient.a libmysqlclient.a mysql/mysqlclient.a mysql/libmysqlclient.a)
+else()
+	set(MYSQL_CLIENT_NAMES mariadbclient mysqlclient)
+endif()
+find_library(MYSQL_CLIENT NAMES ${MYSQL_CLIENT_NAMES})
+
+
 set(CMAKE_AUTOMOC ON)
 
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(UTILS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../utils/src")
+set(SHARED_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../shared-src")
 
-include_directories("${UTILS_SRC_DIR}")
+include_directories("${UTILS_SRC_DIR}" "${SHARED_SRC_DIR}")
 
 add_executable(
 	rscraper-hub
@@ -53,10 +70,12 @@ add_executable(
 	
 	"${SRC_DIR}/msgbox.cpp"
 	
-	"${SRC_DIR}/../../shared-src/init_regexp_from_file.cpp"
+	"${SHARED_SRC_DIR}/init_regexp_from_file.cpp"
 	
 	# Messages
 	"${SRC_DIR}/notfound.cpp"
+	
+	"${SRC_DIR}/regex_editor/editor.cpp"
 	
 	# 3rd party
 	"${SRC_DIR}/3rdparty/donutbreakdownchart.cpp"
@@ -74,10 +93,6 @@ add_executable(
 	"${SRC_DIR}/unlink_tag_btn.cpp"
 	"${SRC_DIR}/rm_tag_btn.cpp"
 	
-	"${SRC_DIR}/regex_editor.cpp"
-	"${SRC_DIR}/regex_editor_highlighter.cpp"
-	"${SRC_DIR}/regex_editor_vars_menu.cpp"
-	
 	"${SRC_DIR}/regex_tests.cpp"
 
 	"${SRC_DIR}/cat_doughnut.cpp"
@@ -86,12 +101,13 @@ add_executable(
 )
 set_property(TARGET rscraper-hub PROPERTY CXX_STANDARD 17)
 target_include_directories(rscraper-hub PRIVATE ${COMPSKY_INCLUDE_DIRS})
-target_link_libraries(rscraper-hub Qt5::Widgets Qt5::Charts compsky_asciify compsky_mysql)
+target_link_libraries(rscraper-hub Qt5::Widgets Qt5::Charts "${MYSQL_CLIENT}")
 if(Boost_FOUND)
-	target_link_libraries(rscraper-hub ${Boost_REGEX_LIBRARY})
+	target_link_libraries(rscraper-hub ${Boost_REGEX_LIBRARY} egix)
 	target_compile_definitions(rscraper-hub PRIVATE USE_BOOST_REGEX)
 endif()
 
+include(GNUInstallDirs)
 install(
 	TARGETS rscraper-hub
 	RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
