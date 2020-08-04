@@ -165,7 +165,7 @@ ScraperTab::ScraperTab(QWidget* parent) : QWidget(parent) {
 
 #ifdef USE_BOOST_REGEX
 void ScraperTab::open_cmnt_body_re_editor(){
-	RegexEditor* editor = new RegexEditor("cmnt_body_regex.human", "cmnt_body_regex", this);
+	RScraperRegexEditor* editor = new RScraperRegexEditor("cmnt_body_regex.human", "cmnt_body_regex", this);
 	editor->exec();
 }
 
