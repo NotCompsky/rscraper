@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-	<h3>Docker Images</h3>
+	<b>Docker Images</b>
 	<a href="https://hub.docker.com/repository/docker/notcompsky/rscrape-cmnts/tags"><img src="https://img.shields.io/docker/image-size/notcompsky/rscrape-cmnts?label=scraper"/></a>
 	<a href="https://hub.docker.com/repository/docker/notcompsky/rtagger-server/tags"><img src="https://img.shields.io/docker/image-size/notcompsky/rtagger-server?label=server"/></a>
 </p>
