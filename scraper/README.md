@@ -1,6 +1,6 @@
 <p align="center">
 	<h3>Docker Images</h3>
-	<a href="https://hub.docker.com/repository/docker/notcompsky/rtagger-scraper/tags"><img src="https://img.shields.io/docker/image-size/notcompsky/rtagger-scraper?label=scraper"/></a>
+	<a href="https://hub.docker.com/repository/docker/notcompsky/rscrape-cmnts/tags"><img src="https://img.shields.io/docker/image-size/notcompsky/rscrape-cmnts?label=scraper"/></a>
 </p>
 
 # Usage
