@@ -24,6 +24,7 @@
 # include <unistd.h> // for sleep
 #endif
 
+
 extern "C" {
 # include <libb64.h> // for base64_encode // Must be after stdlib.h for size_t
 }
@@ -61,7 +62,6 @@ char BASIC_AUTH_HEADER[512] = "Authorization: Basic ";
 CURL* LOGIN_CURL;
 struct curl_slist* LOGIN_HEADERS;
 
-char LOGIN_POSTDATA[1000];
 char* USER_AGENT;
 char* PROXY_URL;
 
@@ -93,6 +93,9 @@ void handler(int n){
 
 
 void init_login(const char* fp){
+	static char LOGIN_POSTDATA[1000];
+	static char grant_type_etc[200];
+	
 	char* REDDIT_AUTH[6];
 	char* USR;
 	char* PWD;
@@ -126,7 +129,7 @@ void init_login(const char* fp){
 	USER_AGENT = REDDIT_AUTH[3];
 	PROXY_URL = REDDIT_AUTH[4];
 	
-	printf("%s \n%s \n%s \n%s \n%s \n",  REDDIT_AUTH[0],  REDDIT_AUTH[1],  REDDIT_AUTH[2],  REDDIT_AUTH[3],  REDDIT_AUTH[4]);
+	fprintf(stderr, "%s \n%s \n%s \n%s \n%s \n",  REDDIT_AUTH[0],  REDDIT_AUTH[1],  REDDIT_AUTH[2],  REDDIT_AUTH[3],  REDDIT_AUTH[4]); fflush(stderr);
 	
 	{
 	base64_encodestate state;
@@ -145,9 +148,9 @@ void init_login(const char* fp){
 	curl_easy_setopt(LOGIN_CURL, CURLOPT_HTTPHEADER, LOGIN_HEADERS);
 	curl_easy_setopt(LOGIN_CURL, CURLOPT_TIMEOUT, 20);
 	
-	compsky::asciify::asciify(ITR, "grant_type=password&password=", PWD, "&username=", USR, '\0');
+	compsky::asciify::asciify(grant_type_etc, "grant_type=password&password=", PWD, "&username=", USR, '\0');
 	
-	curl_easy_setopt(LOGIN_CURL, CURLOPT_POSTFIELDS, LOGIN_POSTDATA);
+	curl_easy_setopt(LOGIN_CURL, CURLOPT_POSTFIELDS, grant_type_etc);
 	
 	curl_easy_setopt(LOGIN_CURL, CURLOPT_URL, "https://www.reddit.com/api/v1/access_token");
 	
@@ -166,9 +169,6 @@ void login(){
 	
 	// Result is in format
 	// {"access_token": "XXXXXXXX-XXXXXXXXXXXXXXXXXXXXXXXXXXX", "token_type": "bearer", "expires_in": 3600, "scope": "*"}
-	
-	printf("MEMORY:         %s\n", mycu::MEMORY.memory);
-	printf("LOGIN_POSTDATA: %s\n", LOGIN_POSTDATA);
 	
 	switch(mycu::MEMORY.size){
 		case strlen_constexpr("{\"message\": \"Unauthorized\", \"error\": 401}"):
