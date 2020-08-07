@@ -22,7 +22,7 @@ RUN git clone --depth 1 https://github.com/NotCompsky/libcompsky \
 	&& git clone --depth 1 https://github.com/Tencent/rapidjson \
 	&& mv rapidjson/include/rapidjson /usr/local/include \
 	\
-	&& git clone --depth 1 https://github.com/NotCompsky/rscraper \
+	&& git clone --depth 1 --recurse-submodules https://github.com/NotCompsky/rscraper \
 	&& mkdir rscraper/build \
 	&& cd rscraper \
 	&& mkdir -p 3rdparty/include 3rdparty/src 3rdparty/cmake \
