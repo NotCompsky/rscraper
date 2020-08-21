@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS submission (
     content VARBINARY(40000),
     created_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
     nsfw SMALLINT UNSIGNED NOT NULL,
+	FOREIGN KEY (subreddit_id) REFERENCES subreddit (id),
     PRIMARY KEY (id)
 );
 
