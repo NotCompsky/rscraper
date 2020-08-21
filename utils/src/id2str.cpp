@@ -7,7 +7,7 @@
 
 #include "id2str.hpp"
 
-#ifdef DEBUG
+#if (defined DEBUG) || (defined TESTS)
 # include <stdio.h> // for printf
 # include <stdlib.h> // for exit
 #endif
